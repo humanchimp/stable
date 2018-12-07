@@ -1,9 +1,10 @@
 import chai from 'chai';
-import { describe } from "./stable";
+
+import { describe, run } from "./stable";
 
 const { expect } = chai;
 
-const suites = [
+run([
   describe("describe", suite => {
     let subject;
 
@@ -16,7 +17,7 @@ const suites = [
         expect(typeof subject.it).to.equal("function");
       })
 
-      .it("should have an `run` method", () => {
+      .it("should have a `run` method", () => {
         expect(typeof subject.run).to.equal("function");
       })
 
@@ -54,33 +55,5 @@ const suites = [
       )
       .describe("Suite#tap", suite => {});
   })
-];
+]);
 
-async function main() {
-  for (const suite of shuffle(suites.slice())) {
-    for await (const result of suite.tap()) {
-      console.log(result);
-    }
-  }
-}
-
-main();
-
-function shuffle(array) {
-  var m = array.length,
-    t,
-    i;
-
-  // While there remain elements to shuffle…
-  while (m) {
-    // Pick a remaining element…
-    i = Math.floor(Math.random() * m--);
-
-    // And swap it with the current element.
-    t = array[m];
-    array[m] = array[i];
-    array[i] = t;
-  }
-
-  return array;
-}

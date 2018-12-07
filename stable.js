@@ -1,3 +1,5 @@
+import { shuffle } from './shuffle';
+
 export function describe(description, closure) {
   const suite = new Suite(description);
 
@@ -5,6 +7,14 @@ export function describe(description, closure) {
     closure(suite);
   }
   return suite;
+}
+
+export async function run(suites, next = console.log) {
+  for (const suite of shuffle(suites.slice())) {
+    for await (const result of suite.tap()) {
+      next(result);
+    }
+  }
 }
 
 class Hooks {
@@ -104,8 +114,9 @@ class Suite {
   }
 
   async *tap() {
+    let count = 0;
     for await (const { ok, description, reason } of this.run()) {
-      yield `${ok ? "" : "not "}ok ${description}${formatReason(reason)}`;
+      yield `${ok ? "" : "not "}ok ${++count} - ${description}${formatReason(reason)}`;
     }
   }
 
