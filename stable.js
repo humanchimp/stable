@@ -17,9 +17,10 @@ class Hooks {
 }
 
 class Suite {
-  constructor(description, parent) {
+  constructor(description, parent, skipped = false) {
     this.description = description;
     this.parent = parent;
+    this.skipped = skipped;
     this.hooks = new Hooks();
     this.specs = [];
     this.suites = [];
@@ -56,22 +57,27 @@ class Suite {
   }
 
   it(description, test) {
-    this.specs.push({ description, test });
+    this.specs.push({ description, test, skipped: this.skipped });
     return this;
   }
 
-  describe(description, closure) {
+  describe(description, closure, skipped = false) {
     {
       const { length } = arguments;
 
-      if (length !== 2) {
-        throw new TypeError(`Expected 2 arguments. Got ${length}`);
+      if (length !== 2 && length !== 3) {
+        throw new TypeError(`Expected 2 or 3 arguments. Got ${length}`);
       }
     }
-    const suite = new Suite(description, this);
+    const suite = new Suite(description, this, skipped);
 
     closure(suite);
     this.suites.push(suite);
+    return this;
+  }
+
+  xdescribe(description) {
+    this.describe(description, closure, true);
     return this;
   }
 

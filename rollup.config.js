@@ -21,7 +21,7 @@ export default {
       sourceMaps: true
     }),
     nodeResolve({
-      extensions: [".ts", ".tsx", ".js", ".jsx"]
+      extensions: [".js", ".jsx"]
     }),
     commonjs(),
     serve({

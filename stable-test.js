@@ -1,4 +1,7 @@
+import chai from 'chai';
 import { describe } from "./stable";
+
+const { expect } = chai;
 
 const suites = [
   describe("describe", suite => {
@@ -10,22 +13,22 @@ const suites = [
       })
 
       .it("should have an `it` method", () => {
-        assert(typeof subject.it === "function");
+        expect(typeof subject.it).to.equal("function");
       })
 
       .it("should have an `run` method", () => {
-        assert(typeof subject.run === "function");
+        expect(typeof subject.run).to.equal("function");
       })
 
       .it("should have a `tap` method", () => {
-        assert(typeof subject.tap === "function");
+        expect(typeof subject.tap).to.equal("function");
       })
 
       .describe("Suite#it", suite =>
         suite.it("should enqueue a spec", () => {
-          assert(subject.specs.length === 0);
+          expect(subject.specs).to.have.lengthOf(0);
           subject.it("it", () => {});
-          assert(subject.specs.length === 1);
+          expect(subject.specs).to.have.lengthOf(1);
         })
       )
 
@@ -43,7 +46,10 @@ const suites = [
               reports.push(report);
             }
 
-            console.log(reports);
+            expect(reports).to.eql([
+              { description: 'subject a', reason: undefined, ok: true },
+              { description: 'subject b', reason: undefined, ok: true }
+            ]);
           })
       )
       .describe("Suite#tap", suite => {});
@@ -59,16 +65,6 @@ async function main() {
 }
 
 main();
-
-function assert(condition) {
-  if (!condition) {
-    throw new Error("Assertion error");
-  }
-}
-
-function delay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
 
 function shuffle(array) {
   var m = array.length,
