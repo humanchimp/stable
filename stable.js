@@ -1,4 +1,4 @@
-import { shuffle } from './shuffle';
+import { shuffle } from "./shuffle";
 
 export function describe(description, closure) {
   const suite = new Suite(description);
@@ -35,6 +35,17 @@ class Suite {
     this.specs = [];
     this.suites = [];
     this.focused = false;
+  }
+
+  url(url) {
+    this.meta || (this.meta = {});
+    this.meta.url = url;
+    return this;
+  }
+
+  meta(meta) {
+    this.meta = meta;
+    return this;
   }
 
   beforeAll(hook) {
@@ -116,7 +127,9 @@ class Suite {
   async *tap() {
     let count = 0;
     for await (const { ok, description, reason } of this.run()) {
-      yield `${ok ? "" : "not "}ok ${++count} - ${description}${formatReason(reason)}`;
+      yield `${ok ? "" : "not "}ok ${++count} - ${description}${formatReason(
+        reason
+      )}`;
     }
   }
 

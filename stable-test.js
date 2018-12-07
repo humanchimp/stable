@@ -1,4 +1,4 @@
-import chai from 'chai';
+import chai from "chai";
 
 import { describe, run } from "./stable";
 
@@ -48,12 +48,11 @@ run([
             }
 
             expect(reports).to.eql([
-              { description: 'subject a', reason: undefined, ok: true },
-              { description: 'subject b', reason: undefined, ok: true }
+              { description: "subject a", reason: undefined, ok: true },
+              { description: "subject b", reason: undefined, ok: true }
             ]);
           })
       )
       .describe("Suite#tap", suite => {});
   })
 ]);
-
