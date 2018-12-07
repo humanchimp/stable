@@ -71,10 +71,12 @@ class Suite {
   fit(description, test) {
     this.focused = true;
     this.specs.push({ description, test, focused: true });
+    return this;
   }
 
   xit(description, test) {
     this.specs.push({ description, test, skipped: true });
+    return this;
   }
 
   it(description, test) {
@@ -82,14 +84,7 @@ class Suite {
     return this;
   }
 
-  describe(description, closure, skipped = false) {
-    {
-      const { length } = arguments;
-
-      if (length !== 2 && length !== 3) {
-        throw new TypeError(`Expected 2 or 3 arguments. Got ${length}`);
-      }
-    }
+  describe(description, closure = required(), skipped = false) {
     const suite = new Suite(description, this, skipped);
 
     closure(suite);
@@ -196,4 +191,8 @@ ${reason.stack
     .map(line => `# ${line}`)
     .join("\n")}
 `;
+}
+
+function required() {
+  throw new Error("required");
 }
