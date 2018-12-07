@@ -7,9 +7,9 @@ inspired by jasmine.
 ## api
 
 ```javascript
-import { describe, runSuites } from 'stable'
+import { describe, run } from 'stable'
 
-runSuites([
+run([
   describe("a feature")
     .it("works!", () => { console.log("Golly!"); })
     .it("works well", () => {
