@@ -27,14 +27,15 @@ class Hooks {
 }
 
 class Suite {
-  constructor(description, parent, skipped = false) {
+  constructor(description, parent, { skipped = false, focused = false } = {}) {
     this.description = description;
     this.parent = parent;
     this.skipped = skipped;
+    this.focused = focused;
     this.hooks = new Hooks();
     this.specs = [];
     this.suites = [];
-    this.focused = false;
+    this.focusMode = false;
   }
 
   url(url) {
@@ -68,8 +69,18 @@ class Suite {
     return this;
   }
 
+  it(description, test) {
+    this.specs.push({
+      description,
+      test,
+      skipped: this.skipped,
+      focused: this.focused
+    });
+    return this;
+  }
+
   fit(description, test) {
-    this.focused = true;
+    this.focusMode = true;
     this.specs.push({ description, test, focused: true });
     return this;
   }
@@ -79,29 +90,28 @@ class Suite {
     return this;
   }
 
-  it(description, test) {
-    this.specs.push({ description, test, skipped: this.skipped });
-    return this;
-  }
-
-  describe(description, closure = required(), skipped = false) {
-    const suite = new Suite(description, this, skipped);
+  describe(description, closure = required(), options) {
+    const suite = new Suite(description, this, options);
 
     closure(suite);
     this.suites.push(suite);
     return this;
   }
 
-  xdescribe(description) {
-    this.describe(description, closure, true);
+  fdescribe(description, closure) {
+    this.describe(description, closure, false, { focused: true });
+  }
+
+  xdescribe(description, closure) {
+    this.describe(description, closure, true, { skipped: true });
     return this;
   }
 
-  async *hookify(queue, callback) {
+  async *hookify(queue, generate) {
     yield* await this.runHooks("beforeAll", this);
     for await (const item of queue) {
       yield* await this.runHooks("beforeEach", item);
-      yield* callback(item);
+      yield* generate(item);
       yield* await this.runHooks("afterEach", item);
     }
     yield* await this.runHooks("afterAll", this);
@@ -131,7 +141,7 @@ class Suite {
   async runSpec({ description, test, focused, skipped }) {
     description = prefixed(this, description);
 
-    if (skipped || (this.focused && !focused)) {
+    if (skipped || (this.focusMode && !focused)) {
       return {
         description,
         ok: true,
