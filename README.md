@@ -34,7 +34,7 @@ describe("a feature", () => {
   })
 })
 ```
-This part is not implemented yet. But it's planned. This is most likely how I will use this most of the time.
+~This part is not implemented yet. But it's planned.~ _Update_: This is implemented now! This is most likely how I will use this most of the time.
 
 ## why another test framework?
 
