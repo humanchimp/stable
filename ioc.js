@@ -6,22 +6,22 @@ export function ioc(code) {
   const stack = [suite];
 
   Function(...helpers, code)(
-    ...[...helpers].map(f => {
-      return (...rest) => {
-        if (!stacking.has(f)) {
-          peek()[f](...rest);
-          return;
-        }
-        const closure = rest.pop();
+    ...[...helpers].map(
+      method =>
+        stacking.has(method)
+          ? (...rest) => {
+              const closure = rest.pop();
 
-        peek()[f](...rest, (suite, ...r) => {
-          stack.push(suite);
-          closure(...r);
-          stack.pop();
-        });
-        return;
-      };
-    })
+              peek()[method](...rest, (s, ...r) => {
+                stack.push(s);
+                closure(...r);
+                stack.pop();
+              });
+            }
+          : (...rest) => {
+              peek()[method](...rest);
+            }
+    )
   );
 
   return suite;
