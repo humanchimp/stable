@@ -1,5 +1,5 @@
 import { fromAsyncIterable } from "most-async-iterable";
-import { tap } from './stable';
+import { tap } from "./stable";
 import { main } from "./stable-test";
 
 const reports = fromAsyncIterable(tap(main)).multicast();

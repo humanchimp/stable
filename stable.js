@@ -9,13 +9,18 @@ export function describe(description, closure) {
   return suite;
 }
 
-export async function run(suites, generate = reports, perform = console.log, sort = shuffle) {
+export async function run(
+  suites,
+  generate = reports,
+  perform = console.log,
+  sort = shuffle
+) {
   for await (const report of generate(suites, sort)) {
     perform(report);
   }
 }
 
-export async function *reports(suites, sort = shuffle) {
+export async function* reports(suites, sort = shuffle) {
   suites = [].concat(suites);
 
   for (const suite of sort([...suites])) {
@@ -25,9 +30,7 @@ export async function *reports(suites, sort = shuffle) {
   }
 }
 
-export async function *tap(suites, sort = shuffle) {
-  suites = [].concat(suites);
-
+export async function* tap(suites, sort = shuffle) {
   let count = 0;
 
   for await (const { ok, description, reason } of reports(suites, sort)) {
@@ -138,6 +141,7 @@ class Suite {
       skipped: this.skipped
     };
     const suite = new Suite(description, this, options);
+
     for (const row of table) {
       suite.describe(
         descriptionForRow(description, row),
@@ -174,9 +178,7 @@ class Suite {
         yield this.reportForSpec(spec);
       }.bind(this)
     );
-    yield* await this.hookify(sort([...this.suites]), async function*(
-      suite
-    ) {
+    yield* await this.hookify(sort([...this.suites]), async function*(suite) {
       yield* await suite.reports();
     });
   }
@@ -237,9 +239,10 @@ function prefixed(node, description) {
 function formatReason(reason) {
   return reason
     ? `
+
 ${reason.stack
         .split("\n")
-        .map(line => `# ${line}`)
+        .map(line => `    ${line}`)
         .join("\n")}
 `
     : "";

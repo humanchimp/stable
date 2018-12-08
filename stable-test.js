@@ -20,10 +20,6 @@ export const main = describe("describe", suite => {
       expect(typeof subject.reports).to.equal("function");
     })
 
-    .it("should have a `tap` method", () => {
-      expect(typeof subject.tap).to.equal("function");
-    })
-
     .describe("Suite#it", suite =>
       suite.it("should enqueue a spec", () => {
         expect(subject.specs).to.have.lengthOf(0);
