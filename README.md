@@ -56,7 +56,9 @@ It should be dead simple and self contained. It should be flexible and, failing 
 - [x] Specs (`it`)
 - [x] Hooks (`{before,after}{Each,All}`)
 - [x] Metadata (`meta` and `url` annotations)
-- [ ] `describeEach` a nice innovation from jest
+- [x] Focus in (`fdescribe`, `fit`)
+- [x] Skip (`xdescribe`, `xit`)
+- [ ] Tables (`describeEach`, a nice innovation from jest)
 - [ ] Reporters
   - [ ] tap built in
   - [ ] others are possible
