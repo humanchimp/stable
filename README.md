@@ -63,3 +63,7 @@ It should be dead simple and self-contained. It should be flexible and, failing 
 - [ ] Suite partitioning
 - [ ] Suite randomization
 - [ ] Familiar BDD interface
+
+# license
+
+See [LICENSE](LICENSE)
