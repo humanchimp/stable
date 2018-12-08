@@ -71,6 +71,7 @@ It should be dead simple and self contained. It should be flexible and, failing 
 - [ ] Suite randomization
   - [ ] Deep randomization?
 - [ ] Familiar BDD interface
+- [x] [Simple interop with a streams library](streams.js)
 
 ## license
 
