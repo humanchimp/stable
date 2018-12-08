@@ -19,8 +19,9 @@ run([
 ])
 
 ```
+Build up suites using the fluent API. Maximal simplicity and flexibility at the cost of some boilerplate (extra leading dots; you have to call `run` yourself)
 
-Or as a framework:
+I will most likely implement a framework on top of the library. It would then allow you to write code that is virtually identical to jasmine or mocha or jest.
 ```javascript
 
 describe("a feature", () => {
@@ -28,9 +29,17 @@ describe("a feature", () => {
     console.log("This is sort of like jasmine or mocha");
   })
 
-  it("works well", () => {
+  it("is time-tested", () => {
     assert(true)
   })
 })
 ```
-(This part is not implemented yet. But it's planned)
+This part is not implemented yet. But it's planned. This is most likely how I will use this most of the time.
+
+## why another test framework
+
+Because this one is mine.
+
+The real reason is that I wanted to play with async generators and this seemed like a good use case for them. But I like the result so far, and I want to build out my own framework as an experiment. I got really excited about jest, but then it turned out to be way too opinionated and wasn't going to work well for my use cases. So I welcome the opportunity to have my own lattice to hang implements on—the paticular ones that make my own peculiar tradeoffs.
+
+So that is why.
