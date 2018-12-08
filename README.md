@@ -72,6 +72,6 @@ It should be dead simple and self contained. It should be flexible and, failing 
   - [ ] Deep randomization?
 - [ ] Familiar BDD interface
 
-# license
+## license
 
 See [LICENSE](LICENSE)
