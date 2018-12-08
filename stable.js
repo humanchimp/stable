@@ -69,7 +69,7 @@ class Suite {
     return this;
   }
 
-  it(description, test) {
+  it(description, test = required()) {
     this.specs.push({
       description,
       test,
@@ -79,13 +79,13 @@ class Suite {
     return this;
   }
 
-  fit(description, test) {
+  fit(description, test = required()) {
     this.focusMode = true;
     this.specs.push({ description, test, focused: true });
     return this;
   }
 
-  xit(description, test) {
+  xit(description, test = require()) {
     this.specs.push({ description, test, skipped: true });
     return this;
   }
@@ -100,10 +100,23 @@ class Suite {
 
   fdescribe(description, closure) {
     this.describe(description, closure, false, { focused: true });
+    return this;
   }
 
   xdescribe(description, closure) {
     this.describe(description, closure, true, { skipped: true });
+    return this;
+  }
+
+  describeEach(table, description, closure = required()) {
+    return this;
+  }
+
+  fdescribeEach() {
+    return this;
+  }
+
+  xdescribeEach() {
     return this;
   }
 

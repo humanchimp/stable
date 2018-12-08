@@ -63,6 +63,8 @@ It should be dead simple and self contained. It should be flexible and, failing 
   - [ ] tap built in
   - [ ] others are possible
 - [ ] Plays nice.
+  - [x] Works in browsers
+  - [ ] Works in node
   - [ ] Works with karma
   - [ ] Works with testem
   - [ ] Works with jsdom
@@ -71,6 +73,8 @@ It should be dead simple and self contained. It should be flexible and, failing 
 - [ ] Suite randomization
   - [ ] Deep randomization?
 - [ ] Familiar BDD interface
+- [ ] Minimal (zero?) fallout
+- [ ] Fail-fast option?
 - [x] [Simple interop with a streams library](streams.js)
 
 ## license

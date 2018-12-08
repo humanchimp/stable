@@ -1,3 +1,5 @@
+// The Fisher-Yates shuffle.
+// FIXME: Stolen without proper attribution from Mike Bostock.
 export function shuffle(array) {
   var m = array.length,
     t,

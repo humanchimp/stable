@@ -13,7 +13,7 @@ export const main = describe("describe", suite => {
     })
 
     .it("should have an `it` method", () => {
-      expect(true).to.equal(false);
+      expect(false).to.equal(true);
       expect(typeof subject.it).to.equal("function");
     })
 
