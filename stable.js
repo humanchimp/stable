@@ -9,11 +9,31 @@ export function describe(description, closure) {
   return suite;
 }
 
-export async function run(suites, next = console.log) {
-  for (const suite of shuffle(suites.slice())) {
-    for await (const result of suite.tap()) {
-      next(result);
+export async function run(suites, generate = reports, perform = console.log, sort = shuffle) {
+  for await (const report of generate(suites, sort)) {
+    perform(report);
+  }
+}
+
+export async function *reports(suites, sort = shuffle) {
+  suites = [].concat(suites);
+
+  for (const suite of sort([...suites])) {
+    for await (const result of suite.reports(sort)) {
+      yield result;
     }
+  }
+}
+
+export async function *tap(suites, sort = shuffle) {
+  suites = [].concat(suites);
+
+  let count = 0;
+
+  for await (const { ok, description, reason } of reports(suites, sort)) {
+    yield `${ok ? "" : "not "}ok ${++count} - ${description}${formatReason(
+      reason
+    )}`;
   }
 }
 
@@ -38,14 +58,12 @@ class Suite {
     this.focusMode = false;
   }
 
-  url(url) {
-    this.meta || (this.meta = {});
-    this.meta.url = url;
-    return this;
-  }
-
-  meta(meta) {
-    this.meta = meta;
+  info(info) {
+    this.specs.push({
+      description: descriptionForInfo(info),
+      skipped: true,
+      test: passes
+    });
     return this;
   }
 
@@ -99,16 +117,35 @@ class Suite {
   }
 
   fdescribe(description, closure) {
-    this.describe(description, closure, false, { focused: true });
+    this.describe(description, closure, false, {
+      focused: true,
+      skipped: this.skipped
+    });
     return this;
   }
 
   xdescribe(description, closure) {
-    this.describe(description, closure, true, { skipped: true });
+    this.describe(description, closure, true, {
+      skipped: true,
+      focused: this.focused
+    });
     return this;
   }
 
-  describeEach(table, description, closure = required()) {
+  describeEach(description, table, closure = required()) {
+    const options = {
+      focused: this.focused,
+      skipped: this.skipped
+    };
+    const suite = new Suite(description, this, options);
+    for (const row of table) {
+      suite.describe(
+        descriptionForRow(description, row),
+        s => closure(s, row),
+        options
+      );
+    }
+    this.suites.push(suite);
     return this;
   }
 
@@ -130,28 +167,21 @@ class Suite {
     yield* await this.runHooks("afterAll", this);
   }
 
-  async *run() {
+  async *reports(sort = shuffle) {
     yield* await this.hookify(
       this.specs,
       function*(spec) {
-        yield this.runSpec(spec);
+        yield this.reportForSpec(spec);
       }.bind(this)
     );
-    yield* await this.hookify(this.suites, async function*(suite) {
-      yield* await suite.run();
+    yield* await this.hookify(sort([...this.suites]), async function*(
+      suite
+    ) {
+      yield* await suite.reports();
     });
   }
 
-  async *tap() {
-    let count = 0;
-    for await (const { ok, description, reason } of this.run()) {
-      yield `${ok ? "" : "not "}ok ${++count} - ${description}${formatReason(
-        reason
-      )}`;
-    }
-  }
-
-  async runSpec({ description, test, focused, skipped }) {
+  async reportForSpec({ description, test, focused, skipped }) {
     description = prefixed(this, description);
 
     if (skipped || (this.focusMode && !focused)) {
@@ -205,17 +235,36 @@ function prefixed(node, description) {
 }
 
 function formatReason(reason) {
-  if (!reason) {
-    return "";
-  }
-  return `
+  return reason
+    ? `
 ${reason.stack
-    .split("\n")
-    .map(line => `# ${line}`)
-    .join("\n")}
-`;
+        .split("\n")
+        .map(line => `# ${line}`)
+        .join("\n")}
+`
+    : "";
+}
+
+function descriptionForRow(description, table) {
+  return `${description} [table]`;
+}
+
+function descriptionForInfo(info) {
+  // Do something reasonable in different scenarios...
+  {
+    const url = new URL(info);
+
+    if (url.hostname || url.pathname) {
+      return `See ${url} for more information`;
+    }
+  }
+  return description;
 }
 
 function required() {
   throw new Error("required");
+}
+
+function passes() {
+  return true;
 }

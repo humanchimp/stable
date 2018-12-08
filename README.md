@@ -58,9 +58,9 @@ It should be dead simple and self contained. It should be flexible and, failing 
 - [x] Metadata (`meta` and `url` annotations)
 - [x] Focus in (`fdescribe`, `fit`)
 - [x] Skip (`xdescribe`, `xit`)
-- [ ] Tables (`describeEach`, a nice innovation from jest)
+- [x] Tables (`describeEach`, a nice innovation from jest)
 - [ ] Reporters
-  - [ ] tap built in
+  - [ ] tap / `console.{log,warn}` built in
   - [ ] others are possible
 - [ ] Plays nice.
   - [x] Works in browsers
@@ -70,8 +70,8 @@ It should be dead simple and self contained. It should be flexible and, failing 
   - [ ] Works with jsdom
 - [ ] Suite partitioning
   - [ ] Deep partitioning?
-- [ ] Suite randomization
-  - [ ] Deep randomization?
+- [x] Suite randomization
+  - [x] Deep randomization
 - [ ] Familiar BDD interface
 - [ ] Minimal (zero?) fallout
 - [ ] Fail-fast option?

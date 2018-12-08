@@ -13,12 +13,11 @@ export const main = describe("describe", suite => {
     })
 
     .it("should have an `it` method", () => {
-      expect(false).to.equal(true);
       expect(typeof subject.it).to.equal("function");
     })
 
-    .it("should have a `run` method", () => {
-      expect(typeof subject.run).to.equal("function");
+    .it("should have a `reports` method", () => {
+      expect(typeof subject.reports).to.equal("function");
     })
 
     .it("should have a `tap` method", () => {
@@ -33,7 +32,7 @@ export const main = describe("describe", suite => {
       })
     )
 
-    .describe("Suite#run", suite =>
+    .describe("Suite#reports", suite =>
       suite
 
         .beforeEach(() => {
@@ -43,7 +42,7 @@ export const main = describe("describe", suite => {
         .it("asynchronously yields reports", async () => {
           const reports = [];
 
-          for await (const report of subject.run()) {
+          for await (const report of subject.reports()) {
             reports.push(report);
           }
 
@@ -53,5 +52,26 @@ export const main = describe("describe", suite => {
           ]);
         })
     )
-    .describe("Suite#tap", suite => {});
-})
+
+    .describe("Suite#tap", suite => {})
+
+    .describeEach(
+      "table row",
+      [[1, 2, 3], [1, 2, 3], [1, 2, 4], [1, 2, 3], [1, 2, 3]],
+      (suite, [a, b, c]) =>
+        suite
+          .info("https://www.github.com/humanchimp/stable/issues/1")
+
+          .it("should start with 1", () => {
+            expect(a).to.equal(1);
+          })
+
+          .it("should proceed with 2", () => {
+            expect(b).to.equal(2);
+          })
+
+          .it("should end with 3", () => {
+            expect(c).to.equal(3);
+          })
+    );
+});

@@ -1,7 +1,8 @@
-import { fromAsyncIterable } from 'most-async-iterable';
-import { main } from './stable-test';
+import { fromAsyncIterable } from "most-async-iterable";
+import { tap } from './stable';
+import { main } from "./stable-test";
 
-const reports = fromAsyncIterable(main.tap()).multicast();
+const reports = fromAsyncIterable(tap(main)).multicast();
 
-reports.filter(report => report.startsWith('ok')).observe(console.info);
-reports.filter(report => report.startsWith('not ok')).observe(console.warn);
+reports.filter(report => report.startsWith("ok")).observe(console.info);
+reports.filter(report => report.startsWith("not ok")).observe(console.warn);
