@@ -59,8 +59,8 @@ It should be dead simple and self contained. It should be flexible and, failing 
 - [x] Focus in (`fdescribe`, `fit`)
 - [x] Skip (`xdescribe`, `xit`)
 - [x] Tables (`describeEach`, a nice innovation from jest)
-- [ ] Reporters
-  - [ ] tap / `console.{log,warn}` built in
+- [x] Reporters
+  - [x] tap / `console.{log,warn}` built in
   - [ ] others are possible
 - [ ] Plays nice.
   - [x] Works in browsers
@@ -72,7 +72,7 @@ It should be dead simple and self contained. It should be flexible and, failing 
   - [ ] Deep partitioning?
 - [x] Suite randomization
   - [x] Deep randomization
-- [ ] Familiar BDD interface
+- [x] Familiar BDD interface
 - [ ] Minimal (zero?) fallout
 - [ ] Fail-fast option?
 - [x] [Simple interop with a streams library](streams.js)

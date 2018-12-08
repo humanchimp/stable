@@ -5,7 +5,7 @@ import nodeResolve from "rollup-plugin-node-resolve";
 import commonjs from "rollup-plugin-commonjs";
 
 export default {
-  input: "streams.js",
+  input: "ioc-test.js",
   output: {
     format: "iife",
     file: "static/test.js",

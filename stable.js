@@ -90,11 +90,11 @@ class Suite {
     return this;
   }
 
-  it(description, test = required()) {
+  it(description = required(), test) {
     this.specs.push({
       description,
       test,
-      skipped: this.skipped,
+      skipped: this.skipped || test == null,
       focused: this.focused
     });
     return this;
@@ -106,7 +106,7 @@ class Suite {
     return this;
   }
 
-  xit(description, test = require()) {
+  xit(description = require(), test) {
     this.specs.push({ description, test, skipped: true });
     return this;
   }
@@ -197,8 +197,8 @@ class Suite {
 
     return {
       description,
-      reason,
-      ok: !reason
+      ok: !reason,
+      ...(reason != null && { reason })
     };
   }
 
@@ -233,7 +233,7 @@ function prefixed(node, description) {
   do {
     segments.unshift(node.description);
   } while ((node = node.parent));
-  return [...segments, description].join(" ");
+  return [...segments, description].filter(Boolean).join(" ");
 }
 
 function formatReason(reason) {
