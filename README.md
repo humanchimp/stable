@@ -36,10 +36,30 @@ describe("a feature", () => {
 ```
 This part is not implemented yet. But it's planned. This is most likely how I will use this most of the time.
 
-## why another test framework
+## why another test framework?
 
 Because this one is mine.
 
 The real reason is that I wanted to play with async generators and this seemed like a good use case for them. But I like the result so far, and I want to build out my own framework as an experiment. I got really excited about jest, but then it turned out to be way too opinionated and wasn't going to work well for my use cases. So I welcome the opportunity to have my own lattice to hang implements on—the ones that make my own peculiar tradeoffs.
 
 So that is why.
+
+## north star
+
+It should be dead simple and self-contained. It should be flexible and, failing that, hackable.
+
+## goals
+
+- [x] Suites (`describe`)
+- [x] Specs (`it`)
+- [x] Hooks (`{before,after}{Each,All}`)
+- [x] Metadata (`meta` and `url` annotations)
+- [ ] `describeEach` a nice innovation from jest
+- [ ] Reporters (tap built in, others possible)
+- [ ] Plays nice.
+  - [ ] Works with karma
+  - [ ] Works with testem
+  - [ ] Works with jsdom
+- [ ] Suite partitioning
+- [ ] Suite randomization
+- [ ] Familiar BDD interface
