@@ -1,4 +1,4 @@
-# stable
+# :horse: stable
 
 an experimental test framework built with async generators.
 
