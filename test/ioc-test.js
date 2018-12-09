@@ -1,8 +1,8 @@
 import chai from "chai";
 
-import { describe, run } from "./stable";
-import { ioc } from "./ioc";
-import { asyncSpread } from "./asyncSpread";
+import { describe, run } from "../src/stable";
+import { ioc } from "../src/ioc";
+import { asyncSpread } from "../src/asyncSpread";
 
 const { expect } = chai;
 

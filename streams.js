@@ -1,6 +1,6 @@
 import { fromAsyncIterable } from "most-async-iterable";
-import { reports } from "./stable";
-import { main } from "./main-test";
+import { reports } from "./src/stable";
+import { main } from "./test/main-test";
 
 const stream = fromAsyncIterable(reports(main)).multicast();
 
