@@ -2,7 +2,7 @@
 
 an experimental test framework built with async generators.
 
-inspired by jasmine. bring your own assertion library.
+inspired by jasmine, mocha and jest. bring your own assertion library.
 
 ## api
 
@@ -19,7 +19,7 @@ describe("a feature", () => {
   })
 })
 ```
-_Figure 1_: It works pretty similarly to other BDD frameworks like jasmine or mocha or jest. It's inspired by all three of them.
+_Figure 1_: It works pretty similarly to other BDD frameworks like jasmine or mocha or jest.
 
 You can use it as a library:
 ```javascript
