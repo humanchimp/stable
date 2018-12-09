@@ -6,22 +6,7 @@ inspired by jasmine. bring your own assertion library.
 
 ## api
 
-You can use it as a library:
-```javascript
-import { describe, run } from 'stable'
-
-run([
-  describe("a feature")
-    .it("works!", () => { console.log("Golly!"); })
-    .it("is bug-free", () => {
-      assert(true)
-    })
-])
-```
-
-Build up suites using the fluent API. Maximal simplicity and flexibility at the cost of some boilerplate (extra leading dots; you have to call `run` yourself)
-
-I will most likely implement a framework on top of the library. It would then allow you to write code that is virtually identical to jasmine or mocha or jest.
+You can use it as a framework:
 
 ```javascript
 describe("a feature", () => {
@@ -34,7 +19,21 @@ describe("a feature", () => {
   })
 })
 ```
-~This part is not implemented yet. But it's planned.~ _Update_: This is implemented now! This is most likely how I will use this most of the time.
+_Figure 1_: It works pretty similarly to other BDD frameworks like jasmine or mocha or jest. It's inspired by all three of them.
+
+You can use it as a library:
+```javascript
+import { describe, run } from 'stable'
+
+run([
+  describe("a feature")
+    .it("works!", () => { console.log("Golly!"); })
+    .it("is bug-free", () => {
+      assert(true)
+    })
+])
+```
+_Figure 2_: In this example, `describe` is a factory method which is the entry point to the `Suite` class' cascading (sometimes called "fluent") builder api. You can build up arbitrary test suites using this API. It takes a bit of getting used to but all features are supported (the framework derives all of its capabilities from this API).
 
 ## why another test framework?
 
