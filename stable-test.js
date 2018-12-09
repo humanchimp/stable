@@ -1,6 +1,7 @@
 import chai from "chai";
 
 import { describe, run } from "./stable";
+import { asyncSpread } from "./asyncSpread";
 
 const { expect } = chai;
 
@@ -36,38 +37,70 @@ export const main = describe("describe", suite => {
         })
 
         .it("asynchronously yields reports", async () => {
-          const reports = [];
-
-          for await (const report of subject.reports()) {
-            reports.push(report);
-          }
-
-          expect(reports).to.eql([
-            { description: "subject a", reason: undefined, ok: true },
-            { description: "subject b", reason: undefined, ok: true }
+          expect(await asyncSpread(subject.reports(it => it))).to.eql([
+            { description: "subject a", ok: true },
+            { description: "subject b", ok: true }
           ]);
         })
     )
 
-    .describe("Suite#tap", suite => {})
+    .describe("Suite#xdescribe", suite =>
+      suite
+        .beforeEach(() => {
+          subject.xdescribe("xdescribe", s1 =>
+            s1
+              .it("should pass", () => {})
+              .it("should fail", () => {
+                expect(true).to.be.false;
+              })
+              .describe("inner suite", s2 =>
+                s2
+                  .it("should pass", () => {})
+                  .it("should fail", () => {
+                    expect(true).to.be.false;
+                  })
+                  .xit("would pass")
+                  .xit("would fail")
+              )
+          );
+        })
 
-    .describeEach(
-      "table row",
-      [[1, 2, 3], [1, 2, 3], [1, 2, 4], [1, 2, 3], [1, 2, 3]],
-      (suite, [a, b, c]) =>
-        suite
-          .info("https://www.github.com/humanchimp/stable/issues/1")
-
-          .it("should start with 1", () => {
-            expect(a).to.equal(1);
-          })
-
-          .it("should proceed with 2", () => {
-            expect(b).to.equal(2);
-          })
-
-          .it("should end with 3", () => {
-            expect(c).to.equal(3);
-          })
+        .it(
+          "should skip all the specs all the way down, turtle-wise",
+          async () => {
+            expect(await asyncSpread(subject.reports(it => it))).to.eql([
+              {
+                description: "subject xdescribe should pass",
+                ok: true,
+                skipped: true
+              },
+              {
+                description: "subject xdescribe should fail",
+                ok: true,
+                skipped: true
+              },
+              {
+                description: "subject xdescribe inner suite should pass",
+                ok: true,
+                skipped: true
+              },
+              {
+                description: "subject xdescribe inner suite should fail",
+                ok: true,
+                skipped: true
+              },
+              {
+                description: "subject xdescribe inner suite would pass",
+                ok: true,
+                skipped: true
+              },
+              {
+                description: "subject xdescribe inner suite would fail",
+                ok: true,
+                skipped: true
+              }
+            ]);
+          }
+        )
     );
 });

@@ -94,7 +94,7 @@ class Suite {
     this.specs.push({
       description,
       test,
-      skipped: this.skipped || test == null,
+      skipped: test == null || this.skipped,
       focused: this.focused
     });
     return this;
@@ -102,17 +102,30 @@ class Suite {
 
   fit(description, test = required()) {
     this.focusMode = true;
-    this.specs.push({ description, test, focused: true });
+    this.specs.push({
+      description,
+      test,
+      focused: true,
+      skipped: this.skipped
+    });
     return this;
   }
 
   xit(description = require(), test) {
-    this.specs.push({ description, test, skipped: true });
+    this.specs.push({
+      description,
+      test,
+      skipped: true,
+      focused: this.focused
+    });
     return this;
   }
 
-  describe(description, closure = required(), options) {
-    const suite = new Suite(description, this, options);
+  describe(description, closure = required(), options = {}) {
+    const suite = new Suite(description, this, {
+      ...options,
+      ...(this.skipped && { skipped: true })
+    });
 
     closure(suite);
     this.suites.push(suite);
@@ -120,18 +133,12 @@ class Suite {
   }
 
   fdescribe(description, closure) {
-    this.describe(description, closure, false, {
-      focused: true,
-      skipped: this.skipped
-    });
+    this.describe(description, closure, { focused: true });
     return this;
   }
 
   xdescribe(description, closure) {
-    this.describe(description, closure, true, {
-      skipped: true,
-      focused: this.focused
-    });
+    this.describe(description, closure, { skipped: true });
     return this;
   }
 
