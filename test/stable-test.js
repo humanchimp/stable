@@ -26,7 +26,7 @@ export const coreSuite = describe("describe", suite => {
         expect(subject.specs).to.have.lengthOf(0);
         subject.it("it", () => {});
         expect(subject.specs).to.have.lengthOf(1);
-      })
+      }),
     )
 
     .describe("Suite#reports", suite =>
@@ -39,9 +39,9 @@ export const coreSuite = describe("describe", suite => {
         .it("asynchronously yields reports", async () => {
           expect(await asyncSpread(subject.reports(it => it))).to.eql([
             { description: "subject a", ok: true },
-            { description: "subject b", ok: true }
+            { description: "subject b", ok: true },
           ]);
-        })
+        }),
     )
 
     .describe("Suite#xdescribe", suite =>
@@ -60,8 +60,8 @@ export const coreSuite = describe("describe", suite => {
                     expect(true).to.be.false;
                   })
                   .xit("would pass")
-                  .xit("would fail")
-              )
+                  .xit("would fail"),
+              ),
           );
         })
 
@@ -72,35 +72,35 @@ export const coreSuite = describe("describe", suite => {
               {
                 description: "subject xdescribe should pass",
                 ok: true,
-                skipped: true
+                skipped: true,
               },
               {
                 description: "subject xdescribe should fail",
                 ok: true,
-                skipped: true
+                skipped: true,
               },
               {
                 description: "subject xdescribe inner suite should pass",
                 ok: true,
-                skipped: true
+                skipped: true,
               },
               {
                 description: "subject xdescribe inner suite should fail",
                 ok: true,
-                skipped: true
+                skipped: true,
               },
               {
                 description: "subject xdescribe inner suite would pass",
                 ok: true,
-                skipped: true
+                skipped: true,
               },
               {
                 description: "subject xdescribe inner suite would fail",
                 ok: true,
-                skipped: true
-              }
+                skipped: true,
+              },
             ]);
-          }
-        )
+          },
+        ),
     );
 });

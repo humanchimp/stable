@@ -27,14 +27,14 @@ describe('a test suite', () => {
             {
               description: "a test suite a feature should work",
               ok: true,
-              skipped: true
+              skipped: true,
             },
             {
               description: "a test suite a feature should work well",
               ok: true,
-              skipped: true
-            }
-          ]
+              skipped: true,
+            },
+          ],
         ],
         [
           `
@@ -64,35 +64,34 @@ describe('skipping failed tests', () => {
             {
               description: "skipping failed tests should work",
               ok: true,
-              skipped: true
+              skipped: true,
             },
             {
               description: "skipping failed tests should work",
               ok: true,
-              skipped: true
+              skipped: true,
             },
             {
               description: "skipping failed tests a nested suite should work",
               ok: true,
-              skipped: true
+              skipped: true,
             },
             {
               description: "skipping failed tests a skipped suite should work",
               ok: true,
-              skipped: true
-            }
-          ]
-        ]
+              skipped: true,
+            },
+          ],
+        ],
       ],
       (suite, [code, reports]) => {
         suite.it(
           "should return an asynchronous iterator over the reports run sequentially",
           async () => {
             expect(await asyncSpread(ioc(code).reports(it => it))).to.eql(
-              reports
+              reports,
             );
-          }
+          },
         );
-      }
+      },
     ));
-
