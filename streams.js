@@ -1,8 +1,8 @@
 import { fromAsyncIterable } from "most-async-iterable";
-import { tap } from "./stable";
-import { main } from "./stable-test";
+import { reports } from "./stable";
+import { main } from "./main-test";
 
-const reports = fromAsyncIterable(main.reports()).multicast();
+const stream = fromAsyncIterable(reports(main)).multicast();
 
-reports.filter(({ ok }) => ok).observe(console.info);
-reports.filter(({ ok }) => !ok).observe(console.warn);
+stream.filter(({ ok }) => ok).observe(console.info);
+stream.filter(({ ok }) => !ok).observe(console.warn);

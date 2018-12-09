@@ -5,7 +5,7 @@ import { asyncSpread } from "./asyncSpread";
 
 const { expect } = chai;
 
-export const main = describe("describe", suite => {
+export const coreSuite = describe("describe", suite => {
   let subject;
 
   return suite

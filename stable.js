@@ -186,7 +186,7 @@ class Suite {
       }.bind(this)
     );
     yield* await this.hookify(sort([...this.suites]), async function*(suite) {
-      yield* await suite.reports();
+      yield* await suite.reports(sort);
     });
   }
 

@@ -6,7 +6,7 @@ import { asyncSpread } from "./asyncSpread";
 
 const { expect } = chai;
 
-export const ioc = describe("ioc", suite =>
+export const iocSuite = describe("ioc", suite =>
   suite
     .info("https://github.com/humanchimp/stable/issues/1")
 
@@ -88,7 +88,7 @@ describe('skipping failed tests', () => {
         suite.it(
           "should return an asynchronous iterator over the reports run sequentially",
           async () => {
-            expect(await asyncSpread(ioc(code).reports(identity))).to.eql(
+            expect(await asyncSpread(ioc(code).reports(it => it))).to.eql(
               reports
             );
           }
@@ -96,6 +96,3 @@ describe('skipping failed tests', () => {
       }
     ));
 
-function identity(it) {
-  return it;
-}
