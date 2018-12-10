@@ -7,7 +7,7 @@
   "license": "MIT",
   "private": false,
   "scripts": {
-    "test": "node --experimental-modules ./cli/cli.js"
+    "test": "node ./cli/cli.js"
   },
   "devDependencies": {
     "@babel/core": "^7.2.0",

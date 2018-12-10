@@ -30,16 +30,6 @@ export async function* reports(suites, sort = shuffle) {
   }
 }
 
-export async function* tap(suites, sort = shuffle) {
-  let count = 0;
-
-  for await (const { ok, description, reason } of reports(suites, sort)) {
-    yield `${ok ? "" : "not "}ok ${++count} - ${description}${formatReason(
-      reason,
-    )}`;
-  }
-}
-
 class Hooks {
   constructor() {
     this.beforeAll = [];
@@ -168,6 +158,13 @@ class Suite {
     return this;
   }
 
+  size() {
+    return (
+      this.specs.length +
+      this.suites.reduce((sum, suite) => sum + suite.size(), 0)
+    );
+  }
+
   async *hookify(queue, generate) {
     yield* await this.runHooks("beforeAll", this);
     for await (const item of queue) {
@@ -241,18 +238,6 @@ function prefixed(node, description) {
     segments.unshift(node.description);
   } while ((node = node.parent));
   return [...segments, description].filter(Boolean).join(" ");
-}
-
-function formatReason(reason) {
-  return reason
-    ? `
-
-${reason.stack
-        .split("\n")
-        .map(line => `    ${line}`)
-        .join("\n")}
-`
-    : "";
 }
 
 function descriptionForRow(description, table) {

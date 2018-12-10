@@ -1,16 +1,14 @@
 import { describe } from "./stable";
 import { helpers, stacking } from "./names";
-export { run, reports, tap } from "./stable";
+export { run, reports } from "./stable";
 
-export function ioc(code) {
-  const suite = describe(null);
+export function ioc(code, description = null) {
+  const suite = describe(description);
   const stack = [suite];
   const wrapped = `
 ${code};
 return typeof bundle === 'undefined' ? {} : bundle;`;
-
-  const bundle = Function("exports", ...helpers, wrapped)(
-    exports,
+  const bundle = Function(...helpers, wrapped)(
     ...[...helpers].map(method =>
       stacking.has(method)
         ? (...rest) => {

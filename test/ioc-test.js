@@ -1,6 +1,6 @@
 import chai from "chai";
 
-import { describe, run } from "../src/stable";
+import { describe } from "../src/stable";
 import { ioc } from "../src/ioc";
 import { asyncSpread } from "../src/asyncSpread";
 

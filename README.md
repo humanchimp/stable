@@ -54,7 +54,7 @@ It should be dead simple and self contained. It should be flexible and, failing 
 - [x] Suites (`describe`)
 - [x] Specs (`it`)
 - [x] Hooks (`{before,after}{Each,All}`)
-- [x] Metadata (`meta` and `url` annotations)
+- [x] Metadata (`info` annotations)
 - [x] Focus in (`fdescribe`, `fit`)
 - [x] Skip (`xdescribe`, `xit`)
 - [x] Tables (`describeEach`, a nice innovation from jest)
@@ -63,7 +63,7 @@ It should be dead simple and self contained. It should be flexible and, failing 
   - [ ] others are possible
 - [ ] Plays nice.
   - [x] Works in browsers
-  - [ ] Works in node
+  - [x] Works in node
   - [ ] Works with karma
   - [ ] Works with testem
   - [ ] Works with jsdom

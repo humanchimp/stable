@@ -1,4 +1,4 @@
-const { from } = require("most");
+const { of, from, startWith } = require("most");
 const { fromAsyncIterable } = require("most-async-iterable");
 const glob = require("glob");
 const { rollup } = require("rollup");
@@ -7,26 +7,28 @@ const nodeResolve = require("rollup-plugin-node-resolve");
 const commonjs = require("rollup-plugin-commonjs");
 const babel = require("rollup-plugin-babel");
 
-glob(`test/**-test.js`, (err, files) => {
+glob(`test/**-test.js`, async (err, files) => {
   if (err != null) {
     console.error(err);
     process.exit(1);
   }
 
-  const reports = from(files)
+  const suites = from(files)
     .map(entryPoint)
     .await()
-    .map(ioc)
+    .map(({ code, path }) => ioc(code, `${path} |`))
     .filter(Boolean)
-    .chain(suite => fromAsyncIterable(suite.reports()))
-    .map(tap);
+    .multicast();
 
-  reports.observe(console.log);
+  startWith(
+    `1..${await suites.reduce((sum, suite) => sum + suite.size(), 0)}`, // Plan
+    suites.chain(suite => fromAsyncIterable(suite.reports())).map(tap), // Stream
+  ).observe(console.log);
 });
 
-async function entryPoint(input) {
+async function entryPoint(path) {
   const bundle = await rollup({
-    input,
+    input: path,
     plugins: [
       babel({
         presets: [
@@ -58,15 +60,15 @@ async function entryPoint(input) {
     name: "bundle",
     sourcemap: "inline",
   });
-  return code;
+  return { code, path };
 }
 
 let count = 0;
 
-function tap({ ok, description, reason }) {
-  return `${ok ? "" : "not "}ok ${++count} - ${description}${formatReason(
+function tap({ ok, description, reason, skipped }) {
+  return `${ok ? "" : "not "}ok ${++count} ${description}${formatReason(
     reason,
-  )}`;
+  )}${skipped ? " # SKIP" : ""}`;
 }
 
 function formatReason(reason) {
