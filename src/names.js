@@ -4,7 +4,7 @@ export const stacking = new Set([
   "fdescribe",
   "describeEach",
   "xdescribeEach",
-  "fdescribeEach"
+  "fdescribeEach",
 ]);
 
 export const deferred = new Set([
@@ -15,7 +15,7 @@ export const deferred = new Set([
   "afterAll",
   "beforeEach",
   "afterEach",
-  "info"
+  "info",
 ]);
 
 export const helpers = new Set([...stacking, ...deferred]);

@@ -1,18 +1,24 @@
-import serve from "rollup-plugin-serve";
-import livereload from "rollup-plugin-livereload";
 import babel from "rollup-plugin-babel";
 import nodeResolve from "rollup-plugin-node-resolve";
-import commonjs from "rollup-plugin-commonjs";
 
 export default {
-  input: "examples/streams.js",
+  input: "src/lib.js",
   output: {
-    format: "iife",
-    file: "static/test.js",
-    name: "test",
+    format: "cjs",
+    file: "lib/stable.js",
   },
   plugins: [
     babel({
+      presets: [
+        [
+          "@babel/preset-env",
+          {
+            targets: {
+              node: "current",
+            },
+          },
+        ],
+      ],
       plugins: [
         ["@babel/plugin-syntax-async-generators"],
         ["@babel/plugin-proposal-async-generator-functions"],
@@ -21,13 +27,7 @@ export default {
       sourceMaps: true,
     }),
     nodeResolve({
-      extensions: [".js", ".jsx"],
+      extensions: [".js"],
     }),
-    commonjs(),
-    serve({
-      contentBase: "static",
-      historyApiFallback: "/index.html",
-    }),
-    livereload("static"),
   ],
 };

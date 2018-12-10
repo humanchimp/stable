@@ -13,7 +13,7 @@ export async function run(
   suites,
   generate = reports,
   perform = console.log,
-  sort = shuffle
+  sort = shuffle,
 ) {
   for await (const report of generate(suites, sort)) {
     perform(report);
@@ -27,16 +27,6 @@ export async function* reports(suites, sort = shuffle) {
     for await (const result of suite.reports(sort)) {
       yield result;
     }
-  }
-}
-
-export async function* tap(suites, sort = shuffle) {
-  let count = 0;
-
-  for await (const { ok, description, reason } of reports(suites, sort)) {
-    yield `${ok ? "" : "not "}ok ${++count} - ${description}${formatReason(
-      reason
-    )}`;
   }
 }
 
@@ -65,7 +55,7 @@ class Suite {
     this.specs.push({
       description: descriptionForInfo(info),
       skipped: true,
-      test: passes
+      test: passes,
     });
     return this;
   }
@@ -95,7 +85,7 @@ class Suite {
       description,
       test,
       skipped: test == null || this.skipped,
-      focused: this.focused
+      focused: this.focused,
     });
     return this;
   }
@@ -106,7 +96,7 @@ class Suite {
       description,
       test,
       focused: true,
-      skipped: this.skipped
+      skipped: this.skipped,
     });
     return this;
   }
@@ -116,7 +106,7 @@ class Suite {
       description,
       test,
       skipped: true,
-      focused: this.focused
+      focused: this.focused,
     });
     return this;
   }
@@ -124,7 +114,7 @@ class Suite {
   describe(description, closure = required(), options = {}) {
     const suite = new Suite(description, this, {
       ...options,
-      ...(this.skipped && { skipped: true })
+      ...(this.skipped && { skipped: true }),
     });
 
     closure(suite);
@@ -145,7 +135,7 @@ class Suite {
   describeEach(description, table, closure = required()) {
     const options = {
       focused: this.focused,
-      skipped: this.skipped
+      skipped: this.skipped,
     };
     const suite = new Suite(description, this, options);
 
@@ -153,7 +143,7 @@ class Suite {
       suite.describe(
         descriptionForRow(description, row),
         s => closure(s, row),
-        options
+        options,
       );
     }
     this.suites.push(suite);
@@ -166,6 +156,13 @@ class Suite {
 
   xdescribeEach() {
     return this;
+  }
+
+  size() {
+    return (
+      this.specs.length +
+      this.suites.reduce((sum, suite) => sum + suite.size(), 0)
+    );
   }
 
   async *hookify(queue, generate) {
@@ -183,7 +180,7 @@ class Suite {
       this.specs,
       function*(spec) {
         yield this.reportForSpec(spec);
-      }.bind(this)
+      }.bind(this),
     );
     yield* await this.hookify(sort([...this.suites]), async function*(suite) {
       yield* await suite.reports(sort);
@@ -197,7 +194,7 @@ class Suite {
       return {
         description,
         ok: true,
-        skipped: true
+        skipped: true,
       };
     }
     const reason = await runTest(test);
@@ -205,7 +202,7 @@ class Suite {
     return {
       description,
       ok: !reason,
-      ...(reason != null && { reason })
+      ...(reason != null && { reason }),
     };
   }
 
@@ -219,7 +216,7 @@ class Suite {
         yield {
           reason,
           description: `${hookName}: ${description}`,
-          ok: false
+          ok: false,
         };
       }
     }
@@ -241,18 +238,6 @@ function prefixed(node, description) {
     segments.unshift(node.description);
   } while ((node = node.parent));
   return [...segments, description].filter(Boolean).join(" ");
-}
-
-function formatReason(reason) {
-  return reason
-    ? `
-
-${reason.stack
-        .split("\n")
-        .map(line => `    ${line}`)
-        .join("\n")}
-`
-    : "";
 }
 
 function descriptionForRow(description, table) {
