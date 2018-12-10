@@ -2,10 +2,10 @@ import babel from "rollup-plugin-babel";
 import nodeResolve from "rollup-plugin-node-resolve";
 
 export default {
-  input: "src/ioc.js",
+  input: "src/lib.js",
   output: {
     format: "cjs",
-    file: "lib/ioc.js",
+    file: "lib/stable.js",
   },
   plugins: [
     babel({
