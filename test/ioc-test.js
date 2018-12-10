@@ -1,20 +1,18 @@
 import chai from "chai";
 
-import { describe } from "../src/stable";
+import * as stable from "../src/stable";
 import { ioc } from "../src/ioc";
 import { asyncSpread } from "../src/asyncSpread";
 
 const { expect } = chai;
 
-export const iocSuite = describe("ioc", suite =>
-  suite
-    .info("https://github.com/humanchimp/stable/issues/1")
+info("https://github.com/humanchimp/stable/issues/1");
 
-    .describeEach(
-      "test cases",
-      [
-        [
-          `
+describeEach(
+  "test cases",
+  [
+    [
+      `
 describe('a test suite', () => {
   describe('a feature', () => {
     xit('should work');
@@ -23,21 +21,21 @@ describe('a test suite', () => {
   });
 });
 `,
-          [
-            {
-              description: "a test suite a feature should work",
-              ok: true,
-              skipped: true,
-            },
-            {
-              description: "a test suite a feature should work well",
-              ok: true,
-              skipped: true,
-            },
-          ],
-        ],
-        [
-          `
+      [
+        {
+          description: "a test suite a feature should work",
+          ok: true,
+          skipped: true,
+        },
+        {
+          description: "a test suite a feature should work well",
+          ok: true,
+          skipped: true,
+        },
+      ],
+    ],
+    [
+      `
 describe('skipping failed tests', () => {
   xit('should work', () => {
     throw new Error();
@@ -60,38 +58,33 @@ describe('skipping failed tests', () => {
   });
 });
 `,
-          [
-            {
-              description: "skipping failed tests should work",
-              ok: true,
-              skipped: true,
-            },
-            {
-              description: "skipping failed tests should work",
-              ok: true,
-              skipped: true,
-            },
-            {
-              description: "skipping failed tests a nested suite should work",
-              ok: true,
-              skipped: true,
-            },
-            {
-              description: "skipping failed tests a skipped suite should work",
-              ok: true,
-              skipped: true,
-            },
-          ],
-        ],
+      [
+        {
+          description: "skipping failed tests should work",
+          ok: true,
+          skipped: true,
+        },
+        {
+          description: "skipping failed tests should work",
+          ok: true,
+          skipped: true,
+        },
+        {
+          description: "skipping failed tests a nested suite should work",
+          ok: true,
+          skipped: true,
+        },
+        {
+          description: "skipping failed tests a skipped suite should work",
+          ok: true,
+          skipped: true,
+        },
       ],
-      (suite, [code, reports]) => {
-        suite.it(
-          "should return an asynchronous iterator over the reports run sequentially",
-          async () => {
-            expect(await asyncSpread(ioc(code).reports(it => it))).to.eql(
-              reports,
-            );
-          },
-        );
-      },
-    ));
+    ],
+  ],
+  ([code, reports]) => {
+    it("should return an asynchronous iterator over the reports run sequentially", async () => {
+      expect(await asyncSpread(ioc(code).reports(it => it))).to.eql(reports);
+    });
+  },
+);
