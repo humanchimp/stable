@@ -2,7 +2,7 @@
   "name": "stable",
   "version": "1.0.0",
   "description": "yet another test framework",
-  "main": "stable.js",
+  "main": "lib/lib.js",
   "author": "christopherthorn82@gmail.com",
   "license": "MIT",
   "private": false,
@@ -28,7 +28,7 @@
     "rollup-plugin-serve": "^0.6.0"
   },
   "bin": {
-    "stable": "./src/cli.js"
+    "stable": "./cli/cli.js"
   },
   "prettier": {
     "proseWrap": "never",
