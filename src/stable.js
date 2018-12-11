@@ -111,11 +111,16 @@ class Suite {
     return this;
   }
 
-  describe(description, closure = required(), options = {}) {
-    const suite = new Suite(description, this, {
+  defaultOptions(options) {
+    return {
       ...options,
       ...(this.skipped && { skipped: true }),
-    });
+      ...(this.focused && { focused: true })
+    }
+  }
+
+  describe(description, closure = required(), options) {
+    const suite = new Suite(description, this, this.defaultOptions(options));
 
     closure(suite);
     this.suites.push(suite);
@@ -128,16 +133,12 @@ class Suite {
   }
 
   xdescribe(description, closure) {
-    this.describe(description, closure, { skipped: true });
+    this.describe(description, closure, { skipped: true })
     return this;
   }
 
-  describeEach(description, table, closure = required()) {
-    const options = {
-      focused: this.focused,
-      skipped: this.skipped,
-    };
-    const suite = new Suite(description, this, options);
+  describeEach(description, table, closure = required(), options) {
+    const suite = new Suite(description, this, this.defaultOptions(options));
 
     for (const row of table) {
       suite.describe(
@@ -151,10 +152,12 @@ class Suite {
   }
 
   fdescribeEach() {
+    this.describeEach(description, table, closure, { focused: true });
     return this;
   }
 
   xdescribeEach() {
+    this.describeEach(description, table, closure, { skipped: true });
     return this;
   }
 
