@@ -1,5 +1,4 @@
 const path = require("path");
-const { expect } = require("chai");
 const { from, startWith } = require("most");
 const { fromAsyncIterable } = require("most-async-iterable");
 const glob = require("fast-glob");
@@ -12,22 +11,25 @@ const loadConfigFile = require("./loadConfigFile");
 
 const { assign } = Object;
 
-main().then(console.log, console.error);
+main();
 
 async function main() {
   const config = await loadConfigFile(
     path.join(process.cwd(), "stable.config.js"),
   );
-  const helpers = config.plugins.reduce((memo, { helpers }) => assign(memo, helpers), {});
+  const helpers = config.plugins.reduce(
+    (memo, { helpers }) => assign(memo, helpers),
+    Object.create(null),
+  );
   const files = await glob(config.glob || "**-test.js");
   const suites = from(files)
     .map(entryPoint)
     .await()
-    .map(({ code, path }) => ioc(code, `${path} |`, helpers))
+    .map(({ code, path }) => ioc({ code, helpers, description: `${path} |` }))
     .filter(Boolean)
     .multicast();
 
-  startWith(
+  await startWith(
     `1..${await suites.reduce((sum, suite) => sum + suite.size(), 0)}`, // Plan
     suites.chain(suite => fromAsyncIterable(suite.reports())).map(tap), // Stream
   ).observe(console.log);
@@ -51,7 +53,6 @@ async function entryPoint(path) {
         plugins: [
           ["@babel/plugin-syntax-async-generators"],
           ["@babel/plugin-proposal-async-generator-functions"],
-          ["@babel/plugin-proposal-optional-catch-binding"],
         ],
         sourceMaps: true,
       }),

@@ -16,7 +16,6 @@ export default {
       plugins: [
         ["@babel/plugin-syntax-async-generators"],
         ["@babel/plugin-proposal-async-generator-functions"],
-        ["@babel/plugin-proposal-optional-catch-binding"],
       ],
       sourceMaps: true,
     }),
