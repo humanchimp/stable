@@ -1,9 +1,5 @@
-import chai from "chai";
-
 import * as stable from "../src/stable";
 import { asyncSpread } from "../src/asyncSpread";
-
-const { expect } = chai;
 
 let subject;
 

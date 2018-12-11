@@ -18,4 +18,4 @@ export const deferred = new Set([
   "info",
 ]);
 
-export const helpers = new Set([...stacking, ...deferred]);
+export const blocks = new Set([...stacking, ...deferred]);

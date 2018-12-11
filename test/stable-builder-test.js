@@ -1,9 +1,5 @@
-import chai from "chai";
-
 import { describe, run } from "../src/stable";
 import { asyncSpread } from "../src/asyncSpread";
-
-const { expect } = chai;
 
 export const coreSuite = describe("describe", suite => {
   let subject;

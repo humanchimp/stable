@@ -1,10 +1,5 @@
-import chai from "chai";
-
-import * as stable from "../src/stable";
 import { ioc } from "../src/ioc";
 import { asyncSpread } from "../src/asyncSpread";
-
-const { expect } = chai;
 
 info("https://github.com/humanchimp/stable/issues/1");
 

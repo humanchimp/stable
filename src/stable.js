@@ -115,8 +115,8 @@ class Suite {
     return {
       ...options,
       ...(this.skipped && { skipped: true }),
-      ...(this.focused && { focused: true })
-    }
+      ...(this.focused && { focused: true }),
+    };
   }
 
   describe(description, closure = required(), options) {
@@ -133,7 +133,7 @@ class Suite {
   }
 
   xdescribe(description, closure) {
-    this.describe(description, closure, { skipped: true })
+    this.describe(description, closure, { skipped: true });
     return this;
   }
 

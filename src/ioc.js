@@ -1,32 +1,35 @@
 import { describe } from "./stable";
-import { helpers, stacking } from "./names";
+import { blocks, stacking } from "./names";
 export { run, reports } from "./stable";
 
-export function ioc(code, description = null) {
+const { keys, values } = Object;
+
+export function ioc(code, description = null, helpers = Object.create(null)) {
   const suite = describe(description);
   const stack = [suite];
   const wrapped = `
 ${code};
 return typeof bundle === 'undefined' ? {} : bundle;`;
-  const bundle = Function(...helpers, wrapped)(
-    ...[...helpers].map(method =>
-      stacking.has(method)
+  const bundle = Function(...blocks, ...keys(helpers), wrapped)(
+    ...[...blocks].map(block =>
+      stacking.has(block)
         ? (...rest) => {
             const closure = rest.pop();
 
-            peek()[method](...rest, (s, ...r) => {
+            peek()[block](...rest, (s, ...r) => {
               stack.push(s);
               closure(...r);
               stack.pop();
             });
           }
         : (...rest) => {
-            peek()[method](...rest);
+            peek()[block](...rest);
           },
     ),
+    ...values(helpers),
   );
 
-  suite.suites.push(...Object.values(bundle));
+  suite.suites.push(...values(bundle));
 
   return suite;
 

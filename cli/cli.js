@@ -1,22 +1,29 @@
-const { of, from, startWith } = require("most");
+const path = require("path");
+const { expect } = require("chai");
+const { from, startWith } = require("most");
 const { fromAsyncIterable } = require("most-async-iterable");
-const glob = require("glob");
+const glob = require("fast-glob");
 const { rollup } = require("rollup");
 const { ioc } = require("../lib/stable.js");
 const nodeResolve = require("rollup-plugin-node-resolve");
 const commonjs = require("rollup-plugin-commonjs");
 const babel = require("rollup-plugin-babel");
+const loadConfigFile = require("./loadConfigFile");
 
-glob(`test/**-test.js`, async (err, files) => {
-  if (err != null) {
-    console.error(err);
-    process.exit(1);
-  }
+const { assign } = Object;
 
+main().then(console.log, console.error);
+
+async function main() {
+  const config = await loadConfigFile(
+    path.join(process.cwd(), "stable.config.js"),
+  );
+  const helpers = config.plugins.reduce((memo, { helpers }) => assign(memo, helpers), {});
+  const files = await glob(config.glob || "**-test.js");
   const suites = from(files)
     .map(entryPoint)
     .await()
-    .map(({ code, path }) => ioc(code, `${path} |`))
+    .map(({ code, path }) => ioc(code, `${path} |`, helpers))
     .filter(Boolean)
     .multicast();
 
@@ -24,7 +31,7 @@ glob(`test/**-test.js`, async (err, files) => {
     `1..${await suites.reduce((sum, suite) => sum + suite.size(), 0)}`, // Plan
     suites.chain(suite => fromAsyncIterable(suite.reports())).map(tap), // Stream
   ).observe(console.log);
-});
+}
 
 async function entryPoint(path) {
   const bundle = await rollup({
