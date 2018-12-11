@@ -1,5 +1,6 @@
 // The Fisher-Yates shuffle.
-// FIXME: Stolen without proper attribution from Mike Bostock.
+// Lovingly copied from a nice blog post by Mike Bostock.
+// Recommended reading: https://bost.ocks.org/mike/shuffle/
 export function shuffle(array) {
   var m = array.length,
     t,
