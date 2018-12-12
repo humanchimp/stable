@@ -226,18 +226,36 @@ class Suite {
     }
     const report = this.defaultOptions({ description });
 
-    this.listeners.pending.forEach(notify => notify(report));
+    this.listeners.pending.forEach(notify => notify(report, skip));
 
-    const reason = await runTest(test);
+    if (!skipped) {
+      const reason = await runTest(test);
 
-    if (reason != null) {
-      report.ok = false;
-      report.reason = reason;
+      if (reason != null) {
+        report.ok = false;
+        report.reason = reason;
+      } else {
+        report.ok = true;
+      }
     } else {
-      report.ok = true;
+      report.skipped = true;
+      if (report.ok == null) {
+        report.ok = true;
+      }
     }
-    this.listeners.complete.forEach(notify => notify(report));
+    this.listeners.complete.forEach(notify => notify(report, fail));
     return report;
+
+    function skip() {
+      skipped = true;
+    }
+
+    function fail(reason) {
+      if (report.ok) {
+        report.ok = false;
+        report.reason = reason;
+      }
+    }
   }
 
   async *runHooks(hookName, item) {
@@ -280,13 +298,13 @@ function descriptionForRow(description, table) {
 
 function descriptionForInfo(info) {
   // Do something reasonable in different scenarios...
-  {
+  try {
     const url = new URL(info);
 
     if (url.hostname || url.pathname) {
       return `See ${url} for more information`;
     }
-  }
+  } catch (_) {}
   return description;
 }
 
