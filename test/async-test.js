@@ -7,9 +7,7 @@ it("should be possible to set a timeout for an individual spec", async () => {
   timeout(500);
   shouldFail();
   rescue(reason => {
-    expect(() => {
-      throw reason;
-    }).to.throw(/Timeout/);
+    expect(reason.message).to.match(/Timeout/);
   });
   await delay(600);
 });

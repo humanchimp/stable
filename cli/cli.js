@@ -85,9 +85,9 @@ async function entryPoint(path) {
 let count = 0;
 
 function tap({ ok, description, reason, skipped }) {
-  return `${ok ? "" : "not "}ok ${++count} ${description}${formatReason(
-    reason,
-  )}${skipped ? " # SKIP" : ""}`;
+  return `${ok ? "" : "not "}ok ${++count} ${description}${
+    !ok ? formatReason(reason) : ""
+  }${skipped ? " # SKIP" : ""}`;
 }
 
 function formatReason(reason) {
