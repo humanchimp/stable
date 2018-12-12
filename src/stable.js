@@ -1,7 +1,7 @@
 import { shuffle } from "./shuffle";
 
-export function describe(description, closure) {
-  const suite = new Suite(description);
+export function describe(description, closure, options) {
+  const suite = new Suite(description, options);
 
   if (closure != null) {
     closure(suite);
@@ -51,12 +51,12 @@ class Suite {
     description,
     { parent, skipped = false, focused = false, listeners } = {},
   ) {
-    this.on = new Listeners(listeners);
     this.description = description;
     this.parent = parent;
     this.skipped = skipped;
     this.focused = focused;
     this.hooks = new Hooks();
+    this.listeners = new Listeners(listeners);
     this.specs = [];
     this.suites = [];
     this.focusMode = false;
@@ -133,6 +133,7 @@ class Suite {
   describe(description, closure = required(), options) {
     const suite = new Suite(description, {
       ...this.defaultOptions(options),
+      ...(this.listeners && { listeners: this.listeners }),
       parent: this,
     });
 
@@ -152,8 +153,12 @@ class Suite {
   }
 
   describeEach(description, table, closure = required(), options) {
-    const suite = new Suite(description, {
+    const baseOptions = {
       ...this.defaultOptions(options),
+      ...(this.listeners && { listeners: this.listeners }),
+    };
+    const suite = new Suite(description, {
+      ...baseOptions,
       parent: this,
     });
 
@@ -161,7 +166,9 @@ class Suite {
       suite.describe(
         descriptionForRow(description, row),
         s => closure(s, row),
-        options,
+        {
+          ...baseOptions,
+        },
       );
     }
     this.suites.push(suite);
@@ -219,7 +226,7 @@ class Suite {
     }
     const report = this.defaultOptions({ description });
 
-    this.on.pending.forEach(notify => notify(report));
+    this.listeners.pending.forEach(notify => notify(report));
 
     const reason = await runTest(test);
 
@@ -229,7 +236,7 @@ class Suite {
     } else {
       report.ok = true;
     }
-    this.on.complete.forEach(notify => notify(report));
+    this.listeners.complete.forEach(notify => notify(report));
     return report;
   }
 

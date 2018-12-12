@@ -1,12 +1,24 @@
-export function timing() {
+const prettyMs = require("pretty-ms");
+
+export function timing({ timeout = 1000 } = {}) {
   return {
     on: {
       pending(report) {
-        report.begin = Date.now();
+        report.startedAt = Date.now();
       },
       complete(report) {
-        report.end = Date.now();
-        report.elapsed = report.end - report.begin;
+        report.endedAt = Date.now();
+        report.elapsed = report.endedAt - report.startedAt;
+        report.description += ` ${prettyMs(report.elapsed)}`;
+        if (report.elapsed > timeout) {
+          report.timeout = true;
+          if (report.ok) {
+            report.ok = false;
+            report.reason = new Error(
+              `Timeout exceeded: ${report.elapsed}ms > ${prettyMs(timeout)}`,
+            );
+          }
+        }
       },
     },
   };
