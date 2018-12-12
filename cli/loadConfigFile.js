@@ -1,3 +1,4 @@
+const path = require("path");
 const { rollup } = require("rollup");
 const nodeResolve = require("rollup-plugin-node-resolve");
 const commonjs = require("rollup-plugin-commonjs");
@@ -5,9 +6,12 @@ const commonjs = require("rollup-plugin-commonjs");
 // All the cleverness of the below derives from copying from the rollup source code 🙇
 
 module.exports = async function loadConfigFile(
-  configFile,
+  configPath,
   commandOptions = {},
 ) {
+  const configFile = path.isAbsolute(configPath)
+    ? configPath
+    : path.join(process.cwd(), configPath);
   const bundle = await rollup({
     input: configFile,
     plugins: [

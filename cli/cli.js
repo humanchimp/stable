@@ -1,7 +1,7 @@
-const path = require("path");
 const { from, startWith } = require("most");
 const { fromAsyncIterable } = require("most-async-iterable");
 const glob = require("fast-glob");
+const argv = require("minimist")(process.argv);
 const { rollup } = require("rollup");
 const { ioc } = require("../lib/stable.js");
 const nodeResolve = require("rollup-plugin-node-resolve");
@@ -11,27 +11,42 @@ const loadConfigFile = require("./loadConfigFile");
 
 const { assign } = Object;
 
+const configFile = argv.c || "stable.config.js";
+
 main();
 
 async function main() {
-  const config = await loadConfigFile(
-    path.join(process.cwd(), "stable.config.js"),
-  );
-  const helpers = config.plugins.reduce(
+  const config = await loadConfigFile(configFile);
+  const helpers = helpersForPlugins(config.plugins);
+  const listeners = listenersForPlugins(config.plugins);
+  const files = await glob(config.glob || "**-test.js");
+  const suites = suitesFromFiles(files, helpers, listeners);
+
+  await startWith(
+    `1..${await suites.reduce((sum, suite) => sum + suite.size(), 0)}`, // Plan
+    suites.chain(suite => fromAsyncIterable(suite.reports())).map(tap), // Stream
+  ).observe(console.log);
+}
+
+function helpersForPlugins(plugins) {
+  return plugins.reduce(
     (memo, { helpers }) => assign(memo, helpers),
     Object.create(null),
   );
-  const listeners = config.plugins
-    .filter(plugin => plugin.on != null)
-    .reduce(
-      (memo, { on: { pending = [], complete = [] } }) => ({
-        pending: memo.pending.concat(pending),
-        complete: memo.complete.concat(complete),
-      }),
-      { pending: [], complete: [] },
-    );
-  const files = await glob(config.glob || "**-test.js");
-  const suites = from(files)
+}
+
+function listenersForPlugins(plugins) {
+  return plugins.filter(plugin => plugin.on != null).reduce(
+    (memo, { on: { pending = [], complete = [] } }) => ({
+      pending: memo.pending.concat(pending),
+      complete: memo.complete.concat(complete),
+    }),
+    { pending: [], complete: [] },
+  );
+}
+
+function suitesFromFiles(files, helpers, listeners) {
+  return from(files)
     .map(entryPoint)
     .await()
     .map(({ code, path }) =>
@@ -39,11 +54,6 @@ async function main() {
     )
     .filter(Boolean)
     .multicast();
-
-  await startWith(
-    `1..${await suites.reduce((sum, suite) => sum + suite.size(), 0)}`, // Plan
-    suites.chain(suite => fromAsyncIterable(suite.reports())).map(tap), // Stream
-  ).observe(console.log);
 }
 
 async function entryPoint(path) {
