@@ -8,8 +8,9 @@ export function ioc({
   code,
   helpers = Object.create(null),
   description = null,
+  listeners = {},
 }) {
-  const suite = describe(description);
+  const suite = describe(description, null, { listeners });
   const stack = [suite];
   const wrapped = `
 ${code};

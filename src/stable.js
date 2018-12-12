@@ -39,8 +39,19 @@ class Hooks {
   }
 }
 
+class Listeners {
+  constructor({ pending = [], complete = [] } = {}) {
+    this.pending = [].concat(pending);
+    this.complete = [].concat(complete);
+  }
+}
+
 class Suite {
-  constructor(description, parent, { skipped = false, focused = false } = {}) {
+  constructor(
+    description,
+    { parent, skipped = false, focused = false, listeners } = {},
+  ) {
+    this.on = new Listeners(listeners);
     this.description = description;
     this.parent = parent;
     this.skipped = skipped;
@@ -120,7 +131,10 @@ class Suite {
   }
 
   describe(description, closure = required(), options) {
-    const suite = new Suite(description, this, this.defaultOptions(options));
+    const suite = new Suite(description, {
+      ...this.defaultOptions(options),
+      parent: this,
+    });
 
     closure(suite);
     this.suites.push(suite);
@@ -138,7 +152,10 @@ class Suite {
   }
 
   describeEach(description, table, closure = required(), options) {
-    const suite = new Suite(description, this, this.defaultOptions(options));
+    const suite = new Suite(description, {
+      ...this.defaultOptions(options),
+      parent: this,
+    });
 
     for (const row of table) {
       suite.describe(
@@ -172,7 +189,7 @@ class Suite {
     yield* await this.runHooks("beforeAll", this);
     for await (const item of queue) {
       yield* await this.runHooks("beforeEach", item);
-      yield* generate(item);
+      yield* await generate(item);
       yield* await this.runHooks("afterEach", item);
     }
     yield* await this.runHooks("afterAll", this);
@@ -181,7 +198,7 @@ class Suite {
   async *reports(sort = shuffle) {
     yield* await this.hookify(
       this.specs,
-      function*(spec) {
+      async function*(spec) {
         yield this.reportForSpec(spec);
       }.bind(this),
     );
@@ -200,13 +217,20 @@ class Suite {
         skipped: true,
       };
     }
+    const report = this.defaultOptions({ description });
+
+    this.on.pending.forEach(notify => notify(report));
+
     const reason = await runTest(test);
 
-    return {
-      description,
-      ok: !reason,
-      ...(reason != null && { reason }),
-    };
+    if (reason != null) {
+      report.ok = false;
+      report.reason = reason;
+    } else {
+      report.ok = true;
+    }
+    this.on.complete.forEach(notify => notify(report));
+    return report;
   }
 
   async *runHooks(hookName, item) {

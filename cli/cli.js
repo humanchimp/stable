@@ -21,11 +21,22 @@ async function main() {
     (memo, { helpers }) => assign(memo, helpers),
     Object.create(null),
   );
+  const listeners = config.plugins.reduce(
+    (memo, plugin) => (
+      {
+        pending: memo.pending.concat(plugin.on.pending),
+        complete: memo.complete.concat(plugin.on.complete),
+      },
+      { pending: [], complete: [] }
+    ),
+  );
   const files = await glob(config.glob || "**-test.js");
   const suites = from(files)
     .map(entryPoint)
     .await()
-    .map(({ code, path }) => ioc({ code, helpers, description: `${path} |` }))
+    .map(({ code, path }) =>
+      ioc({ code, helpers, description: `${path} |`, listeners }),
+    )
     .filter(Boolean)
     .multicast();
 

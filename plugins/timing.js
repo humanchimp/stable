@@ -1,10 +1,10 @@
 export function timing() {
   return {
     on: {
-      beforeEach(report) {
+      pending(report) {
         report.begin = Date.now();
       },
-      afterEach(report) {
+      complete(report) {
         report.end = Date.now();
         report.elapsed = report.end - report.begin;
       },
