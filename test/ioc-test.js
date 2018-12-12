@@ -79,7 +79,9 @@ describe('skipping failed tests', () => {
   ],
   ([code, reports]) => {
     it("should return an asynchronous iterator over the reports run sequentially", async () => {
-      expect(await asyncSpread(ioc(code).reports(it => it))).to.eql(reports);
+      expect(await asyncSpread(ioc({ code }).reports(it => it))).to.eql(
+        reports,
+      );
     });
   },
 );

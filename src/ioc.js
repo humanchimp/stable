@@ -4,8 +4,13 @@ export { run, reports } from "./stable";
 
 const { keys, values } = Object;
 
-export function ioc(code, description = null, helpers = Object.create(null)) {
-  const suite = describe(description);
+export function ioc({
+  code,
+  helpers = Object.create(null),
+  description = null,
+  listeners = {},
+}) {
+  const suite = describe(description, null, { listeners });
   const stack = [suite];
   const wrapped = `
 ${code};

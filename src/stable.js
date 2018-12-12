@@ -1,7 +1,7 @@
 import { shuffle } from "./shuffle";
 
-export function describe(description, closure) {
-  const suite = new Suite(description);
+export function describe(description, closure, options) {
+  const suite = new Suite(description, options);
 
   if (closure != null) {
     closure(suite);
@@ -39,13 +39,24 @@ class Hooks {
   }
 }
 
+class Listeners {
+  constructor({ pending = [], complete = [] } = {}) {
+    this.pending = [].concat(pending);
+    this.complete = [].concat(complete);
+  }
+}
+
 class Suite {
-  constructor(description, parent, { skipped = false, focused = false } = {}) {
+  constructor(
+    description,
+    { parent, skipped = false, focused = false, listeners } = {},
+  ) {
     this.description = description;
     this.parent = parent;
     this.skipped = skipped;
     this.focused = focused;
     this.hooks = new Hooks();
+    this.listeners = new Listeners(listeners);
     this.specs = [];
     this.suites = [];
     this.focusMode = false;
@@ -120,7 +131,11 @@ class Suite {
   }
 
   describe(description, closure = required(), options) {
-    const suite = new Suite(description, this, this.defaultOptions(options));
+    const suite = new Suite(description, {
+      ...this.defaultOptions(options),
+      ...(this.listeners && { listeners: this.listeners }),
+      parent: this,
+    });
 
     closure(suite);
     this.suites.push(suite);
@@ -138,13 +153,22 @@ class Suite {
   }
 
   describeEach(description, table, closure = required(), options) {
-    const suite = new Suite(description, this, this.defaultOptions(options));
+    const baseOptions = {
+      ...this.defaultOptions(options),
+      ...(this.listeners && { listeners: this.listeners }),
+    };
+    const suite = new Suite(description, {
+      ...baseOptions,
+      parent: this,
+    });
 
     for (const row of table) {
       suite.describe(
         descriptionForRow(description, row),
         s => closure(s, row),
-        options,
+        {
+          ...baseOptions,
+        },
       );
     }
     this.suites.push(suite);
@@ -172,7 +196,7 @@ class Suite {
     yield* await this.runHooks("beforeAll", this);
     for await (const item of queue) {
       yield* await this.runHooks("beforeEach", item);
-      yield* generate(item);
+      yield* await generate(item);
       yield* await this.runHooks("afterEach", item);
     }
     yield* await this.runHooks("afterAll", this);
@@ -181,7 +205,7 @@ class Suite {
   async *reports(sort = shuffle) {
     yield* await this.hookify(
       this.specs,
-      function*(spec) {
+      async function*(spec) {
         yield this.reportForSpec(spec);
       }.bind(this),
     );
@@ -200,13 +224,38 @@ class Suite {
         skipped: true,
       };
     }
-    const reason = await runTest(test);
+    const report = this.defaultOptions({ description });
 
-    return {
-      description,
-      ok: !reason,
-      ...(reason != null && { reason }),
-    };
+    this.listeners.pending.forEach(notify => notify(report, skip));
+
+    if (!skipped) {
+      const reason = await runTest(test);
+
+      if (reason != null) {
+        report.ok = false;
+        report.reason = reason;
+      } else {
+        report.ok = true;
+      }
+    } else {
+      report.skipped = true;
+      if (report.ok == null) {
+        report.ok = true;
+      }
+    }
+    this.listeners.complete.forEach(notify => notify(report, fail));
+    return report;
+
+    function skip() {
+      skipped = true;
+    }
+
+    function fail(reason) {
+      if (report.ok) {
+        report.ok = false;
+        report.reason = reason;
+      }
+    }
   }
 
   async *runHooks(hookName, item) {
@@ -249,13 +298,13 @@ function descriptionForRow(description, table) {
 
 function descriptionForInfo(info) {
   // Do something reasonable in different scenarios...
-  {
+  try {
     const url = new URL(info);
 
     if (url.hostname || url.pathname) {
       return `See ${url} for more information`;
     }
-  }
+  } catch (_) {}
   return description;
 }
 
