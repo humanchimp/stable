@@ -1,5 +1,5 @@
 {
-  "name": "stable",
+  "name": "@topl/stable",
   "version": "1.0.0",
   "description": "yet another test framework",
   "main": "lib/lib.js",
@@ -8,7 +8,7 @@
   "private": false,
   "scripts": {
     "build": "$(npm bin)/rollup -c ./rollup.lib.config.js",
-    "test": "node ./cli/cli.js"
+    "test": "node ./cli/cli.js -o tap"
   },
   "devDependencies": {
     "@babel/core": "^7.2.0",

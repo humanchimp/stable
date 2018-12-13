@@ -8,6 +8,7 @@ export function rescue() {
       },
 
       complete(report) {
+        pendingReport = undefined;
         if (!report.ok && report.rescuer != null) {
           try {
             report.rescuer(report.reason);
@@ -21,11 +22,10 @@ export function rescue() {
           if (report.ok) {
             report.ok = false;
             report.reason = new Error("Failure was expected, but it passed!");
-          } else {
+          } else if (report.rescued) {
             report.ok = true;
           }
         }
-        pendingReport = undefined;
       },
     },
 

@@ -11,6 +11,7 @@ export function timing({ timeout = 1000 } = {}) {
       },
 
       complete(report, fail) {
+        pendingReport = undefined;
         report.endedAt = Date.now();
         report.elapsed = report.endedAt - report.startedAt;
         report.description += ` ${prettyMs(report.elapsed)}`;
@@ -27,7 +28,6 @@ export function timing({ timeout = 1000 } = {}) {
             ),
           );
         }
-        pendingReport = undefined;
       },
     },
 

@@ -1,6 +1,7 @@
 import { chai } from "./plugins/chai";
 import { timing } from "./plugins/timing";
 import { rescue } from "./plugins/rescue";
+import { objectContaining } from "./plugins/objectContaining";
 
 export default {
   glob: "test/**-test.js",
@@ -10,5 +11,6 @@ export default {
       timeout: 2000,
     }),
     rescue(),
+    objectContaining(),
   ],
 };
