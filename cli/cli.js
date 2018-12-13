@@ -3,7 +3,7 @@ const {
   c: configFile = "stable.config.js",
   f: filter,
   g: grep,
-  o: format = "inspect",
+  o: outputFormat = "inspect",
   s: algorithm = "shuffle",
   help: helpMenuRequested = false,
   seed,
@@ -20,6 +20,8 @@ const {
     s: "sort",
   },
 });
+
+const format = [].concat(outputFormat).pop();
 
 if (partitions != null && partition == null) {
   throw new Error(
@@ -103,8 +105,8 @@ async function main() {
   const suites = suitesFromFiles(files, helpers, listeners);
 
   await startWith(
-    `1..${await suites.reduce((sum, suite) => sum + suite.size(), 0)}`, // Plan
-    suites.chain(suite => fromAsyncIterable(suite.reports())).map(transform), // Stream
+    await planForSuites(suites),
+    suites.chain(suite => fromAsyncIterable(suite.reports())).map(transform),
   ).observe(console.log);
 }
 
@@ -192,9 +194,7 @@ ${reason.stack
     : "";
 }
 
-function transformForFormat(f) {
-  const format = [].concat(f).pop();
-
+function transformForFormat(format) {
   switch (format) {
     case "inspect":
       return identity;
@@ -205,6 +205,20 @@ function transformForFormat(f) {
       return tap;
   }
   throw new Error(`unsupported format: -f ${format}`);
+}
+
+async function planForSuites(suites) {
+  const count = await suites.reduce((sum, suite) => sum + suite.size(), 0);
+
+  switch (format) {
+    case "inspect":
+      return { plan: count };
+    case "json":
+    case "jsonlines":
+      return JSON.stringify({ plan: count });
+    case "tap":
+      return `1..${count}`;
+  }
 }
 
 function identity(it) {
