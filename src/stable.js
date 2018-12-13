@@ -301,11 +301,11 @@ function descriptionForInfo(info) {
   try {
     const url = new URL(info);
 
-    if (url.hostname || url.pathname) {
+    if (/https?:/.test(url.protocol)) {
       return `See ${url} for more information`;
     }
   } catch (_) {}
-  return description;
+  return info;
 }
 
 function required() {

@@ -4,8 +4,55 @@ import { asyncSpread } from "../src/asyncSpread";
 info("https://github.com/humanchimp/stable/issues/1");
 
 describeEach(
-  "test cases",
+  "cases that should work",
   [
+    [
+      `
+describe('info annotations', () => {
+  info("https://www.example.com");
+  info("/relative.html");
+  info("mailto:christopherthorn82@gmail.com");
+});
+`,
+      [
+        {
+          description:
+            "info annotations See https://www.example.com/ for more information",
+          ok: true,
+          skipped: true,
+        },
+        {
+          description: "info annotations /relative.html",
+          ok: true,
+          skipped: true,
+        },
+        {
+          description: "info annotations mailto:christopherthorn82@gmail.com",
+          ok: true,
+          skipped: true,
+        },
+      ],
+    ],
+    [
+      `
+describe('stubs', () => {
+  it("should be possible to have a stub");
+  xit("it should be possible to skip a stub");
+});
+`,
+      [
+        {
+          description: "stubs should be possible to have a stub",
+          ok: true,
+          skipped: true,
+        },
+        {
+          description: "stubs it should be possible to skip a stub",
+          ok: true,
+          skipped: true,
+        },
+      ],
+    ],
     [
       `
 describe('a test suite', () => {
@@ -82,6 +129,20 @@ describe('skipping failed tests', () => {
       expect(await asyncSpread(ioc({ code }).reports(it => it))).to.eql(
         reports,
       );
+    });
+  },
+);
+
+describeEach(
+  "cases that should not work",
+  [[`fit("focusing a stub")`, /required/]],
+  ([code, pattern]) => {
+    it("should throw an error", () => {
+      shouldFail();
+      rescue(reason => {
+        expect(reason.message).to.match(pattern);
+      });
+      ioc({ code });
     });
   },
 );

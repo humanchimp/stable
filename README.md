@@ -75,6 +75,7 @@ They are left out, following the principle that there is no need for competing f
 - [x] Focus in (`fdescribe`, `fit`)
 - [x] Skip (`xdescribe`, `xit`)
 - [x] Tables (`describeEach`, a nice innovation from jest)
+- [x] Just-works coverage reporting via nyc
 - [x] Reporters
   - [x] tap / `console.{log,warn}` built in
   - [ ] others are possible
