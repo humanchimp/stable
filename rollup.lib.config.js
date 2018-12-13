@@ -6,6 +6,7 @@ export default {
   output: {
     format: "cjs",
     file: "lib/stable.js",
+    sourcemap: 'inline',
   },
   plugins: [
     babel({

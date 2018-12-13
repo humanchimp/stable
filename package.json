@@ -8,7 +8,7 @@
   "private": false,
   "scripts": {
     "build": "$(npm bin)/rollup -c ./rollup.lib.config.js",
-    "test": "node ./cli/cli.js -o tap"
+    "test": "$(npm bin)/nyc --reporter=html node ./cli/cli.js -o tap"
   },
   "devDependencies": {
     "@babel/core": "^7.2.0",
@@ -21,6 +21,7 @@
     "minimist": "^1.2.0",
     "most": "^1.7.3",
     "most-async-iterable": "^1.0.1",
+    "nyc": "^13.1.0",
     "pretty-ms": "^4.0.0",
     "rollup": "^0.67.4",
     "rollup-plugin-babel": "^4.0.3",
@@ -37,6 +38,13 @@
     "proseWrap": "never",
     "singleQuote": false,
     "trailingComma": "all"
+  },
+  "nyc": {
+    "exclude": [
+      "*.config.js",
+      "**/*.test.js",
+      "cli"
+    ]
   },
   "dependencies": {}
 }
