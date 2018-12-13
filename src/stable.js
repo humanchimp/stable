@@ -194,7 +194,7 @@ class Suite {
 
   async *hookify(queue, generate) {
     yield* await this.runHooks("beforeAll", this);
-    for await (const item of queue) {
+    for (const item of queue) {
       yield* await this.runHooks("beforeEach", item);
       yield* await generate(item);
       yield* await this.runHooks("afterEach", item);
