@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 // <cli flags>
 const {
   c: configFile = "stable.config.js",
