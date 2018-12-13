@@ -1,14 +1,3 @@
-const { from, startWith } = require("most");
-const { fromAsyncIterable } = require("most-async-iterable");
-const glob = require("fast-glob");
-const { rollup } = require("rollup");
-const { ioc } = require("../lib/stable.js");
-const nodeResolve = require("rollup-plugin-node-resolve");
-const commonjs = require("rollup-plugin-commonjs");
-const babel = require("rollup-plugin-babel");
-const loadConfigFile = require("./loadConfigFile");
-const { assign } = Object;
-
 // <cli flags>
 const {
   c: configFile = "stable.config.js",
@@ -89,9 +78,18 @@ Options:
   return;
 }
 
+const { from, startWith } = require("most");
+const { fromAsyncIterable } = require("most-async-iterable");
+const glob = require("fast-glob");
+const { rollup } = require("rollup");
+const { ioc } = require("../lib/stable.js");
+const nodeResolve = require("rollup-plugin-node-resolve");
+const commonjs = require("rollup-plugin-commonjs");
+const babel = require("rollup-plugin-babel");
+const loadConfigFile = require("./loadConfigFile");
+const { assign } = Object;
 const transform = transformForFormat(format);
 
-// Get the party started
 main().catch(console.error);
 
 async function main() {
