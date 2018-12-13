@@ -96,7 +96,10 @@ async function main() {
   const config = await loadConfigFile(configFile);
   const helpers = helpersForPlugins(config.plugins);
   const listeners = listenersForPlugins(config.plugins);
-  const files = explicitFiles || (await glob(config.glob || "**-test.js"));
+  const files =
+    explicitFiles.length > 0
+      ? explicitFiles
+      : await glob(config.glob || "**-test.js");
   const suites = suitesFromFiles(files, helpers, listeners);
 
   await startWith(
