@@ -3,7 +3,7 @@ import { blocks, stacking } from "./names";
 
 const { keys, values } = Object;
 
-export function ioc({
+export function dsl({
   code,
   helpers = Object.create(null),
   description = null,

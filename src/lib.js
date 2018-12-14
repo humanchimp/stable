@@ -1,4 +1,4 @@
 export * from "./describe";
 export * from "./run";
 export * from "./reports";
-export * from "./ioc";
+export * from "./dsl";

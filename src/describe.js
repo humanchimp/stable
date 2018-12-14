@@ -1,4 +1,4 @@
-import { Suite } from './Suite';
+import { Suite } from "./Suite";
 
 export function describe(description, closure, options) {
   const suite = new Suite(description, options);

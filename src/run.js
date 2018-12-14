@@ -1,5 +1,5 @@
-import { shuffle } from './shuffle';
-import { reports } from './reports';
+import { shuffle } from "./shuffle";
+import { reports } from "./reports";
 
 export async function run(
   suites,

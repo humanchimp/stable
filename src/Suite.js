@@ -1,6 +1,6 @@
 import { shuffle } from "./shuffle";
-import { Hooks } from './Hooks';
-import { Listeners } from './Listeners';
+import { Hooks } from "./Hooks";
+import { Listeners } from "./Listeners";
 
 export class Suite {
   constructor(

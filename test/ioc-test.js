@@ -1,4 +1,4 @@
-import { ioc } from "../src/ioc";
+import { dsl } from "../src/dsl";
 import { asyncSpread } from "./util/asyncSpread";
 import { getFixtures } from "./util/getFixtures";
 
@@ -13,7 +13,7 @@ describe("fixtures", () => {
 
   it("should return an asynchronous iterator over the reports run sequentially", async () => {
     for (const { code, data: expectedReports } of fixtures) {
-      const suite = ioc({ code, helpers: { expect } });
+      const suite = dsl({ code, helpers: { expect } });
       const reports = await asyncSpread(suite.reports(it => it));
 
       expect(reports).to.eql(expectedReports);
@@ -33,7 +33,7 @@ describeEach(
       rescue(reason => {
         expect(reason.message).to.match(pattern);
       });
-      ioc({ code });
+      dsl({ code });
     });
   },
 );

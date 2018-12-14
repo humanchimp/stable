@@ -1,4 +1,4 @@
-import { shuffle } from './shuffle';
+import { shuffle } from "./shuffle";
 
 export async function* reports(suites, sort = shuffle) {
   suites = [].concat(suites);
