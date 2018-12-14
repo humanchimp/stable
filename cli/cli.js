@@ -86,7 +86,7 @@ const { from, startWith } = require("most");
 const { fromAsyncIterable } = require("most-async-iterable");
 const glob = require("fast-glob");
 const { rollup } = require("rollup");
-const { ioc } = require("../lib/stable.js");
+const { dsl } = require("../lib/stable.js");
 const nodeResolve = require("rollup-plugin-node-resolve");
 const commonjs = require("rollup-plugin-commonjs");
 const babel = require("rollup-plugin-babel");
@@ -134,7 +134,7 @@ function suitesFromFiles(files, helpers, listeners) {
     .map(entryPoint)
     .await()
     .map(({ code, path }) =>
-      ioc({ code, helpers, description: `${path} |`, listeners }),
+      dsl({ code, helpers, description: `${path} |`, listeners }),
     )
     .filter(Boolean)
     .multicast();

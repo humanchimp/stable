@@ -8,7 +8,7 @@
   "private": false,
   "scripts": {
     "build": "$(npm bin)/rollup -c ./rollup.lib.config.js",
-    "test": "$(npm bin)/nyc --reporter=html node ./cli/cli.js -o tap"
+    "test": "node ./cli/cli.js -o tap"
   },
   "devDependencies": {
     "@babel/core": "^7.2.0",
@@ -16,6 +16,7 @@
     "@babel/plugin-proposal-optional-catch-binding": "^7.2.0",
     "@babel/plugin-syntax-async-generators": "^7.2.0",
     "@babel/preset-env": "^7.2.0",
+    "babel-plugin-istanbul": "^5.1.0",
     "chai": "^4.2.0",
     "fast-glob": "^2.2.4",
     "minimist": "^1.2.0",
@@ -29,7 +30,8 @@
     "rollup-plugin-json": "^3.1.0",
     "rollup-plugin-livereload": "^0.6.0",
     "rollup-plugin-node-resolve": "^3.4.0",
-    "rollup-plugin-serve": "^0.6.0"
+    "rollup-plugin-serve": "^0.6.0",
+    "sinon": "^7.2.2"
   },
   "bin": {
     "stable": "./cli/cli.js"

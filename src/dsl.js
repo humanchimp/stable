@@ -1,10 +1,9 @@
-import { describe } from "./stable";
+import { describe } from "./describe";
 import { blocks, stacking } from "./names";
-export { run, reports } from "./stable";
 
 const { keys, values } = Object;
 
-export function ioc({
+export function dsl({
   code,
   helpers = Object.create(null),
   description = null,

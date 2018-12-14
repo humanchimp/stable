@@ -1,52 +1,8 @@
 import { shuffle } from "./shuffle";
+import { Hooks } from "./Hooks";
+import { Listeners } from "./Listeners";
 
-export function describe(description, closure, options) {
-  const suite = new Suite(description, options);
-
-  if (closure != null) {
-    closure(suite);
-  }
-  return suite;
-}
-
-export async function run(
-  suites,
-  generate = reports,
-  perform = console.log,
-  sort = shuffle,
-) {
-  for await (const report of generate(suites, sort)) {
-    perform(report);
-  }
-}
-
-export async function* reports(suites, sort = shuffle) {
-  suites = [].concat(suites);
-
-  for (const suite of sort([...suites])) {
-    for await (const result of suite.reports(sort)) {
-      yield result;
-    }
-  }
-}
-
-class Hooks {
-  constructor() {
-    this.beforeAll = [];
-    this.beforeEach = [];
-    this.afterEach = [];
-    this.afterAll = [];
-  }
-}
-
-class Listeners {
-  constructor({ pending = [], complete = [] } = {}) {
-    this.pending = [].concat(pending);
-    this.complete = [].concat(complete);
-  }
-}
-
-class Suite {
+export class Suite {
   constructor(
     description,
     { parent, skipped = false, focused = false, listeners } = {},
@@ -175,12 +131,12 @@ class Suite {
     return this;
   }
 
-  fdescribeEach() {
+  fdescribeEach(description, table, closure, options) {
     this.describeEach(description, table, closure, { focused: true });
     return this;
   }
 
-  xdescribeEach() {
+  xdescribeEach(description, table, closure, options) {
     this.describeEach(description, table, closure, { skipped: true });
     return this;
   }
@@ -193,16 +149,21 @@ class Suite {
   }
 
   async *hookify(queue, generate) {
-    yield* await this.runHooks("beforeAll", this);
     for (const item of queue) {
-      yield* await this.runHooks("beforeEach", item);
+      const { skipped } = item;
+
+      if (!skipped) {
+        yield* await this.runHooks("beforeEach", item);
+      }
       yield* await generate(item);
-      yield* await this.runHooks("afterEach", item);
+      if (!skipped) {
+        yield* await this.runHooks("afterEach", item);
+      }
     }
-    yield* await this.runHooks("afterAll", this);
   }
 
   async *reports(sort = shuffle) {
+    yield* await this.runHooks("beforeAll", this);
     yield* await this.hookify(
       this.specs,
       async function*(spec) {
@@ -212,6 +173,7 @@ class Suite {
     yield* await this.hookify(sort([...this.suites]), async function*(suite) {
       yield* await suite.reports(sort);
     });
+    yield* await this.runHooks("afterAll", this);
   }
 
   async reportForSpec({ description, test, focused, skipped }) {
