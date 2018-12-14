@@ -6,7 +6,7 @@ export default {
   output: {
     format: "cjs",
     file: "lib/stable.js",
-    sourcemap: 'inline',
+    sourcemap: true,
   },
   plugins: [
     babel({
@@ -24,6 +24,7 @@ export default {
         ["@babel/plugin-syntax-async-generators"],
         ["@babel/plugin-proposal-async-generator-functions"],
         ["@babel/plugin-proposal-optional-catch-binding"],
+        ['babel-plugin-istanbul'],
       ],
       sourceMaps: true,
     }),

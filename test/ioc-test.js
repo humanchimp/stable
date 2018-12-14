@@ -123,19 +123,79 @@ describe('skipping failed tests', () => {
         },
       ],
     ],
+    [
+      `
+const memo = [];
+
+describe('hooks', () => {
+  beforeAll(() => {
+    memo.push('before all');
+  });
+
+  afterAll(() => {
+    memo.push('after all');
+  });
+
+  beforeEach(() => {
+    memo.push('before each');
+  });
+
+  afterEach(() => {
+    memo.push('after each');
+  });
+
+  it("spec 1", () => {
+    memo.push('spec 1');
+  });
+
+  it("spec 2", () => {
+    memo.push('spec 2');
+  });
+});
+
+describe("accumulation", () => {
+  it("should have run the hooks in the correct order", () => {
+    expect(memo).to.eql([
+      "before all",
+      "before each",
+      "spec 1",
+      "after each",
+      "before each",
+      "spec 2",
+      "after each",
+      "after all",
+    ]);
+  })
+});
+`,
+      [
+        { description: "hooks spec 1", ok: true },
+        { description: "hooks spec 2", ok: true },
+        {
+          description:
+            "accumulation should have run the hooks in the correct order",
+          ok: true,
+        },
+      ],
+    ],
   ],
   ([code, reports]) => {
     it("should return an asynchronous iterator over the reports run sequentially", async () => {
-      expect(await asyncSpread(ioc({ code }).reports(it => it))).to.eql(
-        reports,
-      );
+      const suite = ioc({ code, helpers: { expect } });
+
+      expect(
+        await asyncSpread(suite.reports(it => it))
+      ).to.eql(reports);
     });
   },
 );
 
 describeEach(
   "cases that should not work",
-  [[`fit("focusing a stub")`, /required/]],
+  [
+    [`fit("focusing a stub")`, /required/],
+    [`fdescribe("suites aren't stubs")`, /required/],
+  ],
   ([code, pattern]) => {
     it("should throw an error", () => {
       shouldFail();
