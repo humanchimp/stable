@@ -1,5 +1,5 @@
 import stable from "../lib/stable";
-import { asyncSpread } from "../src/asyncSpread";
+import { asyncSpread } from "./util/asyncSpread";
 
 let subject;
 

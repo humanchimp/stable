@@ -1,5 +1,5 @@
 import { describe, run } from "../src/stable";
-import { asyncSpread } from "../src/asyncSpread";
+import { asyncSpread } from "../test/util/asyncSpread";
 
 export const coreSuite = describe("describe", suite => {
   let subject;

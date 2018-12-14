@@ -175,12 +175,12 @@ class Suite {
     return this;
   }
 
-  fdescribeEach() {
+  fdescribeEach(description, table, closure, options) {
     this.describeEach(description, table, closure, { focused: true });
     return this;
   }
 
-  xdescribeEach() {
+  xdescribeEach(description, table, closure, options) {
     this.describeEach(description, table, closure, { skipped: true });
     return this;
   }
