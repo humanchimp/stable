@@ -1,52 +1,8 @@
 import { shuffle } from "./shuffle";
+import { Hooks } from './Hooks';
+import { Listeners } from './Listeners';
 
-export function describe(description, closure, options) {
-  const suite = new Suite(description, options);
-
-  if (closure != null) {
-    closure(suite);
-  }
-  return suite;
-}
-
-export async function run(
-  suites,
-  generate = reports,
-  perform = console.log,
-  sort = shuffle,
-) {
-  for await (const report of generate(suites, sort)) {
-    perform(report);
-  }
-}
-
-export async function* reports(suites, sort = shuffle) {
-  suites = [].concat(suites);
-
-  for (const suite of sort([...suites])) {
-    for await (const result of suite.reports(sort)) {
-      yield result;
-    }
-  }
-}
-
-class Hooks {
-  constructor() {
-    this.beforeAll = [];
-    this.beforeEach = [];
-    this.afterEach = [];
-    this.afterAll = [];
-  }
-}
-
-class Listeners {
-  constructor({ pending = [], complete = [] } = {}) {
-    this.pending = [].concat(pending);
-    this.complete = [].concat(complete);
-  }
-}
-
-class Suite {
+export class Suite {
   constructor(
     description,
     { parent, skipped = false, focused = false, listeners } = {},
