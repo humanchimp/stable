@@ -136,7 +136,7 @@ function suitesFromFiles(files, helpers, listeners) {
     .map(({ code, path }) =>
       dsl({ code, helpers, description: `${path} |`, listeners }),
     )
-    .filter(Boolean)
+    .await()
     .multicast();
 }
 

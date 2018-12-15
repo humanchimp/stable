@@ -3,14 +3,16 @@ import { blocks, stacking } from "./names";
 
 const { keys, values } = Object;
 
-export function dsl({
+export async function dsl({
   code,
   helpers = Object.create(null),
   description = null,
   listeners = {},
 }) {
-  const suite = describe(description, null, { listeners });
-  const stack = [suite];
+  // Mutable `suite` binding... this code gets pretty hairy
+  let suite = describe(description, null, { listeners });
+
+  const queue = [];
   const wrapped = `
 ${code};
 return typeof bundle === 'undefined' ? {} : bundle;`;
@@ -21,24 +23,28 @@ return typeof bundle === 'undefined' ? {} : bundle;`;
           ? (...rest) => {
               const closure = rest.pop();
 
-              peek()[block](...rest, (s, ...r) => {
-                stack.push(s);
-                closure(...r);
-                stack.pop();
+              suite[block](...rest, (s, ...r) => {
+                queue.push(async () => {
+                  let previousSuite = suite;
+
+                  suite = s;
+                  await closure(...r);
+                  suite = previousSuite;
+                });
               });
             }
           : (...rest) => {
-              peek()[block](...rest);
+              suite[block](...rest);
             },
     ),
     ...values(helpers),
   );
 
+  // TODO: write a test for the albeit weird feature of exporting suites.
   suite.suites.push(...values(bundle));
 
-  return suite;
-
-  function peek() {
-    return stack[stack.length - 1];
+  for (const next of queue) {
+    await next();
   }
+  return suite;
 }
