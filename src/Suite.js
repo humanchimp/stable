@@ -18,6 +18,27 @@ export class Suite {
     this.focusMode = false;
   }
 
+  get isFocusMode() {
+    return this.focusMode;
+  }
+
+  set isFocusMode(value) {
+    this.focusMode = value;
+    if (value) {
+      this.suites.forEach(suite => {
+        suite.isFocusMode = true;
+      });
+    }
+  }
+
+  get isDeeplyFocused() {
+    if (this.specs.some(spec => spec.focused)) {
+      return true;
+    }
+    return this.suites.some(suite =>
+      suite.focused || suite.isDeeplyFocused);
+  }
+
   info(info) {
     this.specs.push({
       description: descriptionForInfo(info),
@@ -57,7 +78,7 @@ export class Suite {
   }
 
   fit(description, test = required()) {
-    this.focusMode = true;
+    this.isFocusMode = true;
     this.specs.push({
       description,
       test,
@@ -162,6 +183,12 @@ export class Suite {
   }
 
   async *reports(sort = shuffle) {
+    if (
+      !this.focusMode &&
+      this.isDeeplyFocused
+    ) {
+      this.isFocusMode = true;
+    }
     yield* await this.runHooks("beforeAll", this);
     yield* await this.hookify(
       this.specs,
@@ -186,6 +213,10 @@ export class Suite {
       };
     }
     const report = this.defaultOptions({ description });
+
+    if (focused) {
+      report.focused = true;
+    }
 
     this.listeners.pending.forEach(notify => notify(report, skip));
 

@@ -29,7 +29,7 @@ fdescribe("focus on a suite", () => {
 });
 
 describe("verify", () => {
-  it("should have run only the focused specs", () => {
+  fit("should have run only the focused specs", () => {
     expect(memo).to.eql([
       "first spec",
       "third spec",
