@@ -22,13 +22,13 @@ export async function dsl({
 ${code};
 return typeof bundle === 'undefined' ? {} : bundle;`;
 
-  // We evaluate the test code inside a function. We inject dependencies into
+  // We evaluate the test code using Function. We inject dependencies into
   // it and pull exports out of it. As it runs, calls to the DSL contained
   // within it are mapped to calls to the builder API such that by the time
   // we are ready to return from this function, we will have built up the
   // entire test suite.
   const bundle = Function(...blocks, ...keys(helpers), wrapped)(
-    // Spreaded twice: once to spread the set as an array, again to spread the
+    // Spread twice: once to spread the set as an array, again to spread the
     // array as parameters.
     ...[...blocks].map(
       block =>
