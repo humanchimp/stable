@@ -183,12 +183,6 @@ export class Suite {
   }
 
   async *reports(sort = shuffle) {
-    if (
-      !this.isFocusMode &&
-      this.isDeeplyFocused
-    ) {
-      this.isFocusMode = true;
-    }
     yield* await this.runHooks("beforeAll", this);
     yield* await this.hookify(
       this.specs,
