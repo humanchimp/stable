@@ -184,7 +184,7 @@ export class Suite {
 
   async *reports(sort = shuffle) {
     if (
-      !this.focusMode &&
+      !this.isFocusMode &&
       this.isDeeplyFocused
     ) {
       this.isFocusMode = true;
@@ -205,7 +205,7 @@ export class Suite {
   async reportForSpec({ description, test, focused, skipped }) {
     description = prefixed(this, description);
 
-    if (skipped || (this.focusMode && !focused)) {
+    if (skipped || (this.isFocusMode && !focused)) {
       return {
         description,
         ok: true,
