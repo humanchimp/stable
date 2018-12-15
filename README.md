@@ -67,7 +67,6 @@ They are left out, following the principle that there is no need for competing f
 
 ## goals
 
-
 - [x] Suites (`describe`)
 - [x] Specs (`it`)
 - [x] Hooks (`{before,after}{Each,All}`)
@@ -94,6 +93,10 @@ They are left out, following the principle that there is no need for competing f
 - [ ] Minimal (zero?) fallout
 - [ ] Fail-fast option?
 - [x] [Simple interop with a streams library](examples/streams.js)
+
+## trivia
+
+- you can pass stable, the library, into stable, the framework. To do so, you could use stable, the plugin. this is mostly useful for using stable to test stable. plugins are used in conjunction with `stable`, the cli.
 
 ## license
 
