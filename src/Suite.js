@@ -4,7 +4,7 @@ import { Listeners } from "./Listeners";
 
 export class Suite {
   constructor(
-    description,
+    description = required(),
     { parent, skipped = false, focused = false, listeners } = {},
   ) {
     this.description = description;
@@ -35,8 +35,7 @@ export class Suite {
     if (this.specs.some(spec => spec.focused)) {
       return true;
     }
-    return this.suites.some(suite =>
-      suite.focused || suite.isDeeplyFocused);
+    return this.suites.some(suite => suite.focused || suite.isDeeplyFocused);
   }
 
   info(info) {
@@ -47,22 +46,22 @@ export class Suite {
     return this;
   }
 
-  beforeAll(hook) {
+  beforeAll(hook = required()) {
     this.hooks.beforeAll.push(hook);
     return this;
   }
 
-  afterAll(hook) {
+  afterAll(hook = required()) {
     this.hooks.afterAll.push(hook);
     return this;
   }
 
-  beforeEach(hook) {
+  beforeEach(hook = required()) {
     this.hooks.beforeEach.push(hook);
     return this;
   }
 
-  afterEach(hook) {
+  afterEach(hook = required()) {
     this.hooks.afterEach.push(hook);
     return this;
   }
@@ -88,7 +87,7 @@ export class Suite {
     return this;
   }
 
-  xit(description = require(), test) {
+  xit(description = required(), test) {
     this.specs.push({
       description,
       test,
