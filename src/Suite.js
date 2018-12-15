@@ -22,7 +22,6 @@ export class Suite {
     this.specs.push({
       description: descriptionForInfo(info),
       skipped: true,
-      test: passes,
     });
     return this;
   }
@@ -272,8 +271,4 @@ function descriptionForInfo(info) {
 
 function required() {
   throw new Error("required");
-}
-
-function passes() {
-  return true;
 }
