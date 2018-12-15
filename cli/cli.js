@@ -86,7 +86,7 @@ const { from, startWith } = require("most");
 const { fromAsyncIterable } = require("most-async-iterable");
 const glob = require("fast-glob");
 const { rollup } = require("rollup");
-const { dsl } = require("../lib/stable.js");
+const { dsl, shuffle } = require("../lib/stable.js");
 const nodeResolve = require("rollup-plugin-node-resolve");
 const commonjs = require("rollup-plugin-commonjs");
 const babel = require("rollup-plugin-babel");
@@ -110,7 +110,11 @@ async function main() {
   await startWith(
     await planForSuites(suites),
     suites
-      .chain(suite => fromAsyncIterable(suite.reports()))
+      .chain(suite =>
+        fromAsyncIterable(
+          suite.reports(algorithm === "ordered" ? identity : shuffle),
+        ),
+      )
       .map(transform)
       .tap(() => i++),
   ).observe(console.log);
