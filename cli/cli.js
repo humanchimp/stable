@@ -60,10 +60,10 @@ Options:
                       [string]
                       [default: tap]
                       [in core: tap, json, inspect]
---sort, -s          The algorithm to use to decide the order with which to
-                    visit the suites. By default, suites are shuffled using
-                    the Fisher-Yates algorithm. You can defeat this feature by
-                    passing --sort=ordered.
+--sort, -s          The sort algorithm used when visiting the suites. By
+                    default, suites are shuffled using the Fisher-Yates
+                    algorithm. You can defeat this feature by passing
+                    --sort=ordered.
                       [string]
                       [default: shuffle]
                       [in core: shuffle, ordered]
@@ -114,8 +114,6 @@ async function main() {
       .map(transform)
       .tap(() => i++),
   ).observe(console.log);
-
-  console.log(transform({ ran: i }));
 }
 
 function helpersForPlugins(plugins) {
