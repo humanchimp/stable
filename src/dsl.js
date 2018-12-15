@@ -76,5 +76,9 @@ return typeof bundle === 'undefined' ? {} : bundle;`;
   for (const next of queue) {
     await next();
   }
+
+  // Focus mode propagates across sibling suites!
+  suite.isFocusMode = suite.suites.some(suite => suite.isDeeplyFocused);
+
   return suite;
 }

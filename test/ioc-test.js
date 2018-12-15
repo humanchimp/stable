@@ -9,8 +9,8 @@ describe("fixtures", async () => {
   describeEach(
     "expected reports generated from applications of the DSL",
     fixtures,
-    ({ code, data: expectedReports }) => {
-      it("should return an asynchronous iterator over the sequential reports", async () => {
+    ({ fixture, code, data: expectedReports }) => {
+      it(`should return an asynchronous iterator over the sequential ${fixture} reports`, async () => {
         const suite = await stable.dsl({ code, helpers: { expect } });
         const reports = await asyncSpread(suite.reports(it => it));
 
