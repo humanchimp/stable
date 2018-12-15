@@ -11,10 +11,10 @@ export class Suite {
     this.parent = parent;
     this.skipped = skipped;
     this.focused = focused;
+    this.suites = [];
+    this.specs = [];
     this.hooks = new Hooks();
     this.listeners = new Listeners(listeners);
-    this.specs = [];
-    this.suites = [];
     this.focusMode = false;
   }
 
