@@ -105,11 +105,17 @@ async function main() {
       ? explicitFiles
       : await glob(config.glob || "**-test.js");
   const suites = suitesFromFiles(files, helpers, listeners);
+  let i = 0;
 
   await startWith(
     await planForSuites(suites),
-    suites.chain(suite => fromAsyncIterable(suite.reports())).map(transform),
+    suites
+      .chain(suite => fromAsyncIterable(suite.reports()))
+      .map(transform)
+      .tap(() => i++),
   ).observe(console.log);
+
+  console.log(transform({ ran: i }));
 }
 
 function helpersForPlugins(plugins) {
