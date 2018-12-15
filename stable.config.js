@@ -4,6 +4,7 @@ import { rescue } from "./plugins/rescue";
 import { objectContaining } from "./plugins/objectContaining";
 import { sinon } from "./plugins/sinon";
 import { glob } from "./plugins/glob";
+import { stable } from './plugins/stable';
 
 export default {
   glob: "test/**-test.js",
@@ -16,5 +17,6 @@ export default {
     objectContaining(),
     sinon(),
     glob(),
+    stable(),
   ],
 };

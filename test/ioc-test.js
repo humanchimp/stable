@@ -1,4 +1,3 @@
-import { dsl } from "../src/dsl";
 import { asyncSpread } from "./util/asyncSpread";
 import { getFixtures } from "./util/getFixtures";
 
@@ -12,7 +11,7 @@ describe("fixtures", async () => {
     fixtures,
     ({ code, data: expectedReports }) => {
       it("should return an asynchronous iterator over the sequential reports", async () => {
-        const suite = await dsl({ code, helpers: { expect } });
+        const suite = await stable.dsl({ code, helpers: { expect } });
         const reports = await asyncSpread(suite.reports(it => it));
 
         expect(reports).to.eql(expectedReports);
@@ -33,7 +32,7 @@ describeEach(
       rescue(reason => {
         expect(reason.message).to.match(pattern);
       });
-      await dsl({ code });
+      await stable.dsl({ code });
     });
   },
 );
