@@ -4,7 +4,7 @@ import { Listeners } from "./Listeners";
 
 export class Suite {
   constructor(
-    description,
+    description = required(),
     { parent, skipped = false, focused = false, listeners } = {},
   ) {
     this.description = description;
@@ -16,6 +16,7 @@ export class Suite {
     this.hooks = new Hooks();
     this.listeners = new Listeners(listeners);
     this.focusMode = false;
+    this.opened = false;
   }
 
   get isFocusMode() {
@@ -35,8 +36,7 @@ export class Suite {
     if (this.specs.some(spec => spec.focused)) {
       return true;
     }
-    return this.suites.some(suite =>
-      suite.focused || suite.isDeeplyFocused);
+    return this.suites.some(suite => suite.focused || suite.isDeeplyFocused);
   }
 
   info(info) {
@@ -47,23 +47,23 @@ export class Suite {
     return this;
   }
 
-  beforeAll(hook) {
+  beforeAll(hook = required()) {
     this.hooks.beforeAll.push(hook);
     return this;
   }
 
-  afterAll(hook) {
-    this.hooks.afterAll.push(hook);
+  afterAll(hook = required()) {
+    this.hooks.afterAll.unshift(hook);
     return this;
   }
 
-  beforeEach(hook) {
+  beforeEach(hook = required()) {
     this.hooks.beforeEach.push(hook);
     return this;
   }
 
-  afterEach(hook) {
-    this.hooks.afterEach.push(hook);
+  afterEach(hook = required()) {
+    this.hooks.afterEach.unshift(hook);
     return this;
   }
 
@@ -88,7 +88,7 @@ export class Suite {
     return this;
   }
 
-  xit(description = require(), test) {
+  xit(description = required(), test) {
     this.specs.push({
       description,
       test,
@@ -168,44 +168,115 @@ export class Suite {
     );
   }
 
-  async *hookify(queue, generate) {
-    for (const item of queue) {
-      const { skipped } = item;
+  *orderedSpecs() {
+    for (const spec of this.specs) {
+      yield { suite: this, spec };
+    }
+    for (const suite of this.suites) {
+      yield* suite.orderedSpecs();
+    }
+  }
 
-      if (!skipped) {
-        yield* await this.runHooks("beforeEach", item);
+  *parents() {
+    let suite = this;
+
+    do {
+      yield suite;
+    } while ((suite = suite.parent));
+  }
+
+  computeHooks() {
+    if (this.computedHooks != null) {
+      return;
+    }
+    const suites = [...this.parents()];
+    const afterEach = suites.reduce(
+      (memo, suite) => memo.concat(suite.hooks.afterEach),
+      [],
+    );
+    const beforeEach = suites
+      .reverse()
+      .reduce((memo, suite) => memo.concat(suite.hooks.beforeEach), []);
+
+    this.computedHooks = { beforeEach, afterEach };
+  }
+
+  async *runHook(hook, description) {
+    const reason = await runTest(hook.thunk);
+
+    if (reason != null) {
+      yield {
+        reason,
+        description: `${hook.name}: ${description}`,
+        ok: false,
+      };
+      throw reason;
+    }
+  }
+
+  async *runSpec(spec) {
+    this.computeHooks();
+    if (!spec.skipped) {
+      for (const thunk of this.computedHooks.beforeEach) {
+        yield* await this.runHook(
+          { name: "beforeEach", thunk },
+          spec.description,
+        );
       }
-      yield* await generate(item);
-      if (!skipped) {
-        yield* await this.runHooks("afterEach", item);
+    }
+    yield await this.reportForSpec(spec);
+    if (!spec.skipped) {
+      for (const thunk of this.computedHooks.afterEach) {
+        yield* await this.runHook(
+          { name: "afterEach", thunk },
+          spec.description,
+        );
       }
     }
   }
 
-  async *reports(sort = shuffle) {
-    if (
-      !this.focusMode &&
-      this.isDeeplyFocused
-    ) {
-      this.isFocusMode = true;
+  async *open() {
+    if (this.opened) {
+      return;
     }
-    yield* await this.runHooks("beforeAll", this);
-    yield* await this.hookify(
-      this.specs,
-      async function*(spec) {
-        yield this.reportForSpec(spec);
-      }.bind(this),
-    );
-    yield* await this.hookify(sort([...this.suites]), async function*(suite) {
-      yield* await suite.reports(sort);
-    });
-    yield* await this.runHooks("afterAll", this);
+    for (const hook of this.hooks.run("beforeAll")) {
+      yield* await this.runHook(hook, this.description);
+    }
+    this.opened = true;
+  }
+
+  async *close() {
+    if (!this.opened) {
+      return;
+    }
+    for (const hook of this.hooks.run("afterAll")) {
+      yield* await this.runHook(hook, this.description);
+    }
+    this.opened = false;
+  }
+
+  async *reports(sort = shuffle) {
+    const specs = sort([...this.orderedSpecs()]);
+    const counted = countSpecsBySuite(specs);
+    const poisoned = new Set();
+
+    for (const { spec, suite } of specs) {
+      if (!poisoned.has(suite)) {
+        try {
+          yield* await suite.open();
+          yield* await suite.runSpec(spec);
+        } catch (_) {
+          poisoned.add(suite);
+        }
+      }
+      yield* await countSpec(counted, suite);
+    }
   }
 
   async reportForSpec({ description, test, focused, skipped }) {
     description = prefixed(this, description);
 
-    if (skipped || (this.focusMode && !focused)) {
+    if (skipped || (this.isFocusMode && !focused)) {
       return {
         description,
         ok: true,
@@ -235,7 +306,9 @@ export class Suite {
         report.ok = true;
       }
     }
+
     this.listeners.complete.forEach(notify => notify(report, fail));
+
     return report;
 
     function skip() {
@@ -246,22 +319,6 @@ export class Suite {
       if (report.ok) {
         report.ok = false;
         report.reason = reason;
-      }
-    }
-  }
-
-  async *runHooks(hookName, item) {
-    const { description } = item;
-
-    for (const hook of this.hooks[hookName]) {
-      const reason = await runTest(hook);
-
-      if (reason) {
-        yield {
-          reason,
-          description: `${hookName}: ${description}`,
-          ok: false,
-        };
       }
     }
   }
@@ -302,4 +359,29 @@ function descriptionForInfo(info) {
 
 function required() {
   throw new Error("required");
+}
+
+function countSpecsBySuite(specs) {
+  return specs.reduce((memo, { suite }) => {
+    do {
+      inc(memo, suite, 1);
+    } while ((suite = suite.parent));
+    return memo;
+  }, new Map());
+}
+
+function inc(map, key, offset) {
+  const [initial = 0] = [map.get(key)];
+  const next = initial + offset;
+
+  map.set(key, next);
+  return next;
+}
+
+async function* countSpec(counted, suite) {
+  do {
+    if (inc(counted, suite, -1) === 0) {
+      yield* await suite.close();
+    }
+  } while ((suite = suite.parent));
 }

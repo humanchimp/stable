@@ -11,9 +11,10 @@ describe("fixtures", async () => {
     fixtures,
     ({ fixture, code, data: expectedReports }) => {
       it(`should return an asynchronous iterator over the sequential ${fixture} reports`, async () => {
-        const suite = await stable.dsl({ code, helpers: { expect } });
+        const suite = await stable.dsl({ code, helpers: { expect, sinon } });
         const reports = await asyncSpread(suite.reports(it => it));
 
+        scrubReasons(reports);
         expect(reports).to.eql(expectedReports);
       });
     },
@@ -36,3 +37,11 @@ describeEach(
     });
   },
 );
+
+function scrubReasons(reports) {
+  for (const report of reports) {
+    if (report.reason != null) {
+      report.reason = { message: report.reason.message };
+    }
+  }
+}
