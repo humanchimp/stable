@@ -16,6 +16,7 @@ export class Suite {
     this.hooks = new Hooks();
     this.listeners = new Listeners(listeners);
     this.focusMode = false;
+    this.opened = false;
   }
 
   get isFocusMode() {
@@ -52,7 +53,7 @@ export class Suite {
   }
 
   afterAll(hook = required()) {
-    this.hooks.afterAll.push(hook);
+    this.hooks.afterAll.unshift(hook);
     return this;
   }
 
@@ -62,7 +63,7 @@ export class Suite {
   }
 
   afterEach(hook = required()) {
-    this.hooks.afterEach.push(hook);
+    this.hooks.afterEach.unshift(hook);
     return this;
   }
 
@@ -167,32 +168,95 @@ export class Suite {
     );
   }
 
-  async *hookify(queue, generate) {
-    for (const item of queue) {
-      const { skipped } = item;
+  *orderedSpecs() {
+    for (const spec of this.specs) {
+      yield { suite: this, spec };
+    }
+    for (const suite of this.suites) {
+      yield* suite.orderedSpecs();
+    }
+  }
 
-      if (!skipped) {
-        yield* await this.runHooks("beforeEach", item);
+  *parents() {
+    let suite = this;
+
+    do {
+      yield suite;
+    } while ((suite = suite.parent));
+  }
+
+  computeHooks() {
+    if (this.computedHooks != null) {
+      return;
+    }
+    const suites = [...this.parents()];
+    const afterEach = suites.reduce(
+      (memo, suite) => memo.concat(suite.hooks.afterEach),
+      [],
+    );
+    const beforeEach = suites
+      .reverse()
+      .reduce((memo, suite) => memo.concat(suite.hooks.beforeEach), []);
+
+    this.computedHooks = { beforeEach, afterEach };
+  }
+
+  async *runHook(hook, description) {
+    const reason = await runTest(hook.thunk);
+
+    if (reason != null) {
+      yield {
+        reason,
+        description: `${hook.name}: ${description}`,
+        ok: false,
+      };
+    }
+  }
+
+  async *runSpec(spec) {
+    this.computeHooks();
+    if (!spec.skipped) {
+      for (const thunk of this.computedHooks.beforeEach) {
+        yield* await this.runHook({ name: 'beforeEach', thunk });
       }
-      yield* await generate(item);
-      if (!skipped) {
-        yield* await this.runHooks("afterEach", item);
+    }
+    yield await this.reportForSpec(spec);
+    if (!spec.skipped) {
+      for (const thunk of this.computedHooks.afterEach) {
+        yield* await this.runHook({ name: 'afterEach', thunk });
       }
     }
   }
 
+  async *open() {
+    if (this.opened) {
+      return;
+    }
+    for (const hook of this.hooks.run("beforeAll")) {
+      yield* await this.runHook(hook, this.description);
+    }
+    this.opened = true;
+  }
+
+  async *close() {
+    if (!this.opened) {
+      return;
+    }
+    for (const hook of this.hooks.run("afterAll")) {
+      yield* await this.runHook(hook, this.description);
+    }
+    this.opened = false;
+  }
+
   async *reports(sort = shuffle) {
-    yield* await this.runHooks("beforeAll", this);
-    yield* await this.hookify(
-      this.specs,
-      async function*(spec) {
-        yield this.reportForSpec(spec);
-      }.bind(this),
-    );
-    yield* await this.hookify(sort([...this.suites]), async function*(suite) {
-      yield* await suite.reports(sort);
-    });
-    yield* await this.runHooks("afterAll", this);
+    const specs = sort([...this.orderedSpecs()]);
+    const counted = countSpecsBySuite(specs);
+
+    for (const { spec, suite } of specs) {
+      yield* await suite.open();
+      yield* await suite.runSpec(spec);
+      yield* await countSpec(counted, suite);
+    }
   }
 
   async reportForSpec({ description, test, focused, skipped }) {
@@ -242,22 +306,6 @@ export class Suite {
       }
     }
   }
-
-  async *runHooks(hookName, item) {
-    const { description } = item;
-
-    for (const hook of this.hooks[hookName]) {
-      const reason = await runTest(hook);
-
-      if (reason) {
-        yield {
-          reason,
-          description: `${hookName}: ${description}`,
-          ok: false,
-        };
-      }
-    }
-  }
 }
 
 async function runTest(test) {
@@ -295,4 +343,29 @@ function descriptionForInfo(info) {
 
 function required() {
   throw new Error("required");
+}
+
+function countSpecsBySuite(specs) {
+  return specs.reduce((memo, { suite }) => {
+    do {
+      inc(memo, suite, 1);
+    } while ((suite = suite.parent));
+    return memo;
+  }, new Map());
+}
+
+function inc(map, key, offset) {
+  const [initial = 0] = [map.get(key)];
+  const next = initial + offset;
+
+  map.set(key, next);
+  return next;
+}
+
+async function* countSpec(counted, suite) {
+  do {
+    if (inc(counted, suite, -1) === 0) {
+      yield* await suite.close();
+    }
+  } while ((suite = suite.parent));
 }
