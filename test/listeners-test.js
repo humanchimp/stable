@@ -57,12 +57,13 @@ describe("pending listener", () => {
     it("should be possible to explictly set ok", () => {
       pendingSpy = sinon.spy((report, skip) => {
         report.ok = false;
-        report.reason = new Error("i'll tell you later");
+        report.reason = new Error("it's embarrassing! i'll tell you later");
         skip();
       });
 
       logSpy = sinon.spy(report => {
         expect(report.ok).to.be.false;
+        expect(report.reason.message).to.match(/embarrassing/);
       });
     });
 

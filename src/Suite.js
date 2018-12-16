@@ -210,6 +210,7 @@ export class Suite {
         description: `${hook.name}: ${description}`,
         ok: false,
       };
+      throw reason;
     }
   }
 
@@ -257,10 +258,17 @@ export class Suite {
   async *reports(sort = shuffle) {
     const specs = sort([...this.orderedSpecs()]);
     const counted = countSpecsBySuite(specs);
+    const poisoned = new Set();
 
     for (const { spec, suite } of specs) {
-      yield* await suite.open();
-      yield* await suite.runSpec(spec);
+      if (!poisoned.has(suite)) {
+        try {
+          yield* await suite.open();
+          yield* await suite.runSpec(spec);
+        } catch (_) {
+          poisoned.add(suite);
+        }
+      }
       yield* await countSpec(counted, suite);
     }
   }
