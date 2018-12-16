@@ -85,6 +85,7 @@ Options:
 const { from, startWith } = require("most");
 const { fromAsyncIterable } = require("most-async-iterable");
 const glob = require("fast-glob");
+const { inspect } = require("util");
 const { rollup } = require("rollup");
 const { dsl, shuffle } = require("../lib/stable.js");
 const nodeResolve = require("rollup-plugin-node-resolve");
@@ -207,7 +208,7 @@ ${reason.stack
 function transformForFormat(format) {
   switch (format) {
     case "inspect":
-      return identity;
+      return it => inspect(it, { depth: 10, colors: true });
     case "json":
     case "jsonlines":
       return it => JSON.stringify(it);
