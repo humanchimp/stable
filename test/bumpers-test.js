@@ -80,10 +80,7 @@ describeEach(
       "the `describeEach` method",
       [
         ["suite description", () => stable.describe(null).describeEach()],
-        [
-          "table",
-          () => stable.describe(null).describeEach("placeholder"),
-        ],
+        ["table", () => stable.describe(null).describeEach("placeholder")],
         [
           "describe initializer (closure)",
           () => stable.describe(null).describeEach("placeholder", []),
@@ -94,10 +91,7 @@ describeEach(
       "the `xdescribeEach` method",
       [
         ["suite description", () => stable.describe(null).xdescribeEach()],
-        [
-          "table",
-          () => stable.describe(null).xdescribeEach("placeholder"),
-        ],
+        ["table", () => stable.describe(null).xdescribeEach("placeholder")],
         [
           "describe initializer (closure)",
           () => stable.describe(null).xdescribeEach("placeholder", []),
@@ -108,10 +102,7 @@ describeEach(
       "the `fdescribeEach` method",
       [
         ["suite description", () => stable.describe(null).fdescribeEach()],
-        [
-          "table",
-          () => stable.describe(null).fdescribeEach("placeholder"),
-        ],
+        ["table", () => stable.describe(null).fdescribeEach("placeholder")],
         [
           "describe initializer (closure)",
           () => stable.describe(null).fdescribeEach("placeholder", []),
