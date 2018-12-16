@@ -217,13 +217,19 @@ export class Suite {
     this.computeHooks();
     if (!spec.skipped) {
       for (const thunk of this.computedHooks.beforeEach) {
-        yield* await this.runHook({ name: 'beforeEach', thunk });
+        yield* await this.runHook(
+          { name: "beforeEach", thunk },
+          spec.description,
+        );
       }
     }
     yield await this.reportForSpec(spec);
     if (!spec.skipped) {
       for (const thunk of this.computedHooks.afterEach) {
-        yield* await this.runHook({ name: 'afterEach', thunk });
+        yield* await this.runHook(
+          { name: "afterEach", thunk },
+          spec.description,
+        );
       }
     }
   }
@@ -292,7 +298,9 @@ export class Suite {
         report.ok = true;
       }
     }
+
     this.listeners.complete.forEach(notify => notify(report, fail));
+
     return report;
 
     function skip() {
