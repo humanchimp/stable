@@ -8,7 +8,8 @@
   "private": false,
   "scripts": {
     "build": "$(npm bin)/rollup -c ./rollup.lib.config.js",
-    "test": "node ./cli/cli.js -o tap"
+    "test": "node ./cli/cli.js -o tap",
+    "cover": "$(npm bin)/nyc --reporter=lcov npm test"
   },
   "devDependencies": {
     "@babel/core": "^7.2.0",
