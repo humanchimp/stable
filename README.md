@@ -1,5 +1,7 @@
 # :horse: stable
 
+[![codecov](https://codecov.io/gh/humanchimp/stable/branch/master/graph/badge.svg?token=mYDCN5PRsc)](https://codecov.io/gh/humanchimp/stable)
+
 an experimental test framework built with async generators.
 
 inspired by jasmine, mocha and jest. bring your own assertion library.
