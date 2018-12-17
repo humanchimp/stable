@@ -10,7 +10,7 @@ steps:
 - name: node:11
   entrypoint: yarn
   args: ['run', 'cover']
-- name: gcr.io/cloud-builders/curl
+- name: gcr.io/cloud-builders/git
   entrypoint: bash
   args: ['./codecov.sh']
   env:
