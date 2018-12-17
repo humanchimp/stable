@@ -14,4 +14,4 @@ steps:
   entrypoint: bash
   args: ['./codecov.sh']
   env:
-  - 'CODECOV_TOKEN="35c27442-dc86-4fb0-9897-62a9bf00f19a"'
+  - 'CODECOV_TOKEN=35c27442-dc86-4fb0-9897-62a9bf00f19a'
