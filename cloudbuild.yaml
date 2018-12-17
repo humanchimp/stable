@@ -1,4 +1,6 @@
 steps:
+- name: gcr.io/cloud-builders/git
+  args: ['fetch', '--unshallow']
 - name: node:11
   entrypoint: yarn
   args: ['install']
@@ -8,3 +10,8 @@ steps:
 - name: node:11
   entrypoint: yarn
   args: ['run', 'cover']
+- name: gcr.io/cloud-builders/git
+  entrypoint: bash
+  args: ['./codecov.sh']
+  env:
+  - 'CODECOV_TOKEN=35c27442-dc86-4fb0-9897-62a9bf00f19a'
