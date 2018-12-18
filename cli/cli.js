@@ -42,7 +42,7 @@ if (algorithm === "shuffle" && partition != null && seed == null) {
 }
 // </cli flags>
 if (helpMenuRequested) {
-  console.log(`
+  console.log(help`
 Usage: stable [glob]
 
 Options:
@@ -286,4 +286,12 @@ function summary(counts) {
 
 function identity(it) {
   return it;
+}
+
+function help([help]) {
+  const chalk = require("chalk");
+
+  return help
+    .replace(/(\[[^\]]+\])/g, (_, type) => chalk.green(type))
+    .replace(/(--?\w+)/g, (_, option) => chalk.blue(option));
 }
