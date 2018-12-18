@@ -37,18 +37,6 @@ run([
 ```
 _Figure 2_: In this example, `describe` is a factory method which is the entry point to the `Suite` class' cascading (sometimes called "fluent") builder api. You can build up arbitrary test suites using this API. It takes a bit of getting used to but all features are supported (the framework derives all of its capabilities from this API).
 
-## why another test framework?
-
-In no particular order:
-
-* I wanted to play with async generators and this seemed like a good use case for them.
-* I want to build out my own framework as an experiment.
-* I got really excited about jest, but then it turned out to be way too opinionated in certain ways I disagreed with, and it wasn't going to work well for my use cases, some of which involve needing to run tests in actual browsers, not just jsdom.
-* I welcome the opportunity to have my own lattice to hang implements on—the ones that make my own peculiar tradeoffs.
-* I want a test framework more modern than mocha to replace mocha in some of the projects I'm working on. Likewise for jasmine. So familiarity is important so that I can hopefully do a mostly mechanical port when the time comes to do that.
-
-The theme is overwhelming me-oriented. Sorry about that. This is one of my weekend projects.
-
 ## north star
 
 It should be dead simple and self contained. It should be flexible and, failing that, hackable.
