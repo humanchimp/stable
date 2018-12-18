@@ -30,37 +30,36 @@ return typeof bundle === 'undefined' ? {} : bundle;`;
   const bundle = Function(...blocks, ...keys(helpers), wrapped)(
     // Spread twice: once to spread the set as an array, again to spread the
     // array as parameters.
-    ...[...blocks].map(
-      block =>
-        // Stacking blocks (variants of `describe`) require us to keep track of
-        // which suite the calls inside the DSL should bind to.
-        stacking.has(block)
-          ? (...rest) => {
-              const closure = rest.pop();
+    ...[...blocks].map(block =>
+      // Stacking blocks (variants of `describe`) require us to keep track of
+      // which suite the calls inside the DSL should bind to.
+      stacking.has(block)
+        ? (...rest) => {
+            const closure = rest.pop();
 
-              suite[block](...rest, (s, ...r) => {
-                // We are capturing the suite, `s`, inside the closure scope!
-                queue.push(async () => {
-                  let p = suite;
+            suite[block](...rest, (s, ...r) => {
+              // We are capturing the suite, `s`, inside the closure scope!
+              queue.push(async () => {
+                const p = suite;
 
-                  // And then right before we actually call the closure we set
-                  // the mutable suite binding to the correct suite so that
-                  // inside the closure, the calls to the DSL are binding to
-                  // the correct suite—the inner one this time.
-                  suite = s;
-                  await closure(...r);
+                // And then right before we actually call the closure we set
+                // the mutable suite binding to the correct suite so that
+                // inside the closure, the calls to the DSL are binding to
+                // the correct suite—the inner one this time.
+                suite = s;
+                await closure(...r);
 
-                  // Then we restore the suite to what it was before, which
-                  // ends up having a similar effect to popping a stack. :mindblown:
-                  suite = p;
-                });
+                // Then we restore the suite to what it was before, which
+                // ends up having a similar effect to popping a stack. :mindblown:
+                suite = p;
               });
-            }
-          : // Luckily for us, this path is a simpler scheduling mechanism for
-            // the leaf nodes in our graph, lovingly knowns as specs and hooks.
-            (...rest) => {
-              suite[block](...rest);
-            },
+            });
+          }
+        : // Luckily for us, this path is a simpler scheduling mechanism for
+          // the leaf nodes in our graph, lovingly knowns as specs and hooks.
+          (...rest) => {
+            suite[block](...rest);
+          },
     ),
     // The rest of the arguments are helpers supplied by plugins. They could be
     // anything, but we aren't concerned with what they do.

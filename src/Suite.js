@@ -161,11 +161,10 @@ export class Suite {
     return this;
   }
 
-  size() {
-    return (
-      this.specs.length +
-      this.suites.reduce((sum, suite) => sum + suite.size(), 0)
-    );
+  size(predicate) {
+    return [
+      ...(predicate != null ? this.filter(predicate) : this.orderedSpecs()),
+    ].length;
   }
 
   *orderedSpecs() {
@@ -174,6 +173,14 @@ export class Suite {
     }
     for (const suite of this.suites) {
       yield* suite.orderedSpecs();
+    }
+  }
+
+  *filter(predicate = required()) {
+    for (const spec of this.orderedSpecs()) {
+      if (predicate(spec)) {
+        yield spec;
+      }
     }
   }
 
@@ -199,6 +206,15 @@ export class Suite {
       .reduce((memo, suite) => memo.concat(suite.hooks.beforeEach), []);
 
     this.computedHooks = { beforeEach, afterEach };
+  }
+
+  prefixed(description) {
+    const segments = [];
+
+    for (const node of this.parents()) {
+      segments.unshift(node.description);
+    }
+    return [...segments, description].filter(Boolean).join(" ");
   }
 
   async *runHook(hook, description) {
@@ -255,8 +271,10 @@ export class Suite {
     this.opened = false;
   }
 
-  async *reports(sort = shuffle) {
-    const specs = sort([...this.orderedSpecs()]);
+  async *reports(sort = shuffle, predicate) {
+    const specs = sort([
+      ...(predicate != null ? this.filter(predicate) : this.orderedSpecs()),
+    ]);
     const counted = countSpecsBySuite(specs);
     const poisoned = new Set();
 
@@ -274,7 +292,7 @@ export class Suite {
   }
 
   async reportForSpec({ description, test, focused, skipped }) {
-    description = prefixed(this, description);
+    description = this.prefixed(description);
 
     if (skipped || (this.isFocusMode && !focused)) {
       return {
@@ -330,15 +348,6 @@ async function runTest(test) {
   } catch (reason) {
     return reason;
   }
-}
-
-function prefixed(node, description) {
-  const segments = [];
-
-  do {
-    segments.unshift(node.description);
-  } while ((node = node.parent));
-  return [...segments, description].filter(Boolean).join(" ");
 }
 
 function descriptionForRow(description, table) {

@@ -87,13 +87,17 @@ const { fromAsyncIterable } = require("most-async-iterable");
 const glob = require("fast-glob");
 const { inspect } = require("util");
 const { rollup } = require("rollup");
-const { dsl, shuffle } = require("../lib/stable.js");
+const { dsl, shuffle, Selection } = require("../lib/stable.js");
 const nodeResolve = require("rollup-plugin-node-resolve");
 const commonjs = require("rollup-plugin-commonjs");
 const babel = require("rollup-plugin-babel");
 const loadConfigFile = require("./loadConfigFile");
 const { assign } = Object;
 const transform = transformForFormat(format);
+const selection = new Selection({
+  filter,
+  grep,
+});
 
 main().catch(console.error);
 
@@ -106,19 +110,46 @@ async function main() {
       ? explicitFiles
       : await glob(config.glob || "**-test.js");
   const suites = suitesFromFiles(files, helpers, listeners);
-  let i = 0;
+  let i = 0,
+    oks = 0,
+    skips = 0;
 
   await startWith(
-    await planForSuites(suites),
+    await planForSuites(suites, selection.predicate),
     suites
       .chain(suite =>
         fromAsyncIterable(
-          suite.reports(algorithm === "ordered" ? identity : shuffle),
+          suite.reports(
+            algorithm === "ordered" ? identity : shuffle,
+            selection.predicate,
+          ),
         ),
       )
-      .map(transform)
-      .tap(() => i++),
+      .tap(({ ok, description }) => {
+        i += 1;
+        if (ok) {
+          oks += 1;
+        }
+        if (description.includes("# SKIP")) {
+          skips += 1;
+        }
+      })
+      .map(transform),
   ).observe(console.log);
+
+  console.log(`
+# ok ${oks}${
+    oks !== i
+      ? `
+# failed ${i - oks}`
+      : ""
+  }${
+    skips !== 0
+      ? `
+# skipped ${skips}`
+      : ""
+  }
+`);
 }
 
 function helpersForPlugins(plugins) {
@@ -129,13 +160,15 @@ function helpersForPlugins(plugins) {
 }
 
 function listenersForPlugins(plugins) {
-  return plugins.filter(plugin => plugin.on != null).reduce(
-    (memo, { on: { pending = [], complete = [] } }) => ({
-      pending: memo.pending.concat(pending),
-      complete: memo.complete.concat(complete),
-    }),
-    { pending: [], complete: [] },
-  );
+  return plugins
+    .filter(plugin => plugin.on != null)
+    .reduce(
+      (memo, { on: { pending = [], complete = [] } }) => ({
+        pending: memo.pending.concat(pending),
+        complete: memo.complete.concat(complete),
+      }),
+      { pending: [], complete: [] },
+    );
 }
 
 function suitesFromFiles(files, helpers, listeners) {
@@ -218,8 +251,11 @@ function transformForFormat(format) {
   throw new Error(`unsupported format: -f ${format}`);
 }
 
-async function planForSuites(suites) {
-  const count = await suites.reduce((sum, suite) => sum + suite.size(), 0);
+async function planForSuites(suites, predicate) {
+  const count = await suites.reduce(
+    (sum, suite) => sum + suite.size(predicate),
+    0,
+  );
 
   switch (format) {
     case "inspect":
