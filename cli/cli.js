@@ -124,12 +124,10 @@ async function main() {
     ok: 0,
     skipped: 0,
   };
-
-  let { predicate } = selection;
-
-  if (partition != null && partitions != null) {
-    predicate = selection.partition(counts.total, partition, partitions);
-  }
+  const predicate =
+    partition != null && partitions != null
+      ? selection.partition(counts.total, partition, partitions)
+      : selection.predicate;
 
   counts.planned = [...suite.filter(predicate)].length;
 

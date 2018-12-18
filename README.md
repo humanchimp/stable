@@ -58,6 +58,7 @@ They are left out, following the principle that there is no need for competing f
 ## goals
 
 - [x] Suites (`describe`)
+  - [x] Async describe (pairs nicely with `describeEach`)
 - [x] Specs (`it`)
 - [x] Hooks (`{before,after}{Each,All}`)
 - [x] Metadata (`info` annotations)
@@ -75,8 +76,8 @@ They are left out, following the principle that there is no need for competing f
   - [ ] Works with karma
   - [ ] Works with testem
   - [ ] Works with jsdom
-- [ ] Suite partitioning
-  - [ ] Deep partitioning?
+- [x] Suite partitioning
+  - [x] Deep partitioning
 - [x] Suite randomization
   - [x] Deep randomization
 - [x] Familiar BDD interface

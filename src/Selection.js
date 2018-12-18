@@ -12,16 +12,21 @@ export class Selection {
   partition(total, partition, partitions) {
     const size = Math.floor(total / partitions);
     const remainder = total % partitions;
-    const start = size * partition;
-    const end = start + size + (partition === 0 ? remainder : 0);
+    let start = size * partition;
+    let end = start + size;
 
+    if (partition === 0) {
+      end += remainder;
+    } else {
+      start += remainder;
+    }
     return spec => {
       const { series: current } = spec;
 
-      if (current < start || current >= end) {
+      if ((start > current) || (current >= end)) {
         return false;
       }
-      return this.predicate(spec);
+      return this.predicate(spec)
     };
   }
 
