@@ -35,11 +35,11 @@ if (partition != null && partitions == null) {
     "Invalid options: you must pass `partitions` if you wish to use `partition`.",
   );
 }
-if (algorithm === "shuffle" && partition != null && seed == null) {
-  throw new Error(
-    "Invalid options: A seed must be passed to each partition if you wish to use `shuffle` and `partition` together.",
-  );
-}
+// if (algorithm === "shuffle" && partition != null && seed == null) {
+//   throw new Error(
+//     "Invalid options: A seed must be passed to each partition if you wish to use `shuffle` and `partition` together.",
+//   );
+// }
 // </cli flags>
 if (helpMenuRequested) {
   console.log(help`
@@ -87,7 +87,7 @@ const { fromAsyncIterable } = require("most-async-iterable");
 const glob = require("fast-glob");
 const { inspect } = require("util");
 const { rollup } = require("rollup");
-const { dsl, shuffle, Selection } = require("../lib/stable.js");
+const { describe, dsl, shuffle, Selection } = require("../lib/stable.js");
 const nodeResolve = require("rollup-plugin-node-resolve");
 const commonjs = require("rollup-plugin-commonjs");
 const babel = require("rollup-plugin-babel");
@@ -109,24 +109,35 @@ async function main() {
     explicitFiles.length > 0
       ? explictFiles
       : await glob(config.glob || "**-test.js");
-  const suites = suitesFromFiles(files, helpers, listeners);
+  const suite = await suitesFromFiles(files, helpers, listeners).reduce(
+    (suite, s) => {
+      suite.suites.push(s);
+      return suite;
+    },
+    describe(null),
+  );
+  const allSpecs = [...suite.orderedSpecs()];
   const counts = {
+    total: allSpecs.length,
+    planned: undefined,
     completed: 0,
     ok: 0,
     skipped: 0,
   };
 
+  let { predicate } = selection;
+
+  if (partition != null && partitions != null) {
+    predicate = selection.partition(counts.total, partition, partitions);
+  }
+
+  counts.planned = [...suite.filter(predicate)].length;
+
   await startWith(
-    await planForSuites(suites, selection.predicate),
-    suites
-      .chain(suite =>
-        fromAsyncIterable(
-          suite.reports(
-            algorithm === "ordered" ? identity : shuffle,
-            selection.predicate,
-          ),
-        ),
-      )
+    plan(counts.planned),
+    fromAsyncIterable(
+      suite.reports(algorithm === "ordered" ? identity : shuffle, predicate),
+    )
       .tap(({ ok, skipped }) => {
         counts.completed += 1;
         if (ok) {
@@ -240,20 +251,15 @@ function transformForFormat(format) {
   throw new Error(`unsupported format: -f ${format}`);
 }
 
-async function planForSuites(suites, predicate) {
-  const count = await suites.reduce(
-    (sum, suite) => sum + [...suite.filter(predicate)].length,
-    0,
-  );
-
+function plan(planned) {
   switch (format) {
     case "inspect":
-      return { plan: count };
+      return { plan: planned };
     case "json":
     case "jsonlines":
-      return JSON.stringify({ plan: count });
+      return JSON.stringify({ plan: planned });
     case "tap":
-      return `1..${count}`;
+      return `1..${planned}`;
   }
 }
 

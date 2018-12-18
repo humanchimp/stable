@@ -9,6 +9,22 @@ export class Selection {
     }
   }
 
+  partition(total, partition, partitions) {
+    const size = Math.floor(total / partitions);
+    const remainder = total % partitions;
+    const start = size * partition;
+    const end = start + size + (partition === 0 ? remainder : 0);
+
+    return spec => {
+      const { series: current } = spec;
+
+      if (current < start || current >= end) {
+        return false;
+      }
+      return this.predicate(spec);
+    };
+  }
+
   predicate({ suite, spec }) {
     const candidate = suite.prefixed(spec.description);
 

@@ -162,11 +162,15 @@ export class Suite {
   }
 
   *orderedSpecs() {
+    let series = 0;
+
     for (const spec of this.specs) {
-      yield { suite: this, spec };
+      yield { suite: this, spec, series: series++ };
     }
     for (const suite of this.suites) {
-      yield* suite.orderedSpecs();
+      for (const tuple of suite.orderedSpecs()) {
+        yield { ...tuple, series: series++ };
+      }
     }
   }
 
