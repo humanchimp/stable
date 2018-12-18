@@ -161,12 +161,6 @@ export class Suite {
     return this;
   }
 
-  size(predicate) {
-    return [
-      ...(predicate != null ? this.filter(predicate) : this.orderedSpecs()),
-    ].length;
-  }
-
   *orderedSpecs() {
     for (const spec of this.specs) {
       yield { suite: this, spec };

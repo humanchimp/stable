@@ -253,7 +253,7 @@ function transformForFormat(format) {
 
 async function planForSuites(suites, predicate) {
   const count = await suites.reduce(
-    (sum, suite) => sum + suite.size(predicate),
+    (sum, suite) => sum + [...suite.filter(predicate)].length,
     0,
   );
 
