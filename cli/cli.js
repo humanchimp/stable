@@ -82,7 +82,7 @@ Options:
   return;
 }
 
-const { from, startWith } = require("most");
+const { of, from, startWith } = require("most");
 const { fromAsyncIterable } = require("most-async-iterable");
 const glob = require("fast-glob");
 const { inspect } = require("util");
@@ -125,31 +125,26 @@ async function main() {
           ),
         ),
       )
-      .tap(({ ok, description }) => {
+      .tap(({ ok, skipped }) => {
         i += 1;
         if (ok) {
           oks += 1;
         }
-        if (description.includes("# SKIP")) {
+        if (skipped) {
           skips += 1;
         }
       })
-      .map(transform),
+      .map(transform)
+      .continueWith(() =>
+        of(
+          summary({
+            completed: i,
+            ok: oks,
+            skipped: skips,
+          }),
+        ),
+      ),
   ).observe(console.log);
-
-  console.log(`
-# ok ${oks}${
-    oks !== i
-      ? `
-# failed ${i - oks}`
-      : ""
-  }${
-    skips !== 0
-      ? `
-# skipped ${skips}`
-      : ""
-  }
-`);
 }
 
 function helpersForPlugins(plugins) {
@@ -265,6 +260,33 @@ async function planForSuites(suites, predicate) {
       return JSON.stringify({ plan: count });
     case "tap":
       return `1..${count}`;
+  }
+}
+
+function summary(counts) {
+  switch (format) {
+    case "inspect":
+      return counts;
+    case "json":
+    case "jsonlines":
+      return JSON.stringify(counts);
+    case "tap": {
+      const { ok, skipped, completed } = counts;
+
+      return `
+# ok ${ok}${
+        ok !== completed
+          ? `
+# failed ${completed - ok}`
+          : ""
+      }${
+        skipped !== 0
+          ? `
+# skipped ${skipped}`
+          : ""
+      }
+`;
+    }
   }
 }
 
