@@ -35,15 +35,10 @@ if (partition != null && partitions == null) {
     "Invalid options: you must pass `partitions` if you wish to use `partition`.",
   );
 }
-// if (algorithm === "shuffle" && partition != null && seed == null) {
-//   throw new Error(
-//     "Invalid options: A seed must be passed to each partition if you wish to use `shuffle` and `partition` together.",
-//   );
-// }
 // </cli flags>
 if (helpMenuRequested) {
   console.log(help`
-Usage: stable [glob]
+Usage: 🐎 stable [glob]
 
 Options:
 
@@ -60,8 +55,8 @@ Options:
                       [string]
                       [default: tap]
                       [in core: tap, json, inspect]
---sort, -s          The sort algorithm used when visiting the suites. By
-                    default, suites are shuffled using the Fisher-Yates
+--sort, -s          The sort algorithm used when visiting the specs. By
+                    default, specs are shuffled using the Fisher-Yates
                     algorithm. You can defeat this feature by passing
                     --sort=ordered.
                       [string]
@@ -69,13 +64,10 @@ Options:
                       [in core: shuffle, ordered]
 --partitions        The total of partitions to divide the specs by.
                       [number]
---partition         The partition to run. Using this feature implies
-                    --sort=ordered, unless you also pass a seed.
+--partition         The partition to run and report.
                       [number]
 --seed              For seeding the random number generator used by the built-
-                    in shuffle algorithm. It is mandatory when combining
-                    --sort=shuffle and --partition. You must pass the same
-                    seed to each partition.
+                    in shuffle algorithm.
                       [string]
 --help, -h          Print this message.
 `);
@@ -107,7 +99,7 @@ async function main() {
   const listeners = listenersForPlugins(config.plugins);
   const files =
     explicitFiles.length > 0
-      ? explictFiles
+      ? explicitFiles
       : await glob(config.glob || "**-test.js");
   const suite = await suitesFromFiles(files, helpers, listeners).reduce(
     (suite, s) => {
@@ -297,5 +289,5 @@ function help([help]) {
 
   return help
     .replace(/(\[[^\]]+\])/g, (_, type) => chalk.green(type))
-    .replace(/(--?\w+)/g, (_, option) => chalk.blue(option));
+    .replace(/(--?[\w|=]+)/g, (_, option) => chalk.blue(option));
 }

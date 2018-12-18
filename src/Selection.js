@@ -3,10 +3,10 @@ const { assign } = Object;
 export class Selection {
   constructor(options) {
     assign(this, options);
-    this.predicate = this.predicate.bind(this);
     if (typeof this.grep === "string") {
       this.grep = new RegExp(this.grep); // no escaping
     }
+    this.predicate = this.predicate.bind(this);
   }
 
   partition(total, partition, partitions) {
