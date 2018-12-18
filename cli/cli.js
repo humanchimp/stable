@@ -107,12 +107,14 @@ async function main() {
   const listeners = listenersForPlugins(config.plugins);
   const files =
     explicitFiles.length > 0
-      ? explicitFiles
+      ? explictFiles
       : await glob(config.glob || "**-test.js");
   const suites = suitesFromFiles(files, helpers, listeners);
-  let i = 0,
-    oks = 0,
-    skips = 0;
+  const counts = {
+    completed: 0,
+    ok: 0,
+    skipped: 0,
+  };
 
   await startWith(
     await planForSuites(suites, selection.predicate),
@@ -126,24 +128,16 @@ async function main() {
         ),
       )
       .tap(({ ok, skipped }) => {
-        i += 1;
+        counts.completed += 1;
         if (ok) {
-          oks += 1;
+          counts.ok += 1;
         }
         if (skipped) {
-          skips += 1;
+          counts.skipped += 1;
         }
       })
       .map(transform)
-      .continueWith(() =>
-        of(
-          summary({
-            completed: i,
-            ok: oks,
-            skipped: skips,
-          }),
-        ),
-      ),
+      .continueWith(() => of(summary(counts))),
   ).observe(console.log);
 }
 
