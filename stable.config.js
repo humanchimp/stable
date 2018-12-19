@@ -4,7 +4,6 @@ import { rescue } from "./plugins/rescue";
 import { objectContaining } from "./plugins/objectContaining";
 import { sinon } from "./plugins/sinon";
 import { glob } from "./plugins/glob";
-import { mocha } from './plugins/mocha';
 import { stable } from './plugins/stable';
 
 export default {
@@ -18,7 +17,6 @@ export default {
     objectContaining(),
     sinon(),
     glob(),
-    mocha(),
     stable(),
   ],
 };

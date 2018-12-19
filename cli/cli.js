@@ -144,7 +144,7 @@ async function main() {
   counts.planned = allSpecs.filter(predicate).length;
 
   await startWith(
-    plan(counts.planned),
+    plan(counts),
     fromAsyncIterable(suite.reports(sort, predicate))
       .tap(({ ok, skipped }) => {
         counts.completed += 1;
@@ -269,27 +269,29 @@ function transformForFormat(format) {
   throw new Error(`unsupported format: -f ${format}`);
 }
 
-function plan(planned) {
+function plan({ total, planned }) {
   switch (format) {
     case "inspect":
-      return { plan: planned };
+      return { total, planned };
     case "json":
     case "jsonlines":
-      return JSON.stringify({ plan: planned });
+      return JSON.stringify({ total, planned });
     case "tap":
       return `1..${planned}`;
   }
 }
 
 function summary(counts) {
+  const report = { ...counts, failed: counts.completed - counts.ok };
+
   switch (format) {
     case "inspect":
-      return counts;
+      return report;
     case "json":
     case "jsonlines":
-      return JSON.stringify(counts);
+      return JSON.stringify(report);
     case "tap": {
-      const { ok, skipped, completed } = counts;
+      const { ok, skipped, completed } = report;
 
       return `
 # ok ${ok}${
