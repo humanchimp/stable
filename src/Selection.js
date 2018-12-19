@@ -23,10 +23,10 @@ export class Selection {
     return spec => {
       const { series: current } = spec;
 
-      if ((start > current) || (current >= end)) {
+      if (start > current || current >= end) {
         return false;
       }
-      return this.predicate(spec)
+      return this.predicate(spec);
     };
   }
 

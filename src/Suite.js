@@ -174,14 +174,6 @@ export class Suite {
     }
   }
 
-  *filter(predicate = required()) {
-    for (const spec of this.orderedSpecs()) {
-      if (predicate(spec)) {
-        yield spec;
-      }
-    }
-  }
-
   *parents() {
     let suite = this;
 
@@ -269,10 +261,13 @@ export class Suite {
     this.opened = false;
   }
 
-  async *reports(sort = shuffle, predicate) {
-    const specs = sort([
-      ...(predicate != null ? this.filter(predicate) : this.orderedSpecs()),
-    ]);
+  async *reports(sort = shuffle, predicate = Boolean) {
+    const specs = sort([...this.orderedSpecs()])
+      .map((suite, index) => {
+        suite.series = index;
+        return suite;
+      })
+      .filter(predicate);
     const counted = countSpecsBySuite(specs);
     const poisoned = new Set();
 

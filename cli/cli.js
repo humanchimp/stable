@@ -86,10 +86,15 @@ const babel = require("rollup-plugin-babel");
 const loadConfigFile = require("./loadConfigFile");
 const { assign } = Object;
 const transform = transformForFormat(format);
+const seedrandom = require("seedrandom");
 const selection = new Selection({
   filter,
   grep,
 });
+
+const sort =
+  algorithm === "shuffle"
+    ? shuffle.rng(seed == null ? Math.random : seedrandom(seed)) : identity;
 
 main().catch(console.error);
 
@@ -108,7 +113,8 @@ async function main() {
     },
     describe(null),
   );
-  const allSpecs = [...suite.orderedSpecs()];
+  let allSpecs = [...suite.orderedSpecs()];
+
   const counts = {
     total: allSpecs.length,
     planned: undefined,
@@ -121,13 +127,11 @@ async function main() {
       ? selection.partition(counts.total, partition, partitions)
       : selection.predicate;
 
-  counts.planned = [...suite.filter(predicate)].length;
+  counts.planned = allSpecs.filter(predicate).length;
 
   await startWith(
     plan(counts.planned),
-    fromAsyncIterable(
-      suite.reports(algorithm === "ordered" ? identity : shuffle, predicate),
-    )
+    fromAsyncIterable(suite.reports(sort, predicate))
       .tap(({ ok, skipped }) => {
         counts.completed += 1;
         if (ok) {
