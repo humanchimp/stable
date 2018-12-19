@@ -6,7 +6,8 @@ const {
   f: filter,
   g: grep,
   o: outputFormat = "inspect",
-  s: algorithm = "shuffle",
+  s: readStdin,
+  sort: algorithm = "shuffle",
   help: helpMenuRequested = false,
   seed,
   partitions,
@@ -19,7 +20,7 @@ const {
     g: "grep",
     o: "format",
     h: "help",
-    s: "sort",
+    s: "stdin",
   },
 });
 
@@ -42,34 +43,35 @@ Usage: 🐎 stable [glob]
 
 Options:
 
---config, -c        The path of the config file relative to the working
+-c, --config        the path of the config file relative to the working
                     directory.
                       [string]
                       [default: stable.config.js]
---filter, -f        A substring match to filter by suite description.
+-s, --stdin         read stdin.
+-f, --filter        a substring match to filter by suite description.
                       [string]
---grep, -g          A JavaScript regular expression to use for filtering by
+-g, --grep          a JavaScript regular expression to use for filtering by
                     suite description.
                       [string]
---format, -o        The format of the output stream.
+-o, --format        the format of the output stream.
                       [string]
                       [default: tap]
                       [in core: tap, json, inspect]
---sort, -s          The sort algorithm used when visiting the specs. By
+--sort              the sort algorithm used when visiting the specs. By
                     default, specs are shuffled using the Fisher-Yates
                     algorithm. You can defeat this feature by passing
                     --sort=ordered.
                       [string]
                       [default: shuffle]
                       [in core: shuffle, ordered]
---partitions        The total of partitions to divide the specs by.
+--partitions        the total of partitions to divide the specs by.
                       [number]
---partition         The partition to run and report.
+--partition         the partition to run and report.
                       [number]
---seed              For seeding the random number generator used by the built-
+--seed              for seeding the random number generator used by the built-
                     in shuffle algorithm.
                       [string]
---help, -h          Print this message.
+-h, --help          print this message.
 `);
   return;
 }
@@ -91,12 +93,20 @@ const selection = new Selection({
   filter,
   grep,
 });
-
 const sort =
   algorithm === "shuffle"
-    ? shuffle.rng(seed == null ? Math.random : seedrandom(seed)) : identity;
+    ? shuffle.rng(seed == null ? Math.random : seedrandom(seed))
+    : identity;
+let stdinCode = "";
 
-main().catch(console.error);
+if (readStdin) {
+  process.stdin
+    .on("data", data => (stdinCode += data))
+    .on("end", () => main().catch(console.error))
+    .setEncoding("utf-8");
+} else {
+  main().catch(console.error);
+}
 
 async function main() {
   const config = await loadConfigFile(configFile);
@@ -106,13 +116,13 @@ async function main() {
     explicitFiles.length > 0
       ? explicitFiles
       : await glob(config.glob || "**-test.js");
-  const suite = await suitesFromFiles(files, helpers, listeners).reduce(
-    (suite, s) => {
-      suite.suites.push(s);
-      return suite;
-    },
-    describe(null),
-  );
+  const suite =
+    stdinCode !== ""
+      ? await dsl({ code: stdinCode, helpers, listeners })
+      : await suitesFromFiles(files, helpers, listeners).reduce((suite, s) => {
+          suite.suites.push(s);
+          return suite;
+        }, describe(null));
   let allSpecs = [...suite.orderedSpecs()];
 
   const counts = {
@@ -293,5 +303,5 @@ function help([help]) {
 
   return help
     .replace(/(\[[^\]]+\])/g, (_, type) => chalk.green(type))
-    .replace(/(--?[\w|=]+)/g, (_, option) => chalk.blue(option));
+    .replace(/(--?[a-z=]+)/g, (_, option) => chalk.blue(option));
 }

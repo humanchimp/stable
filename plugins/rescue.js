@@ -30,7 +30,7 @@ export function rescue() {
     },
 
     helpers: {
-      rescue(r) {
+      rescue(r = () => {}) {
         pendingReport.rescuer = r;
       },
 

@@ -1,4 +1,4 @@
-import { shuffleRng } from './shuffleRng';
+import { shuffleRng } from "./shuffleRng";
 
 const shuffle = shuffleRng(Math.random);
 
