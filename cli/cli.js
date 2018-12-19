@@ -7,6 +7,7 @@ const {
   g: grep,
   o: outputFormat = "inspect",
   s: readStdin,
+  q: quiet,
   sort: algorithm = "shuffle",
   help: helpMenuRequested = false,
   seed,
@@ -21,6 +22,7 @@ const {
     o: "format",
     h: "help",
     s: "stdin",
+    q: "quiet"
   },
 });
 
@@ -71,6 +73,7 @@ Options:
 --seed              for seeding the random number generator used by the built-
                     in shuffle algorithm.
                       [string]
+-q, --quiet         don't send an exit code on failure.
 -h, --help          print this message.
 `);
   return;
@@ -155,6 +158,10 @@ async function main() {
       .map(transform)
       .continueWith(() => of(summary(counts))),
   ).observe(console.log);
+
+  if (!quiet && (counts.ok < counts.completed) || (counts.completed < counts.planned)) {
+    process.exit(1);
+  }
 }
 
 function helpersForPlugins(plugins) {
