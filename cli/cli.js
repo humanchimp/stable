@@ -112,14 +112,15 @@ async function main() {
   const config = await loadConfigFile(configFile);
   const helpers = helpersForPlugins(config.plugins);
   const listeners = listenersForPlugins(config.plugins);
+  const preludes = preludesForPlugins(config.plugins);
   const files =
     explicitFiles.length > 0
       ? explicitFiles
       : await glob(config.glob || "**-test.js");
   const suite =
     stdinCode !== ""
-      ? await dsl({ code: stdinCode, helpers, listeners })
-      : await suitesFromFiles(files, helpers, listeners).reduce((suite, s) => {
+      ? await dsl({ code: stdinCode, helpers, listeners, preludes })
+      : await suitesFromFiles({ files, helpers, listeners, preludes }).reduce((suite, s) => {
           suite.suites.push(s);
           return suite;
         }, describe(null));
@@ -175,12 +176,18 @@ function listenersForPlugins(plugins) {
     );
 }
 
-function suitesFromFiles(files, helpers, listeners) {
+function preludesForPlugins(plugins) {
+  return plugins
+    .map(plugin => plugin.prelude)
+    .filter(Boolean);
+}
+
+function suitesFromFiles({ files, helpers, listeners, preludes }) {
   return from(files)
     .map(entryPoint)
     .await()
     .map(({ code, path }) =>
-      dsl({ code, helpers, description: `${path} |`, listeners }),
+      dsl({ code, helpers, description: `${path} |`, listeners, preludes }),
     )
     .await()
     .multicast();
