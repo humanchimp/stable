@@ -1,6 +1,7 @@
 import { shuffle } from "./shuffle";
 import { Hooks } from "./Hooks";
 import { Listeners } from "./Listeners";
+import { flatMap } from "./flatMap";
 
 export class Suite {
   constructor(
@@ -187,13 +188,11 @@ export class Suite {
       return;
     }
     const suites = [...this.parents()];
-    const afterEach = suites.reduce(
-      (memo, suite) => memo.concat(suite.hooks.afterEach),
-      [],
+    const afterEach = flatMap(suites, suite => suite.hooks.afterEach);
+    const beforeEach = flatMap(
+      suites.reverse(),
+      suite => suite.hooks.beforeEach,
     );
-    const beforeEach = suites
-      .reverse()
-      .reduce((memo, suite) => memo.concat(suite.hooks.beforeEach), []);
 
     this.computedHooks = { beforeEach, afterEach };
   }

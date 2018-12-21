@@ -18,7 +18,7 @@ export async function dsl({
   const queue = [];
 
   // We allow plugins to run arbitrary code here. Interestingly enough.
-  const wrapped = `${preludes.join('\n')}
+  const wrapped = `${preludes.join("\n")}
 ${code};
 return typeof bundle === 'undefined' ? {} : bundle;`;
   // We suffix an outerlude to support the quirky feature of permitting suites
