@@ -10,20 +10,20 @@ export class Selection {
   }
 
   partition(total, partition, partitions) {
-    const size = Math.floor(total / partitions);
-    const remainder = total % partitions;
-    let start = size * partition;
-    let end = start + size;
-
-    if (partition === 0) {
-      end += remainder;
-    } else {
-      start += remainder;
+    if (partition >= partitions) {
+      throw new Error("partition must be less than partitions");
     }
+    const sizes = Array(partitions).fill(0);
+    for (let i = 0; i < total; i++) {
+      sizes[i % partitions]++;
+    }
+    const start = sizes.slice(0, partition).reduce((memo, size) => memo + size, 0);
+    const end = start + sizes[partition];
+
     return spec => {
       const { series: current } = spec;
 
-      if (start > current || current >= end) {
+      if ((current < start) || current >= end) {
         return false;
       }
       return this.predicate(spec);
