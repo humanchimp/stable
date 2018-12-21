@@ -17,8 +17,10 @@
     "@babel/plugin-proposal-optional-catch-binding": "^7.2.0",
     "@babel/plugin-syntax-async-generators": "^7.2.0",
     "@babel/preset-env": "^7.2.0",
+    "array.prototype.flatmap": "^1.2.1",
     "babel-plugin-istanbul": "^5.1.0",
     "chai": "^4.2.0",
+    "chalk": "^2.4.1",
     "fast-glob": "^2.2.4",
     "minimist": "^1.2.0",
     "most": "^1.7.3",
@@ -32,6 +34,7 @@
     "rollup-plugin-livereload": "^0.6.0",
     "rollup-plugin-node-resolve": "^3.4.0",
     "rollup-plugin-serve": "^0.6.0",
+    "seedrandom": "^2.4.4",
     "sinon": "^7.2.2"
   },
   "bin": {

@@ -3,3 +3,4 @@ static/test.js
 lib
 coverage
 .nyc_output/
+static/

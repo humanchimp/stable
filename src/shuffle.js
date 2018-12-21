@@ -1,21 +1,7 @@
-// The Fisher-Yates shuffle.
-// Lovingly copied from a nice blog post by Mike Bostock.
-// Recommended reading: https://bost.ocks.org/mike/shuffle/
-export function shuffle(array) {
-  var m = array.length,
-    t,
-    i;
+import { shuffleRng } from "./shuffleRng";
 
-  // While there remain elements to shuffle…
-  while (m) {
-    // Pick a remaining element…
-    i = Math.floor(Math.random() * m--);
+const shuffle = shuffleRng(Math.random);
 
-    // And swap it with the current element.
-    t = array[m];
-    array[m] = array[i];
-    array[i] = t;
-  }
+shuffle.rng = shuffleRng;
 
-  return array;
-}
+export { shuffle };

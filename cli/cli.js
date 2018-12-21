@@ -6,7 +6,10 @@ const {
   f: filter,
   g: grep,
   o: outputFormat = "inspect",
-  s: algorithm = "shuffle",
+  s: readStdin,
+  q: quiet,
+  ordered,
+  sort: algorithm = ordered ? "ordered" : "shuffle",
   help: helpMenuRequested = false,
   seed,
   partitions,
@@ -19,7 +22,8 @@ const {
     g: "grep",
     o: "format",
     h: "help",
-    s: "sort",
+    s: "stdin",
+    q: "quiet",
   },
 });
 
@@ -35,90 +39,137 @@ if (partition != null && partitions == null) {
     "Invalid options: you must pass `partitions` if you wish to use `partition`.",
   );
 }
-if (algorithm === "shuffle" && partition != null && seed == null) {
-  throw new Error(
-    "Invalid options: A seed must be passed to each partition if you wish to use `shuffle` and `partition` together.",
-  );
-}
 // </cli flags>
 if (helpMenuRequested) {
-  console.log(`
-Usage: stable [glob]
+  console.log(help`
+Usage: 🐎 stable [glob]
 
 Options:
 
---config, -c        The path of the config file relative to the working
+-c, --config        the path of the config file relative to the working
                     directory.
                       [string]
                       [default: stable.config.js]
---filter, -f        A substring match to filter by suite description.
+-s, --stdin         read stdin.
+-f, --filter        a substring match to filter by suite description.
                       [string]
---grep, -g          A JavaScript regular expression to use for filtering by
+-g, --grep          a JavaScript regular expression to use for filtering by
                     suite description.
                       [string]
---format, -o        The format of the output stream.
+-o, --format        the format of the output stream.
                       [string]
                       [default: tap]
                       [in core: tap, json, inspect]
---sort, -s          The sort algorithm used when visiting the suites. By
-                    default, suites are shuffled using the Fisher-Yates
+--sort              the sort algorithm used when visiting the specs. By
+                    default, specs are shuffled using the Fisher-Yates
                     algorithm. You can defeat this feature by passing
                     --sort=ordered.
                       [string]
                       [default: shuffle]
                       [in core: shuffle, ordered]
---partitions        The total of partitions to divide the specs by.
+--ordered           a convenient shorthand for --sort=ordered
+--partitions        the total of partitions to divide the specs by.
                       [number]
---partition         The partition to run. Using this feature implies
-                    --sort=ordered, unless you also pass a seed.
+--partition         the partition to run and report.
                       [number]
---seed              For seeding the random number generator used by the built-
-                    in shuffle algorithm. It is mandatory when combining
-                    --sort=shuffle and --partition. You must pass the same
-                    seed to each partition.
+--seed              for seeding the random number generator used by the built-
+                    in shuffle algorithm.
                       [string]
---help, -h          Print this message.
+-q, --quiet         don't send an exit code on failure.
+-h, --help          print this message.
 `);
   return;
 }
 
-const { from, startWith } = require("most");
+const { of, from, startWith } = require("most");
 const { fromAsyncIterable } = require("most-async-iterable");
 const glob = require("fast-glob");
 const { inspect } = require("util");
 const { rollup } = require("rollup");
-const { dsl, shuffle } = require("../lib/stable.js");
+const { describe, dsl, shuffle, Selection } = require("../lib/stable.js");
 const nodeResolve = require("rollup-plugin-node-resolve");
 const commonjs = require("rollup-plugin-commonjs");
 const babel = require("rollup-plugin-babel");
 const loadConfigFile = require("./loadConfigFile");
 const { assign } = Object;
 const transform = transformForFormat(format);
+const seedrandom = require("seedrandom");
+const selection = new Selection({
+  filter,
+  grep,
+});
+const sort =
+  algorithm === "shuffle"
+    ? shuffle.rng(seed == null ? Math.random : seedrandom(seed))
+    : identity;
+let stdinCode = "";
 
-main().catch(console.error);
+if (readStdin) {
+  process.stdin
+    .on("data", data => (stdinCode += data))
+    .on("end", () => main().catch(console.error))
+    .setEncoding("utf-8");
+} else {
+  main().catch(console.error);
+}
 
 async function main() {
   const config = await loadConfigFile(configFile);
   const helpers = helpersForPlugins(config.plugins);
   const listeners = listenersForPlugins(config.plugins);
+  const preludes = preludesForPlugins(config.plugins);
   const files =
     explicitFiles.length > 0
       ? explicitFiles
       : await glob(config.glob || "**-test.js");
-  const suites = suitesFromFiles(files, helpers, listeners);
-  let i = 0;
+  const suite =
+    stdinCode !== ""
+      ? await dsl({ code: stdinCode, helpers, listeners, preludes })
+      : await suitesFromFiles({ files, helpers, listeners, preludes }).reduce(
+          (suite, s) => {
+            suite.suites.push(s);
+            return suite;
+          },
+          describe(null),
+        );
+  let allSpecs = [...suite.orderedSpecs()];
+
+  const counts = {
+    total: allSpecs.length,
+    planned: undefined,
+    completed: 0,
+    ok: 0,
+    skipped: 0,
+  };
+  const predicate =
+    partition != null && partitions != null
+      ? selection.partition(counts.total, partition, partitions)
+      : selection.predicate;
+
+  counts.planned = allSpecs.filter(predicate).length;
 
   await startWith(
-    await planForSuites(suites),
-    suites
-      .chain(suite =>
-        fromAsyncIterable(
-          suite.reports(algorithm === "ordered" ? identity : shuffle),
-        ),
-      )
+    plan(counts),
+    fromAsyncIterable(suite.reports(sort, predicate))
+      .tap(({ ok, skipped }) => {
+        counts.completed += 1;
+        if (ok) {
+          counts.ok += 1;
+        }
+        if (skipped) {
+          counts.skipped += 1;
+        }
+      })
       .map(transform)
-      .tap(() => i++),
+      .continueWith(() => of(summary(counts))),
   ).observe(console.log);
+
+  if (
+    (!quiet && counts.ok < counts.completed) ||
+    counts.completed < counts.planned
+  ) {
+    process.exit(1);
+  }
 }
 
 function helpersForPlugins(plugins) {
@@ -129,21 +180,27 @@ function helpersForPlugins(plugins) {
 }
 
 function listenersForPlugins(plugins) {
-  return plugins.filter(plugin => plugin.on != null).reduce(
-    (memo, { on: { pending = [], complete = [] } }) => ({
-      pending: memo.pending.concat(pending),
-      complete: memo.complete.concat(complete),
-    }),
-    { pending: [], complete: [] },
-  );
+  return plugins
+    .filter(plugin => plugin.on != null)
+    .reduce(
+      (memo, { on: { pending = [], complete = [] } }) => ({
+        pending: memo.pending.concat(pending),
+        complete: memo.complete.concat(complete),
+      }),
+      { pending: [], complete: [] },
+    );
 }
 
-function suitesFromFiles(files, helpers, listeners) {
+function preludesForPlugins(plugins) {
+  return plugins.map(plugin => plugin.prelude).filter(Boolean);
+}
+
+function suitesFromFiles({ files, helpers, listeners, preludes }) {
   return from(files)
     .map(entryPoint)
     .await()
     .map(({ code, path }) =>
-      dsl({ code, helpers, description: `${path} |`, listeners }),
+      dsl({ code, helpers, description: `${path} |`, listeners, preludes }),
     )
     .await()
     .multicast();
@@ -218,20 +275,55 @@ function transformForFormat(format) {
   throw new Error(`unsupported format: -f ${format}`);
 }
 
-async function planForSuites(suites) {
-  const count = await suites.reduce((sum, suite) => sum + suite.size(), 0);
+function plan({ total, planned }) {
+  switch (format) {
+    case "inspect":
+      return { total, planned };
+    case "json":
+    case "jsonlines":
+      return JSON.stringify({ total, planned });
+    case "tap":
+      return `1..${planned}`;
+  }
+}
+
+function summary(counts) {
+  const report = { ...counts, failed: counts.completed - counts.ok };
 
   switch (format) {
     case "inspect":
-      return { plan: count };
+      return report;
     case "json":
     case "jsonlines":
-      return JSON.stringify({ plan: count });
-    case "tap":
-      return `1..${count}`;
+      return JSON.stringify(report);
+    case "tap": {
+      const { ok, skipped, completed } = report;
+
+      return `
+# ok ${ok}${
+        ok !== completed
+          ? `
+# failed ${completed - ok}`
+          : ""
+      }${
+        skipped !== 0
+          ? `
+# skipped ${skipped}`
+          : ""
+      }
+`;
+    }
   }
 }
 
 function identity(it) {
   return it;
+}
+
+function help([help]) {
+  const chalk = require("chalk");
+
+  return help
+    .replace(/(\[[^\]]+\])/g, (_, type) => chalk.green(type))
+    .replace(/(--?[a-z=]+)/g, (_, option) => chalk.blue(option));
 }

@@ -5,11 +5,11 @@ import nodeResolve from "rollup-plugin-node-resolve";
 import commonjs from "rollup-plugin-commonjs";
 
 export default {
-  input: "examples/streams.js",
+  input: "src/lib.js",
   output: {
     format: "iife",
-    file: "static/test.js",
-    name: "test",
+    file: "static/lib.js",
+    name: "stable",
   },
   plugins: [
     babel({

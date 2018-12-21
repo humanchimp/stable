@@ -1,6 +1,7 @@
 import { shuffle } from "./shuffle";
 import { Hooks } from "./Hooks";
 import { Listeners } from "./Listeners";
+import { flatMap } from "./flatMap";
 
 export class Suite {
   constructor(
@@ -161,19 +162,16 @@ export class Suite {
     return this;
   }
 
-  size() {
-    return (
-      this.specs.length +
-      this.suites.reduce((sum, suite) => sum + suite.size(), 0)
-    );
-  }
-
   *orderedSpecs() {
+    let series = 0;
+
     for (const spec of this.specs) {
-      yield { suite: this, spec };
+      yield { suite: this, spec, series: series++ };
     }
     for (const suite of this.suites) {
-      yield* suite.orderedSpecs();
+      for (const tuple of suite.orderedSpecs()) {
+        yield { ...tuple, series: series++ };
+      }
     }
   }
 
@@ -190,15 +188,22 @@ export class Suite {
       return;
     }
     const suites = [...this.parents()];
-    const afterEach = suites.reduce(
-      (memo, suite) => memo.concat(suite.hooks.afterEach),
-      [],
+    const afterEach = flatMap(suites, suite => suite.hooks.afterEach);
+    const beforeEach = flatMap(
+      suites.reverse(),
+      suite => suite.hooks.beforeEach,
     );
-    const beforeEach = suites
-      .reverse()
-      .reduce((memo, suite) => memo.concat(suite.hooks.beforeEach), []);
 
     this.computedHooks = { beforeEach, afterEach };
+  }
+
+  prefixed(description) {
+    const segments = [];
+
+    for (const node of this.parents()) {
+      segments.unshift(node.description);
+    }
+    return [...segments, description].filter(Boolean).join(" ");
   }
 
   async *runHook(hook, description) {
@@ -255,8 +260,13 @@ export class Suite {
     this.opened = false;
   }
 
-  async *reports(sort = shuffle) {
-    const specs = sort([...this.orderedSpecs()]);
+  async *reports(sort = shuffle, predicate = Boolean) {
+    const specs = sort([...this.orderedSpecs()])
+      .map((suite, index) => {
+        suite.series = index;
+        return suite;
+      })
+      .filter(predicate);
     const counted = countSpecsBySuite(specs);
     const poisoned = new Set();
 
@@ -274,7 +284,7 @@ export class Suite {
   }
 
   async reportForSpec({ description, test, focused, skipped }) {
-    description = prefixed(this, description);
+    description = this.prefixed(description);
 
     if (skipped || (this.isFocusMode && !focused)) {
       return {
@@ -330,15 +340,6 @@ async function runTest(test) {
   } catch (reason) {
     return reason;
   }
-}
-
-function prefixed(node, description) {
-  const segments = [];
-
-  do {
-    segments.unshift(node.description);
-  } while ((node = node.parent));
-  return [...segments, description].filter(Boolean).join(" ");
 }
 
 function descriptionForRow(description, table) {
