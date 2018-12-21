@@ -8,7 +8,8 @@ const {
   o: outputFormat = "inspect",
   s: readStdin,
   q: quiet,
-  sort: algorithm = "shuffle",
+  ordered,
+  sort: algorithm = ordered ? "ordered" : "shuffle",
   help: helpMenuRequested = false,
   seed,
   partitions,
@@ -22,7 +23,7 @@ const {
     o: "format",
     h: "help",
     s: "stdin",
-    q: "quiet"
+    q: "quiet",
   },
 });
 
@@ -66,6 +67,7 @@ Options:
                       [string]
                       [default: shuffle]
                       [in core: shuffle, ordered]
+--ordered           a convenient shorthand for --sort=ordered
 --partitions        the total of partitions to divide the specs by.
                       [number]
 --partition         the partition to run and report.
@@ -123,10 +125,13 @@ async function main() {
   const suite =
     stdinCode !== ""
       ? await dsl({ code: stdinCode, helpers, listeners, preludes })
-      : await suitesFromFiles({ files, helpers, listeners, preludes }).reduce((suite, s) => {
-          suite.suites.push(s);
-          return suite;
-        }, describe(null));
+      : await suitesFromFiles({ files, helpers, listeners, preludes }).reduce(
+          (suite, s) => {
+            suite.suites.push(s);
+            return suite;
+          },
+          describe(null),
+        );
   let allSpecs = [...suite.orderedSpecs()];
 
   const counts = {
@@ -159,7 +164,10 @@ async function main() {
       .continueWith(() => of(summary(counts))),
   ).observe(console.log);
 
-  if (!quiet && (counts.ok < counts.completed) || (counts.completed < counts.planned)) {
+  if (
+    (!quiet && counts.ok < counts.completed) ||
+    counts.completed < counts.planned
+  ) {
     process.exit(1);
   }
 }
@@ -184,12 +192,10 @@ function listenersForPlugins(plugins) {
 }
 
 function preludesForPlugins(plugins) {
-  return plugins
-    .map(plugin => plugin.prelude)
-    .filter(Boolean);
+  return plugins.map(plugin => plugin.prelude).filter(Boolean);
 }
 
-function suitesFromFiles({ files, helpers, listeners, preludes }) {
+function suitesFromFiles({ files, helpers, listeners, preludes }) {
   return from(files)
     .map(entryPoint)
     .await()

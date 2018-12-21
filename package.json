@@ -17,6 +17,7 @@
     "@babel/plugin-proposal-optional-catch-binding": "^7.2.0",
     "@babel/plugin-syntax-async-generators": "^7.2.0",
     "@babel/preset-env": "^7.2.0",
+    "array.prototype.flatmap": "^1.2.1",
     "babel-plugin-istanbul": "^5.1.0",
     "chai": "^4.2.0",
     "chalk": "^2.4.1",
