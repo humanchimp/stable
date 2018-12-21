@@ -1,3 +1,5 @@
+import { partitionRangeForTotal } from "./partititionRangeForTotal";
+
 const { assign } = Object;
 
 export class Selection {
@@ -11,19 +13,14 @@ export class Selection {
 
   partition(total, partition, partitions) {
     if (partition >= partitions) {
-      throw new Error("partition must be less than partitions");
+      throw new RangeError("partition must be less than partitions");
     }
-    const sizes = Array(partitions).fill(0);
-    for (let i = 0; i < total; i++) {
-      sizes[i % partitions]++;
-    }
-    const start = sizes.slice(0, partition).reduce((memo, size) => memo + size, 0);
-    const end = start + sizes[partition];
+    const { start, end } = partitionRangeForTotal(total, partition, partitions);
 
     return spec => {
       const { series: current } = spec;
 
-      if ((current < start) || current >= end) {
+      if (current < start || current >= end) {
         return false;
       }
       return this.predicate(spec);
