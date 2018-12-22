@@ -11,6 +11,7 @@ const {
   ordered,
   sort: algorithm = ordered ? "ordered" : "shuffle",
   help: helpMenuRequested = false,
+  rollup: rollupConfigPath = "rollup.config.js",
   seed,
   partitions,
   partition,
@@ -75,6 +76,9 @@ Options:
 --seed              for seeding the random number generator used by the built-
                     in shuffle algorithm.
                       [string]
+--rollup            path to the rollup config for your project
+                      [string]
+                      [default: rollup.config.js]
 -q, --quiet         don't send an exit code on failure.
 -h, --help          print this message.
 `);
@@ -87,9 +91,6 @@ const glob = require("fast-glob");
 const { inspect } = require("util");
 const { rollup } = require("rollup");
 const { describe, dsl, shuffle, Selection } = require("../lib/stable.js");
-const nodeResolve = require("rollup-plugin-node-resolve");
-const commonjs = require("rollup-plugin-commonjs");
-const babel = require("rollup-plugin-babel");
 const loadConfigFile = require("./loadConfigFile");
 const { assign } = Object;
 const transform = transformForFormat(format);
@@ -115,6 +116,10 @@ if (readStdin) {
 
 async function main() {
   const config = await loadConfigFile(configFile);
+  const { plugins } = await loadConfigFile(rollupConfigPath);
+
+  // console.log(plugins);
+
   const helpers = helpersForPlugins(config.plugins);
   const listeners = listenersForPlugins(config.plugins);
   const preludes = preludesForPlugins(config.plugins);
@@ -125,14 +130,14 @@ async function main() {
   const suite =
     stdinCode !== ""
       ? await dsl({ code: stdinCode, helpers, listeners, preludes })
-      : await suitesFromFiles({ files, helpers, listeners, preludes }).reduce(
-          (suite, s) => {
-            suite.suites.push(s);
-            return suite;
-          },
-          describe(null),
-        );
-  let allSpecs = [...suite.orderedSpecs()];
+      : await suitesFromFiles(
+          { files, helpers, listeners, preludes },
+          plugins,
+        ).reduce((suite, s) => {
+          suite.suites.push(s);
+          return suite;
+        }, describe(null));
+  let allSpecs = [...suite.orderedJobs()];
 
   const counts = {
     total: allSpecs.length,
@@ -195,9 +200,9 @@ function preludesForPlugins(plugins) {
   return plugins.map(plugin => plugin.prelude).filter(Boolean);
 }
 
-function suitesFromFiles({ files, helpers, listeners, preludes }) {
+function suitesFromFiles({ files, helpers, listeners, preludes }, plugins) {
   return from(files)
-    .map(entryPoint)
+    .map(path => entryPoint(path, plugins))
     .await()
     .map(({ code, path }) =>
       dsl({ code, helpers, description: `${path} |`, listeners, preludes }),
@@ -206,32 +211,16 @@ function suitesFromFiles({ files, helpers, listeners, preludes }) {
     .multicast();
 }
 
-async function entryPoint(path) {
+async function entryPoint(path, plugins) {
   const bundle = await rollup({
     input: path,
-    plugins: [
-      babel({
-        presets: [
-          [
-            "@babel/preset-env",
-            {
-              targets: {
-                node: "current",
-              },
-            },
-          ],
-        ],
-        plugins: [
-          ["@babel/plugin-syntax-async-generators"],
-          ["@babel/plugin-proposal-async-generator-functions"],
-        ],
-        sourceMaps: true,
-      }),
-      nodeResolve({
-        extensions: [".js"],
-      }),
-      commonjs(),
-    ],
+    plugins,
+    onwarn(message) {
+      // Suppressing a very chatty and unimportant warning
+      if (/The 'this' keyword is equivalent to 'undefined' at the top level of an ES module, and has been rewritten./.test(message)) {
+        return;
+      }
+    }
   });
 
   const { code } = await bundle.generate({

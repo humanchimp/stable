@@ -7,7 +7,7 @@ import { glob } from "./plugins/glob";
 import { stable } from './plugins/stable';
 
 export default {
-  glob: "test/**-test.js",
+  glob: "test/**-test.{ts,js}",
   plugins: [
     chai(),
     timing({

@@ -1,4 +1,3 @@
-import stable from "../lib/stable";
 import { asyncSpread } from "./util/asyncSpread";
 
 let subject;

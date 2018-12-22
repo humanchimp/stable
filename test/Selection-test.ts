@@ -1,4 +1,3 @@
-import { Selection, describe as libDescribe } from "../lib/stable";
 import { flatMap } from "../src/flatMap";
 import { partitionRangeForTotal } from "../src/partititionRangeForTotal";
 
@@ -12,7 +11,7 @@ const fixtureSuite = [
 ].reduce((memo, description) => {
   memo.describe(description, suite => suite.it("stub"));
   return memo;
-}, libDescribe(null));
+}, stable.describe(null));
 
 describe("Selection", () => {
   describe(".predicate", () => {
@@ -29,14 +28,14 @@ describe("Selection", () => {
         ],
         ["fish", ["one fish", "two fish", "red fish", "blue fish"]],
       ],
-      ([filter, desciptions]) => {
+      ([filter, descriptions]) => {
         it("should only run specs that match the description", () => {
           expect(
             filteredDescriptions(
               fixtureSuite,
-              new Selection({ filter }).predicate,
+              new stable.Selection({ filter }).predicate,
             ),
-          ).to.eql(desciptions);
+          ).to.eql(descriptions);
         });
       },
     );
@@ -54,15 +53,15 @@ describe("Selection", () => {
         ],
         ["(?:red|blue)", ["red fish", "blue fish"]],
       ],
-      ([grepPattern, desciptions]) => {
+      ([grepPattern, descriptions]) => {
         describe("when passed a string", () => {
           it("should only run specs that match the description", () => {
             expect(
               filteredDescriptions(
                 fixtureSuite,
-                new Selection({ grep: grepPattern }).predicate,
+                new stable.Selection({ grep: grepPattern }).predicate,
               ),
-            ).to.eql(desciptions);
+            ).to.eql(descriptions);
           });
         });
 
@@ -73,9 +72,9 @@ describe("Selection", () => {
             expect(
               filteredDescriptions(
                 fixtureSuite,
-                new Selection({ grep }).predicate,
+                new stable.Selection({ grep }).predicate,
               ),
-            ).to.eql(desciptions);
+            ).to.eql(descriptions);
           });
         });
       },
@@ -83,7 +82,7 @@ describe("Selection", () => {
   });
 
   describe(".partition(total, partition, partitions)", () => {
-    const specs = [...fixtureSuite.orderedSpecs()];
+    const specs = [...fixtureSuite.orderedJobs()];
     const { length: total } = specs;
     const table = flatMap(Array(total).fill(0), (_, i) =>
       Array(i)
@@ -105,7 +104,7 @@ describe("Selection", () => {
 
           expect(
             specs.filter(
-              new Selection().partition(total, partition, partitions),
+              new stable.Selection().partition(total, partition, partitions),
             ),
           ).to.eql(batch);
         });
@@ -121,14 +120,14 @@ describe("Selection", () => {
             /partition must be less than partitions/,
           );
         });
-        new Selection().partition(total, 7, 7);
+        new stable.Selection().partition(total, 7, 7);
       });
     });
   });
 });
 
 function filteredDescriptions(suite, predicate) {
-  return [...suite.orderedSpecs()]
+  return [...suite.orderedJobs()]
     .filter(predicate)
     .map(({ suite }) => suite.description);
 }

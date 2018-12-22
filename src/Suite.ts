@@ -1,12 +1,59 @@
+import {
+  Suite as SuiteInterface,
+  SuiteParams,
+  SuiteClosure,
+  Spec,
+  Job,
+  Effect,
+  Report,
+  Hooks as HooksInterface,
+  Listeners as ListenersInterface,
+  TableClosure,
+  JobPredicate,
+  Sorter,
+} from "./interfaces";
 import { shuffle } from "./shuffle";
 import { Hooks } from "./Hooks";
 import { Listeners } from "./Listeners";
 import { flatMap } from "./flatMap";
 
-export class Suite {
+interface ComputedHooks {
+  beforeEach: Effect[];
+
+  afterEach: Effect[];
+}
+
+export class Suite implements SuiteInterface {
+  description: string;
+
+  parent?: SuiteInterface;
+
+  skipped: boolean;
+
+  focused: boolean;
+
+  suites: SuiteInterface[];
+
+  specs: Spec[];
+
+  hooks: HooksInterface;
+
+  listeners: ListenersInterface;
+
+  focusMode: boolean;
+
+  opened: boolean;
+
+  private computedHooks: ComputedHooks;
+
   constructor(
-    description = required(),
-    { parent, skipped = false, focused = false, listeners } = {},
+    description: string = required(),
+    {
+      parent = undefined,
+      skipped = false,
+      focused = false,
+      listeners = undefined,
+    }: SuiteParams = {},
   ) {
     this.description = description;
     this.parent = parent;
@@ -40,7 +87,7 @@ export class Suite {
     return this.suites.some(suite => suite.focused || suite.isDeeplyFocused);
   }
 
-  info(info) {
+  info(info: any): Suite {
     this.specs.push({
       description: descriptionForInfo(info),
       skipped: true,
@@ -48,27 +95,27 @@ export class Suite {
     return this;
   }
 
-  beforeAll(hook = required()) {
+  beforeAll(hook: Effect = required()): Suite {
     this.hooks.beforeAll.push(hook);
     return this;
   }
 
-  afterAll(hook = required()) {
+  afterAll(hook: Effect = required()): Suite {
     this.hooks.afterAll.unshift(hook);
     return this;
   }
 
-  beforeEach(hook = required()) {
+  beforeEach(hook: Effect = required()): Suite {
     this.hooks.beforeEach.push(hook);
     return this;
   }
 
-  afterEach(hook = required()) {
+  afterEach(hook: Effect = required()): Suite {
     this.hooks.afterEach.unshift(hook);
     return this;
   }
 
-  it(description = required(), test) {
+  it(description: string = required(), test?: Effect): Suite {
     this.specs.push({
       description,
       test,
@@ -78,7 +125,7 @@ export class Suite {
     return this;
   }
 
-  fit(description, test = required()) {
+  fit(description: string, test: Effect = required()): Suite {
     this.isFocusMode = true;
     this.specs.push({
       description,
@@ -89,7 +136,7 @@ export class Suite {
     return this;
   }
 
-  xit(description = required(), test) {
+  xit(description: string = required(), test?: Effect): Suite {
     this.specs.push({
       description,
       test,
@@ -99,7 +146,7 @@ export class Suite {
     return this;
   }
 
-  defaultOptions(options) {
+  defaultOptions(options?: SuiteParams): SuiteParams {
     return {
       ...options,
       ...(this.skipped && { skipped: true }),
@@ -107,7 +154,11 @@ export class Suite {
     };
   }
 
-  describe(description, closure = required(), options) {
+  describe(
+    description: string,
+    closure: SuiteClosure = required(),
+    options: SuiteParams,
+  ): Suite {
     const suite = new Suite(description, {
       ...this.defaultOptions(options),
       ...(this.listeners && { listeners: this.listeners }),
@@ -119,17 +170,30 @@ export class Suite {
     return this;
   }
 
-  fdescribe(description, closure) {
-    this.describe(description, closure, { focused: true });
+  fdescribe(
+    description: string,
+    closure: SuiteClosure,
+    options: SuiteParams,
+  ): Suite {
+    this.describe(description, closure, { ...options, focused: true });
     return this;
   }
 
-  xdescribe(description, closure) {
-    this.describe(description, closure, { skipped: true });
+  xdescribe(
+    description: string,
+    closure: SuiteClosure,
+    options: SuiteParams,
+  ): Suite {
+    this.describe(description, closure, { ...options, skipped: true });
     return this;
   }
 
-  describeEach(description, table, closure = required(), options) {
+  describeEach(
+    description: string,
+    table: any[],
+    closure: TableClosure = required(),
+    options: SuiteParams,
+  ): Suite {
     const baseOptions = {
       ...this.defaultOptions(options),
       ...(this.listeners && { listeners: this.listeners }),
@@ -152,52 +216,55 @@ export class Suite {
     return this;
   }
 
-  fdescribeEach(description, table, closure, options) {
-    this.describeEach(description, table, closure, { focused: true });
+  fdescribeEach(
+    description: string,
+    table: any[],
+    closure: TableClosure,
+    options: SuiteParams,
+  ): Suite {
+    this.describeEach(description, table, closure, {
+      ...options,
+      focused: true,
+    });
     return this;
   }
 
-  xdescribeEach(description, table, closure, options) {
-    this.describeEach(description, table, closure, { skipped: true });
+  xdescribeEach(
+    description: string,
+    table: any[],
+    closure: TableClosure,
+    options: SuiteParams,
+  ): Suite {
+    this.describeEach(description, table, closure, {
+      ...options,
+      skipped: true,
+    });
     return this;
   }
 
-  *orderedSpecs() {
+  *orderedJobs(): IterableIterator<Job> {
     let series = 0;
 
     for (const spec of this.specs) {
       yield { suite: this, spec, series: series++ };
     }
+
     for (const suite of this.suites) {
-      for (const tuple of suite.orderedSpecs()) {
+      for (const tuple of suite.orderedJobs()) {
         yield { ...tuple, series: series++ };
       }
     }
   }
 
-  *parents() {
-    let suite = this;
+  *parents(): IterableIterator<SuiteInterface> {
+    let suite: SuiteInterface = this;
 
     do {
       yield suite;
     } while ((suite = suite.parent));
   }
 
-  computeHooks() {
-    if (this.computedHooks != null) {
-      return;
-    }
-    const suites = [...this.parents()];
-    const afterEach = flatMap(suites, suite => suite.hooks.afterEach);
-    const beforeEach = flatMap(
-      suites.reverse(),
-      suite => suite.hooks.beforeEach,
-    );
-
-    this.computedHooks = { beforeEach, afterEach };
-  }
-
-  prefixed(description) {
+  prefixed(description: string): string {
     const segments = [];
 
     for (const node of this.parents()) {
@@ -206,8 +273,36 @@ export class Suite {
     return [...segments, description].filter(Boolean).join(" ");
   }
 
-  async *runHook(hook, description) {
-    const reason = await runTest(hook.thunk);
+  async *reports(
+    sort: Sorter = shuffle,
+    predicate: JobPredicate = Boolean,
+  ): AsyncIterableIterator<Report> {
+    const jobs: Job[] = sort([...this.orderedJobs()])
+      .map((suite, index) => {
+        suite.series = index;
+        return suite;
+      })
+      .filter(predicate);
+    const counted = countSpecsBySuite(jobs);
+    const poisoned = new Set();
+
+    for (const { spec, suite } of jobs) {
+      const instance = suite as Suite;
+
+      if (!poisoned.has(instance)) {
+        try {
+          yield* await instance.open();
+          yield* await instance.runSpec(spec);
+        } catch (_) {
+          poisoned.add(instance);
+        }
+      }
+      yield* await countSpec(counted, suite);
+    }
+  }
+
+  private async *runHook(hook, description): AsyncIterableIterator<Report> {
+    const reason = await runTest(hook.effect);
 
     if (reason != null) {
       yield {
@@ -219,28 +314,28 @@ export class Suite {
     }
   }
 
-  async *runSpec(spec) {
+  private async *runSpec(spec): AsyncIterableIterator<Report> {
     this.computeHooks();
     if (!spec.skipped) {
-      for (const thunk of this.computedHooks.beforeEach) {
+      for (const effect of this.computedHooks.beforeEach) {
         yield* await this.runHook(
-          { name: "beforeEach", thunk },
+          { name: "beforeEach", effect },
           spec.description,
         );
       }
     }
     yield await this.reportForSpec(spec);
     if (!spec.skipped) {
-      for (const thunk of this.computedHooks.afterEach) {
+      for (const effect of this.computedHooks.afterEach) {
         yield* await this.runHook(
-          { name: "afterEach", thunk },
+          { name: "afterEach", effect },
           spec.description,
         );
       }
     }
   }
 
-  async *open() {
+  private async *open(): AsyncIterableIterator<Report> {
     if (this.opened) {
       return;
     }
@@ -250,7 +345,7 @@ export class Suite {
     this.opened = true;
   }
 
-  async *close() {
+  private async *close(): AsyncIterableIterator<Report> {
     if (!this.opened) {
       return;
     }
@@ -260,30 +355,12 @@ export class Suite {
     this.opened = false;
   }
 
-  async *reports(sort = shuffle, predicate = Boolean) {
-    const specs = sort([...this.orderedSpecs()])
-      .map((suite, index) => {
-        suite.series = index;
-        return suite;
-      })
-      .filter(predicate);
-    const counted = countSpecsBySuite(specs);
-    const poisoned = new Set();
-
-    for (const { spec, suite } of specs) {
-      if (!poisoned.has(suite)) {
-        try {
-          yield* await suite.open();
-          yield* await suite.runSpec(spec);
-        } catch (_) {
-          poisoned.add(suite);
-        }
-      }
-      yield* await countSpec(counted, suite);
-    }
-  }
-
-  async reportForSpec({ description, test, focused, skipped }) {
+  private async reportForSpec({
+    description,
+    test,
+    focused,
+    skipped,
+  }: Spec): Promise<Report> {
     description = this.prefixed(description);
 
     if (skipped || (this.isFocusMode && !focused)) {
@@ -293,7 +370,7 @@ export class Suite {
         skipped: true,
       };
     }
-    const report = this.defaultOptions({ description });
+    const report: Report = { ...this.defaultOptions(), description };
 
     if (focused) {
       report.focused = true;
@@ -332,6 +409,20 @@ export class Suite {
       }
     }
   }
+
+  private computeHooks(): void {
+    if (this.computedHooks != null) {
+      return;
+    }
+    const suites = [...this.parents()];
+    const afterEach = flatMap(suites, suite => suite.hooks.afterEach);
+    const beforeEach = flatMap(
+      suites.reverse(),
+      suite => suite.hooks.beforeEach,
+    );
+
+    this.computedHooks = { beforeEach, afterEach };
+  }
 }
 
 async function runTest(test) {
@@ -358,7 +449,7 @@ function descriptionForInfo(info) {
   return info;
 }
 
-function required() {
+function required(): any {
   throw new Error("required");
 }
 
