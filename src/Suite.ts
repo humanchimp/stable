@@ -69,9 +69,9 @@ export class Suite implements SuiteInterface {
   set isFocusMode(value) {
     this.focusMode = value;
     if (value) {
-      this.suites.forEach(suite => {
+      for (const suite of this.suites) {
         suite.isFocusMode = true;
-      });
+      }
     }
   }
 
