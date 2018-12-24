@@ -2,6 +2,7 @@ const path = require("path");
 const { rollup } = require("rollup");
 const nodeResolve = require("rollup-plugin-node-resolve");
 const commonjs = require("rollup-plugin-commonjs");
+const json = require("rollup-plugin-json");
 
 // All the cleverness of the below derives from copying from the rollup source code 🙇
 
@@ -14,6 +15,12 @@ module.exports = async function loadConfigFile(
     : path.join(process.cwd(), configPath);
   const bundle = await rollup({
     input: configFile,
+    external: id => {
+      return (
+        (id[0] !== "." && !path.isAbsolute(id)) ||
+        id.slice(-5, id.length) === ".json"
+      );
+    },
     plugins: [
       nodeResolve({
         extensions: Object.keys(require.extensions),

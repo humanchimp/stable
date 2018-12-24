@@ -1,10 +1,12 @@
+import { RunParams } from "./interfaces";
+import { Suite } from "./suite";
 import { shuffle } from "./shuffle";
 import { reports } from "./reports";
 
 export async function run(
-  suites,
-  { generate = reports, perform = console.log, sort = shuffle },
-) {
+  suites: Suite | Suite[],
+  { generate = reports, perform = console.log, sort = shuffle }: RunParams,
+): Promise<void> {
   suites = [].concat(suites);
 
   for await (const report of generate(suites, sort)) {

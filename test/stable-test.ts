@@ -1,4 +1,3 @@
-import stable from "../lib/stable";
 import { asyncSpread } from "./util/asyncSpread";
 
 let subject;
@@ -35,6 +34,12 @@ describe("group", () => {
           { description: "subject b", ok: true },
         ]);
       });
+
+      it("should shuffle the specs by default", async () => {
+        const reports = await asyncSpread(subject.reports());
+
+        expect(reports).to.have.lengthOf(2);
+      })
     });
 
     describe("Suite#xdescribe", suite => {

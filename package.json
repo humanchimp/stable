@@ -7,7 +7,7 @@
   "license": "MIT",
   "private": false,
   "scripts": {
-    "build": "$(npm bin)/rollup -c ./rollup.lib.config.js",
+    "build": "$(npm bin)/rollup -c ./rollup.config.js",
     "test": "node ./cli/cli.js -o tap",
     "cover": "$(npm bin)/nyc --reporter=lcov npm test"
   },
@@ -17,6 +17,8 @@
     "@babel/plugin-proposal-optional-catch-binding": "^7.2.0",
     "@babel/plugin-syntax-async-generators": "^7.2.0",
     "@babel/preset-env": "^7.2.0",
+    "@types/chai": "^4.1.7",
+    "@types/sinon": "^7.0.2",
     "array.prototype.flatmap": "^1.2.1",
     "babel-plugin-istanbul": "^5.1.0",
     "chai": "^4.2.0",
@@ -34,8 +36,11 @@
     "rollup-plugin-livereload": "^0.6.0",
     "rollup-plugin-node-resolve": "^3.4.0",
     "rollup-plugin-serve": "^0.6.0",
+    "rollup-plugin-typescript": "^1.0.0",
     "seedrandom": "^2.4.4",
-    "sinon": "^7.2.2"
+    "sinon": "^7.2.2",
+    "tslib": "^1.9.3",
+    "typescript": "^3.2.2"
   },
   "bin": {
     "stable": "./cli/cli.js"
@@ -48,7 +53,7 @@
   "nyc": {
     "exclude": [
       "*.config.js",
-      "**/*.test.js",
+      "test",
       "cli"
     ]
   },

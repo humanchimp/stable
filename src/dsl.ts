@@ -1,3 +1,4 @@
+import { DslParams, Suite } from "./interfaces";
 import { describe } from "./describe";
 import { blocks, stacking } from "./names";
 
@@ -9,7 +10,7 @@ export async function dsl({
   description = null,
   listeners = {},
   preludes = [],
-}) {
+}: DslParams): Promise<Suite> {
   // Mutable `suite` binding... this code gets pretty hairy :neckbeard:
   let suite = describe(description, null, { listeners });
 
