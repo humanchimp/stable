@@ -39,7 +39,7 @@ describe("group", () => {
         const reports = await asyncSpread(subject.reports());
 
         expect(reports).to.have.lengthOf(2);
-      })
+      });
     });
 
     describe("Suite#xdescribe", suite => {

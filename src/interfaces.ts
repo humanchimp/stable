@@ -7,10 +7,8 @@ export interface Suite {
   specs: Spec[];
   hooks: Hooks;
   listeners: Listeners;
-  focusMode: boolean;
   isFocusMode: boolean;
   isDeeplyFocused: boolean;
-  opened: boolean;
   orderedJobs(): IterableIterator<Job>;
   parents(): IterableIterator<Suite>;
   describe(

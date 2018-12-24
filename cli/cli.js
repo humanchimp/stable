@@ -117,9 +117,6 @@ if (readStdin) {
 async function main() {
   const config = await loadConfigFile(configFile);
   const { plugins } = await loadConfigFile(rollupConfigPath);
-
-  // console.log(plugins);
-
   const helpers = helpersForPlugins(config.plugins);
   const listeners = listenersForPlugins(config.plugins);
   const preludes = preludesForPlugins(config.plugins);

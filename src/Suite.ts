@@ -32,17 +32,17 @@ export class Suite implements SuiteInterface {
 
   focused: boolean;
 
-  suites: SuiteInterface[];
+  suites: SuiteInterface[] = [];
 
-  specs: Spec[];
+  specs: Spec[] = [];
 
-  hooks: HooksInterface;
+  hooks: HooksInterface = new Hooks();
 
   listeners: ListenersInterface;
 
-  focusMode: boolean;
+  private focusMode: boolean = false;
 
-  opened: boolean;
+  private opened: boolean = false;
 
   private computedHooks: ComputedHooks;
 
@@ -59,12 +59,7 @@ export class Suite implements SuiteInterface {
     this.parent = parent;
     this.skipped = skipped;
     this.focused = focused;
-    this.suites = [];
-    this.specs = [];
-    this.hooks = new Hooks();
     this.listeners = new Listeners(listeners);
-    this.focusMode = false;
-    this.opened = false;
   }
 
   get isFocusMode() {
@@ -74,9 +69,9 @@ export class Suite implements SuiteInterface {
   set isFocusMode(value) {
     this.focusMode = value;
     if (value) {
-      this.suites.forEach(suite => {
+      for (const suite of this.suites) {
         suite.isFocusMode = true;
-      });
+      }
     }
   }
 
