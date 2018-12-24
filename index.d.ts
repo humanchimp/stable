@@ -21,7 +21,7 @@ interface TableSuite {
 }
 
 interface Spec {
-  (description: string, closure: Thunk): void;
+  (description: string, closure?: Thunk): void;
 }
 
 interface ShouldFail {

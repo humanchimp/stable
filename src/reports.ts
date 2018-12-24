@@ -1,5 +1,6 @@
 import { Suite, Report, Sorter } from "./interfaces";
 import { shuffle } from "./shuffle";
+import { describe } from "./describe";
 
 export async function* reports(
   suites: Suite | Suite[],
@@ -7,9 +8,12 @@ export async function* reports(
 ): AsyncIterableIterator<Report> {
   suites = [].concat(suites);
 
-  for (const suite of sort([...suites])) {
-    for await (const result of suite.reports(sort)) {
-      yield result;
-    }
+  const suite = suites.reduce((memo, suite) => {
+    memo.suites.push(suite);
+    return memo;
+  }, describe(null));
+
+  for await (const result of suite.reports(sort)) {
+    yield result;
   }
 }

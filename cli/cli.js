@@ -217,10 +217,14 @@ async function entryPoint(path, plugins) {
     plugins,
     onwarn(message) {
       // Suppressing a very chatty and unimportant warning
-      if (/The 'this' keyword is equivalent to 'undefined' at the top level of an ES module, and has been rewritten./.test(message)) {
+      if (
+        /The 'this' keyword is equivalent to 'undefined' at the top level of an ES module, and has been rewritten./.test(
+          message,
+        )
+      ) {
         return;
       }
-    }
+    },
   });
 
   const { code } = await bundle.generate({
@@ -228,6 +232,7 @@ async function entryPoint(path, plugins) {
     name: "bundle",
     sourcemap: "inline",
   });
+
   return { code, path };
 }
 

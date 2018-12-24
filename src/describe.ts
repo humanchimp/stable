@@ -2,7 +2,7 @@ import { SuiteClosure, SuiteParams } from "./interfaces";
 import { Suite } from "./Suite";
 
 export function describe(
-  description: string,
+  description: string | null,
   closure?: SuiteClosure,
   options?: SuiteParams,
 ): Suite {
