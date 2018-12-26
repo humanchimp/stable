@@ -26,13 +26,13 @@ interface ComputedHooks {
 export class Suite implements SuiteInterface {
   description: string;
 
-  parent?: SuiteInterface;
-
   skipped: boolean;
 
   focused: boolean;
 
   suites: SuiteInterface[] = [];
+
+  parent?: SuiteInterface;
 
   specs: Spec[] = [];
 
@@ -278,7 +278,7 @@ export class Suite implements SuiteInterface {
         return suite;
       })
       .filter(predicate);
-    const counted = countSpecsBySuite(jobs);
+    const counted = this.countSpecsBySuite(jobs);
     const poisoned = new Set();
 
     for (const { spec, suite } of jobs) {
@@ -292,7 +292,7 @@ export class Suite implements SuiteInterface {
           poisoned.add(instance);
         }
       }
-      yield* await countSpec(counted, suite);
+      yield* await this.countSpec(counted, suite);
     }
   }
 
@@ -330,7 +330,7 @@ export class Suite implements SuiteInterface {
     }
   }
 
-  private async *open(): AsyncIterableIterator<Report> {
+  async *open(): AsyncIterableIterator<Report> {
     if (this.opened) {
       return;
     }
@@ -340,7 +340,7 @@ export class Suite implements SuiteInterface {
     this.opened = true;
   }
 
-  private async *close(): AsyncIterableIterator<Report> {
+  async *close(): AsyncIterableIterator<Report> {
     if (!this.opened) {
       return;
     }
@@ -418,6 +418,23 @@ export class Suite implements SuiteInterface {
 
     this.computedHooks = { beforeEach, afterEach };
   }
+
+  private countSpecsBySuite(jobs: Job[]): Map<SuiteInterface, number> {
+    return jobs.reduce((memo, { suite }: Job) => {
+      for (const s of suite.parents()) {
+        inc(memo, s, 1);
+      }
+      return memo;
+    }, new Map<SuiteInterface, number>());
+  }
+
+  private async *countSpec(counted: Map<SuiteInterface, number>, suite: SuiteInterface) {
+    for (const s of suite.parents()) {
+      if (inc(counted, s, -1) === 0) {
+        yield* await s.close();
+      }
+    }
+  }
 }
 
 async function runTest(test) {
@@ -448,27 +465,10 @@ function required(): any {
   throw new Error("required");
 }
 
-function countSpecsBySuite(specs) {
-  return specs.reduce((memo, { suite }) => {
-    do {
-      inc(memo, suite, 1);
-    } while ((suite = suite.parent));
-    return memo;
-  }, new Map());
-}
-
 function inc(map, key, offset) {
   const [initial = 0] = [map.get(key)];
   const next = initial + offset;
 
   map.set(key, next);
   return next;
-}
-
-async function* countSpec(counted, suite) {
-  do {
-    if (inc(counted, suite, -1) === 0) {
-      yield* await suite.close();
-    }
-  } while ((suite = suite.parent));
 }
