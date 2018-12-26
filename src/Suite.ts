@@ -428,7 +428,10 @@ export class Suite implements SuiteInterface {
     }, new Map<SuiteInterface, number>());
   }
 
-  private async *countSpec(counted: Map<SuiteInterface, number>, suite: SuiteInterface) {
+  private async *countSpec(
+    counted: Map<SuiteInterface, number>,
+    suite: SuiteInterface,
+  ) {
     for (const s of suite.parents()) {
       if (inc(counted, s, -1) === 0) {
         yield* await s.close();
