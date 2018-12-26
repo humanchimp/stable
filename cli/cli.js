@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+const commands = new Set(["run", "bundle", "eval"]);
 
 // <cli flags>
 const {
@@ -15,7 +16,7 @@ const {
   seed,
   partitions,
   partition,
-  _: [, , ...explicitFiles],
+  _: [, , ...positionalParams],
 } = require("minimist")(process.argv, {
   alias: {
     c: "config",
@@ -27,6 +28,14 @@ const {
     q: "quiet",
   },
 });
+
+let command, explicitFiles;
+
+if (positionalParams.length >= 1 && commands.has(positionalParams[0])) {
+  [command, ...explicitFiles] = positionalParams;
+} else {
+  [explicitFiles = []] = [positionalParams];
+}
 
 const format = [].concat(outputFormat).pop();
 
@@ -43,7 +52,15 @@ if (partition != null && partitions == null) {
 // </cli flags>
 if (helpMenuRequested) {
   console.log(help`
-Usage: 🐎 stable [glob]
+Usage: 🐎 stable [command] [glob]
+
+run                 run the test suite by configuration.
+                      [unimplemented]
+                      [future default]
+eval                run the test suite in the main process.
+                      [current default]
+bundle              bundle the test suite into UMD modules.
+                      [unimplemented]
 
 Options:
 
@@ -85,15 +102,12 @@ Options:
   return;
 }
 
-const { of, from, startWith } = require("most");
-const { fromAsyncIterable } = require("most-async-iterable");
+const { evalCommand } = require("./commands/eval");
 const glob = require("fast-glob");
 const { inspect } = require("util");
-const { rollup } = require("rollup");
-const { describe, dsl, shuffle, Selection } = require("../lib/stable.js");
+const { shuffle, Selection } = require("../lib/stable.js");
 const loadConfigFile = require("./loadConfigFile");
-const { assign } = Object;
-const transform = transformForFormat(format);
+
 const seedrandom = require("seedrandom");
 const selection = new Selection({
   filter,
@@ -115,195 +129,36 @@ if (readStdin) {
 }
 
 async function main() {
+  const cmd = implForCommand(command);
   const config = await loadConfigFile(configFile);
-  const { plugins } = await loadConfigFile(rollupConfigPath);
-  const helpers = helpersForPlugins(config.plugins);
-  const listeners = listenersForPlugins(config.plugins);
-  const preludes = preludesForPlugins(config.plugins);
+  const { plugins: rollupPlugins } = await loadConfigFile(rollupConfigPath);
   const files =
     explicitFiles.length > 0
       ? explicitFiles
       : await glob(config.glob || "**-test.js");
-  const suite =
-    stdinCode !== ""
-      ? await dsl({ code: stdinCode, helpers, listeners, preludes })
-      : await suitesFromFiles(
-          { files, helpers, listeners, preludes },
-          plugins,
-        ).reduce((suite, s) => {
-          suite.suites.push(s);
-          return suite;
-        }, describe(null));
-  let allSpecs = [...suite.orderedJobs()];
 
-  const counts = {
-    total: allSpecs.length,
-    planned: undefined,
-    completed: 0,
-    ok: 0,
-    skipped: 0,
-  };
-  const predicate =
-    partition != null && partitions != null
-      ? selection.partition(counts.total, partition, partitions)
-      : selection.predicate;
-
-  counts.planned = allSpecs.filter(predicate).length;
-
-  await startWith(
-    plan(counts),
-    fromAsyncIterable(suite.reports(sort, predicate))
-      .tap(({ ok, skipped }) => {
-        counts.completed += 1;
-        if (ok) {
-          counts.ok += 1;
-        }
-        if (skipped) {
-          counts.skipped += 1;
-        }
-      })
-      .map(transform)
-      .continueWith(() => of(summary(counts))),
-  ).observe(console.log);
-
-  if (
-    (!quiet && counts.ok < counts.completed) ||
-    counts.completed < counts.planned
-  ) {
-    process.exit(1);
-  }
-}
-
-function helpersForPlugins(plugins) {
-  return plugins.reduce(
-    (memo, { helpers }) => assign(memo, helpers),
-    Object.create(null),
-  );
-}
-
-function listenersForPlugins(plugins) {
-  return plugins
-    .filter(plugin => plugin.on != null)
-    .reduce(
-      (memo, { on: { pending = [], complete = [] } }) => ({
-        pending: memo.pending.concat(pending),
-        complete: memo.complete.concat(complete),
-      }),
-      { pending: [], complete: [] },
-    );
-}
-
-function preludesForPlugins(plugins) {
-  return plugins.map(plugin => plugin.prelude).filter(Boolean);
-}
-
-function suitesFromFiles({ files, helpers, listeners, preludes }, plugins) {
-  return from(files)
-    .map(path => entryPoint(path, plugins))
-    .await()
-    .map(({ code, path }) =>
-      dsl({ code, helpers, description: `${path} |`, listeners, preludes }),
-    )
-    .await()
-    .multicast();
-}
-
-async function entryPoint(path, plugins) {
-  const bundle = await rollup({
-    input: path,
-    plugins,
-    onwarn(message) {
-      // Suppressing a very chatty and unimportant warning
-      if (
-        /The 'this' keyword is equivalent to 'undefined' at the top level of an ES module, and has been rewritten./.test(
-          message,
-        )
-      ) {
-        return;
-      }
-    },
+  await cmd({
+    config,
+    files,
+    rollupPlugins,
+    stdinCode,
+    partition,
+    partitions,
+    format,
+    sort,
+    selection,
+    quiet,
   });
-
-  const { code } = await bundle.generate({
-    format: "iife",
-    name: "bundle",
-    sourcemap: "inline",
-  });
-
-  return { code, path };
 }
 
-let count = 0;
-
-function tap({ ok, description, reason, skipped }) {
-  return `${ok ? "" : "not "}ok ${++count} ${description}${
-    !ok ? formatReason(reason) : ""
-  }${skipped ? " # SKIP" : ""}`;
-}
-
-function formatReason(reason) {
-  return reason
-    ? `
-
-${reason.stack
-        .split("\n")
-        .map(line => `    ${line}`)
-        .join("\n")}
-`
-    : "";
-}
-
-function transformForFormat(format) {
-  switch (format) {
-    case "inspect":
-      return it => inspect(it, { depth: 10, colors: true });
-    case "json":
-    case "jsonlines":
-      return it => JSON.stringify(it);
-    case "tap":
-      return tap;
-  }
-  throw new Error(`unsupported format: -f ${format}`);
-}
-
-function plan({ total, planned }) {
-  switch (format) {
-    case "inspect":
-      return { total, planned };
-    case "json":
-    case "jsonlines":
-      return JSON.stringify({ total, planned });
-    case "tap":
-      return `1..${planned}`;
-  }
-}
-
-function summary(counts) {
-  const report = { ...counts, failed: counts.completed - counts.ok };
-
-  switch (format) {
-    case "inspect":
-      return report;
-    case "json":
-    case "jsonlines":
-      return JSON.stringify(report);
-    case "tap": {
-      const { ok, skipped, completed } = report;
-
-      return `
-# ok ${ok}${
-        ok !== completed
-          ? `
-# failed ${completed - ok}`
-          : ""
-      }${
-        skipped !== 0
-          ? `
-# skipped ${skipped}`
-          : ""
-      }
-`;
-    }
+function implForCommand(cmd) {
+  switch (cmd) {
+    case "run":
+    case "bundle":
+      throw new Error("unimplemented!");
+    case "eval":
+    default:
+      return evalCommand;
   }
 }
 
