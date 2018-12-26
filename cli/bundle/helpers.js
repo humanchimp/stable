@@ -1,3 +1,4 @@
+const pathLib = require("path");
 const { rollup } = require("rollup");
 const { from } = require("most");
 
@@ -9,6 +10,7 @@ async function entryPoint({ path, plugins, format = "iife" }) {
   const bundle = await rollup({
     input: path,
     plugins,
+    external: ['chai', 'sinon'],
     onwarn(message) {
       // Suppressing a very chatty and unimportant warning
       if (

@@ -1,3 +1,5 @@
+import { expect } from 'chai';
+
 it("should handle async functions", async () => {
   await delay(10);
   expect(true).to.equal(true);

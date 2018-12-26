@@ -1,3 +1,5 @@
+import { expect } from "chai";
+
 describe("the reports helper", () => {
   it("should return an asynchronous iterator over the suite reports", async () => {
     for await (const report of stable.reports([

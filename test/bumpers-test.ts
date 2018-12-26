@@ -1,3 +1,5 @@
+import { expect } from 'chai';
+
 describe("the `describe` factory", () => {
   info(`\
 This test case is important because we want to make sure that the error we're \

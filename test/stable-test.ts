@@ -1,3 +1,5 @@
+import { expect } from 'chai';
+import { spy as createSpy } from 'sinon';
 import { asyncSpread } from "./util/asyncSpread";
 
 let subject;
@@ -104,7 +106,7 @@ describe("group", () => {
 
     describe("when a closure is passed", () => {
       beforeEach(() => {
-        spy = sinon.spy();
+        spy = createSpy();
         subject = stable.describe("test", spy);
       });
 

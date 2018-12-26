@@ -1,3 +1,4 @@
+import { expect } from "chai";
 import { flatMap } from "../src/flatMap";
 import { partitionRangeForTotal } from "../src/partititionRangeForTotal";
 

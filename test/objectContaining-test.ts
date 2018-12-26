@@ -1,3 +1,5 @@
+import { expect } from "chai";
+
 describe("objectContaining plugin", () => {
   it("should match partially, but deeply", () => {
     expect({ foo: { bar: 42 }, baz: { qux: 42 } }).to.match(

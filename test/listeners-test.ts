@@ -1,3 +1,6 @@
+import { expect } from 'chai';
+import { spy } from 'sinon';
+
 const code = `
 describe("outer 1", () => {
   describe("inner 1", () => {
@@ -24,15 +27,15 @@ let logSpy;
 let suiteOptions;
 
 beforeEach(() => {
-  specSpy = sinon.spy();
-  logSpy = sinon.spy(report => {
+  specSpy = spy();
+  logSpy = spy(report => {
     expect(report.ok).to.be.true;
   });
 });
 
 describe("pending listener", () => {
   it("should fire before each spec", async () => {
-    const pendingSpy = sinon.spy(report => {
+    const pendingSpy = spy(report => {
       expect(report.description)
         .to.contain("outer")
         .and.contain("inner");
@@ -49,19 +52,19 @@ describe("pending listener", () => {
     let pendingSpy;
 
     it("should be ok by default", () => {
-      pendingSpy = sinon.spy((_, skip) => {
+      pendingSpy = spy((_, skip) => {
         skip();
       });
     });
 
     it("should be possible to explictly set ok", () => {
-      pendingSpy = sinon.spy((report, skip) => {
+      pendingSpy = spy((report, skip) => {
         report.ok = false;
         report.reason = new Error("it's embarrassing! i'll tell you later");
         skip();
       });
 
-      logSpy = sinon.spy(report => {
+      logSpy = spy(report => {
         expect(report.ok).to.be.false;
         expect(report.reason.message).to.match(/embarrassing/);
       });
@@ -80,7 +83,7 @@ describe("pending listener", () => {
 
 describe("complete listener", () => {
   it("should fire after each spec", async () => {
-    const completeSpy = sinon.spy(report => {
+    const completeSpy = spy(report => {
       expect(report.ok).to.be.true;
     });
 
@@ -91,32 +94,32 @@ describe("complete listener", () => {
   });
 
   it("should be possible to fail the test from the listener", async () => {
-    const completeSpy = sinon.spy((report, fail) => {
+    const completeSpy = spy((report, fail) => {
       expect(report.ok).to.be.true;
       fail();
     });
 
-    logSpy = sinon.spy(report => {
+    logSpy = spy(report => {
       expect(report.ok).to.be.false;
     });
     await runWithListeners({ complete: completeSpy });
   });
 
   it("should be possible to fail a test from the listener, even if it already failed", async () => {
-    const completeSpy = sinon.spy((report, fail) => {
+    const completeSpy = spy((report, fail) => {
       expect(report.ok).to.be.false;
       expect(report.reason.message).to.match(/contrived/);
       fail();
     });
 
-    logSpy = sinon.spy(report => {
+    logSpy = spy(report => {
       expect(report.ok).to.be.false;
     });
     await runWithListeners({ complete: completeSpy }, contrivedFailure);
   });
 
   it('should be possible to "rescue" a failed test from the listener', async () => {
-    const completeSpy = sinon.spy(report => {
+    const completeSpy = spy(report => {
       expect(report.ok).to.be.false;
       expect(report.reason.message).to.match(/contrived/);
       report.ok = true; // "rescuing"

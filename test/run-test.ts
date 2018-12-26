@@ -1,3 +1,6 @@
+import { expect } from "chai";
+import { spy as createSpy } from "sinon";
+
 async function* generate(_, sort) {
   const result = [1, 2, 3];
 
@@ -18,7 +21,7 @@ describe("the run helper", () => {
     });
 
     it("should by default perform console.log", async () => {
-      sinon.spy(console, "log");
+      createSpy(console, "log");
       await stable.run(suites, { generate });
       expect(console.log.calledThrice).to.be.true;
       console.log.restore();
@@ -67,7 +70,7 @@ describe("the run helper", () => {
     });
 
     it("should pull the specs out of the given generator", async () => {
-      const spy = sinon.spy();
+      const spy = createSpy();
 
       await stable.run(suite, { perform: spy });
       expect(spy.calledThrice).to.be.true;
@@ -77,7 +80,7 @@ describe("the run helper", () => {
       it("should default using to the reports generator");
 
       it("should by default perform console.log", async () => {
-        sinon.spy(console, "log");
+        createSpy(console, "log");
         await stable.run(suite);
         expect(console.log.calledThrice).to.be.true;
         console.log.restore();
