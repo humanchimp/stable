@@ -5,7 +5,7 @@ async function* generate(_, sort) {
   yield* result;
 }
 
-describe("the reports helper", () => {
+describe("the run helper", () => {
   describe("when an array of suites is passed", () => {
     let suites;
 
@@ -47,21 +47,45 @@ describe("the reports helper", () => {
         expect(memo).to.eql([3, 2, 1]);
       });
     });
+
+    describe("when called without options", () => {
+      it("should default using to the reports generator");
+
+      it("should by default perform console.log");
+    });
   });
 
   describe("when a single suite is passed", () => {
+    let suite;
+
+    beforeEach(() => {
+      suite = stable
+        .describe(null)
+        .it("should run")
+        .it("should also run")
+        .it("should run three");
+    });
+
     it("should pull the specs out of the given generator", async () => {
       const spy = sinon.spy();
 
-      await stable.run(
-        stable
-          .describe(null)
-          .it("should run")
-          .it("should also run")
-          .it("should run three"),
-        { perform: spy },
-      );
+      await stable.run(suite, { perform: spy });
       expect(spy.calledThrice).to.be.true;
+    });
+
+    describe("when called without options", () => {
+      it("should default using to the reports generator");
+
+      it("should by default perform console.log", async () => {
+        sinon.spy(console, "log");
+        await stable.run(suite);
+        expect(console.log.calledThrice).to.be.true;
+        console.log.restore();
+      });
+
+      info(
+        "it would be nice to have a story for testing sort is shuffle by default :thinking_face:",
+      );
     });
   });
 });
