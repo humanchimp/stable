@@ -137,6 +137,14 @@ export interface TableClosure {
   (suite: Suite, table: any[]): void;
 }
 
+export interface SpecClosure {
+  (): void;
+}
+
+export interface HookClosure {
+  (): void;
+}
+
 export interface JobPredicate {
   (job: Job): boolean;
 }
@@ -168,7 +176,56 @@ export interface Range {
 }
 
 export interface RunParams {
-  generate(suites: Suite[], sort: Sorter): AsyncIterableIterator<any>;
-  perform(any): any;
-  sort: Sorter;
+  generate?(suites: Suite[], sort: Sorter): AsyncIterableIterator<any>;
+  perform?(any): any;
+  sort?: Sorter;
+}
+
+export interface DslThunk {
+  (
+    describe: DslDescribeBlock,
+    xdescribe: DslDescribeBlock,
+    fdescribe: DslDescribeBlock,
+    describeEach: DslDescribeEachBlock,
+    xdescribeEach: DslDescribeEachBlock,
+    fdescribeEach: DslDescribeEachBlock,
+    it: DslItBlock,
+    xit: DslItBlock,
+    fit: DslItBlock,
+    beforeAll: DslHookBlock,
+    afterAll: DslHookBlock,
+    beforeEach: DslHookBlock,
+    afterEach: DslHookBlock,
+    info: DslInfoBlock,
+  ): void;
+}
+
+export interface DslSuiteClosure {
+  (): void;
+}
+
+export interface DslTableClosure {
+  (table: any): void;
+}
+
+export interface DslDescribeBlock {
+  (description: string, closure: DslSuiteClosure): Promise<any> | void;
+}
+
+export interface DslDescribeEachBlock {
+  (description: string, table: any, closure: DslTableClosure): Promise<
+    any
+  > | void;
+}
+
+export interface DslItBlock {
+  (description: string, closure: SpecClosure): Promise<any> | void;
+}
+
+export interface DslHookBlock {
+  (closure: HookClosure): Promise<any> | void;
+}
+
+export interface DslInfoBlock {
+  (...rest: any[]): void;
 }

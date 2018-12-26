@@ -102,12 +102,10 @@ Options:
   return;
 }
 
-const { evalCommand } = require("./commands/eval");
 const glob = require("fast-glob");
 const { inspect } = require("util");
 const { shuffle, Selection } = require("../lib/stable.js");
 const loadConfigFile = require("./loadConfigFile");
-
 const seedrandom = require("seedrandom");
 const selection = new Selection({
   filter,
@@ -118,6 +116,9 @@ const sort =
     ? shuffle.rng(seed == null ? Math.random : seedrandom(seed))
     : identity;
 let stdinCode = "";
+
+const { evalCommand } = require("./commands/eval");
+const { bundleCommand } = require("./commands/bundle");
 
 if (readStdin) {
   process.stdin
@@ -154,8 +155,9 @@ async function main() {
 function implForCommand(cmd) {
   switch (cmd) {
     case "run":
-    case "bundle":
       throw new Error("unimplemented!");
+    case "bundle":
+      return bundleCommand;
     case "eval":
     default:
       return evalCommand;

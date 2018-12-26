@@ -1,7 +1,7 @@
-const { rollup } = require("rollup");
-const { of, from, startWith } = require("most");
+const { of, startWith } = require("most");
 const { fromAsyncIterable } = require("most-async-iterable");
 const { describe, dsl } = require("../../lib/stable.js");
+const { bundle } = require("../bundle/helpers");
 const { transformForFormat, plan, summary } = require("../output/helpers");
 
 const { assign } = Object;
@@ -26,10 +26,13 @@ exports.evalCommand = async function evalCommand({
   const suite =
     stdinCode !== ""
       ? await dsl({ code: stdinCode, helpers, listeners, preludes })
-      : await suitesFromFiles(
-          { files, helpers, listeners, preludes },
+      : await suitesFromFiles({
+          files,
+          helpers,
+          listeners,
+          preludes,
           rollupPlugins,
-        ).reduce((suite, s) => {
+        }).reduce((suite, s) => {
           suite.suites.push(s);
           return suite;
         }, describe(null));
@@ -96,38 +99,18 @@ function preludesForPlugins(plugins) {
   return plugins.map(plugin => plugin.prelude).filter(Boolean);
 }
 
-function suitesFromFiles({ files, helpers, listeners, preludes }, plugins) {
-  return from(files)
-    .map(path => entryPoint(path, plugins))
+function suitesFromFiles({
+  files,
+  helpers,
+  listeners,
+  preludes,
+  rollupPlugins,
+}) {
+  return bundle({ files, plugins: rollupPlugins, format: "iife" })
     .await()
     .map(({ code, path }) =>
       dsl({ code, helpers, description: `${path} |`, listeners, preludes }),
     )
     .await()
     .multicast();
-}
-
-async function entryPoint(path, plugins) {
-  const bundle = await rollup({
-    input: path,
-    plugins,
-    onwarn(message) {
-      // Suppressing a very chatty and unimportant warning
-      if (
-        /The 'this' keyword is equivalent to 'undefined' at the top level of an ES module, and has been rewritten./.test(
-          message,
-        )
-      ) {
-        return;
-      }
-    },
-  });
-
-  const { code } = await bundle.generate({
-    format: "iife",
-    name: "bundle",
-    sourcemap: "inline",
-  });
-
-  return { code, path };
 }
