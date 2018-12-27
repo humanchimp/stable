@@ -1,4 +1,5 @@
-import { expect } from 'chai';
+import { expect } from "chai";
+import * as stable from "stable";
 
 describe("the `describe` factory", () => {
   info(`\

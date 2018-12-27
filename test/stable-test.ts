@@ -1,6 +1,7 @@
-import { expect } from 'chai';
-import { spy as createSpy } from 'sinon';
+import { expect } from "chai";
+import { spy as createSpy } from "sinon";
 import { asyncSpread } from "./util/asyncSpread";
+import * as stable from "stable";
 
 let subject;
 

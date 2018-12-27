@@ -1,4 +1,4 @@
-import { expect } from 'chai';
+import { expect } from "chai";
 
 it("should handle async functions", async () => {
   await delay(10);

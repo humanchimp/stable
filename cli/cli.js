@@ -103,7 +103,6 @@ Options:
 }
 
 const glob = require("fast-glob");
-const { inspect } = require("util");
 const { shuffle, Selection } = require("../lib/stable.js");
 const loadConfigFile = require("./loadConfigFile");
 const seedrandom = require("seedrandom");

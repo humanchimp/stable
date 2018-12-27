@@ -1,4 +1,5 @@
 import { expect } from "chai";
+import * as stable from "stable";
 
 describe("the reports helper", () => {
   it("should return an asynchronous iterator over the suite reports", async () => {

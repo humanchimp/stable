@@ -6,11 +6,11 @@ exports.bundle = function bundle({ files, plugins, format }) {
   return from(files).map(path => entryPoint({ path, plugins, format }));
 };
 
-async function entryPoint({ path, plugins, format = "iife" }) {
+async function entryPoint({ path, plugins, exclude, format = "iife" }) {
   const bundle = await rollup({
     input: path,
     plugins,
-    external: ['chai', 'sinon'],
+    external: ["stable", "chai", "sinon"],
     onwarn(message) {
       // Suppressing a very chatty and unimportant warning
       if (

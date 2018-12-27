@@ -1,3 +1,5 @@
+const { inspect } = require("util");
+
 exports.transformForFormat = function transformForFormat(format) {
   switch (format) {
     case "inspect":

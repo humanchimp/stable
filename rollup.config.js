@@ -10,6 +10,7 @@ export default {
     file: "lib/stable.js",
     sourcemap: true,
   },
+  external: ['chai', 'sinon'],
   plugins: [
     typescript({
       typescript: typescript3,

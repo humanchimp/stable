@@ -9,7 +9,7 @@ import {
   DslHookBlock,
 } from "./interfaces";
 
-export async function dethunk(thunk: DslThunk): Suite {
+export async function dethunk(thunk: DslThunk): Promise<Suite> {
   let suite: Suite = describe(null);
 
   // The queue is for capturing each asynchronous step which are dynamically,

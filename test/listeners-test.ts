@@ -1,5 +1,6 @@
-import { expect } from 'chai';
-import { spy } from 'sinon';
+import { expect } from "chai";
+import { spy } from "sinon";
+import { run, dsl } from "stable";
 
 const code = `
 describe("outer 1", () => {
@@ -130,8 +131,8 @@ describe("complete listener", () => {
 });
 
 async function runWithListeners(listeners, spy = specSpy) {
-  await stable.run(
-    await stable.dsl({
+  await run(
+    await dsl({
       ...{
         code,
         listeners,
