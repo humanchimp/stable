@@ -2,11 +2,11 @@
 
 [![codecov](https://codecov.io/gh/humanchimp/stable/branch/master/graph/badge.svg?token=mYDCN5PRsc)](https://codecov.io/gh/humanchimp/stable)
 
-an experimental test framework built with async generators.
+`stable` is a BDD test framework for javascript, built using some of that language's newer features, notably ES Modules and asynchronous generators. It's designed to be self contained and simple to use.
 
-inspired by jasmine, mocha and jest. bring your own assertion library.
+## some words for now
 
-## api
+This is mostly placeholder, since I am probably waiting until right before I release to write docs.
 
 You can use it as a framework:
 
@@ -37,26 +37,9 @@ run([
 ```
 _Figure 2_: In this example, `describe` is a factory method which is the entry point to the `Suite` class' cascading (sometimes called "fluent") builder api. You can build up arbitrary test suites using this API. It takes a bit of getting used to but all features are supported (the framework derives all of its capabilities from this API).
 
-## north star
-
-It should be dead simple and self contained. It should be flexible and, failing that, hackable.
-
-## secondary design criteria
-
-When not in conflict with the overriding goal of simplicity, there are some intentional design ideas influencing the software implementation.
-
-### no `this`
-
-An unwanted feature of jasmine and mocha *which is intentionally omitted* is the sharing of properties/"variables" using `this`.
-
-It offers no advantages over using lexical variables. Lexical bindings are better for being statically validated (for instance, typos are not "tolerated" the way they might be if you used properities).
-
-Lexical bindings are easier to type if you're using TypeScript. If you want to use properties, you'd need to type the entire object, which is more cumbersome.
-
-They are left out, following the principle that there is no need for competing features to do the same thing (this is known as being "opinionated").
-
 ## goals
 
+- [ ] Inherits from your project's rollup config
 - [x] Suites (`describe`)
   - [x] Async describe (pairs nicely with `describeEach`)
 - [x] Specs (`it`)
@@ -71,10 +54,10 @@ They are left out, following the principle that there is no need for competing f
   - [ ] others are possible
 - [ ] Plays nice.
   - [x] Works in browsers
+    - [x] Runs in-process using `Function` 
+    - [ ] Remote excution by default.
   - [x] Works in node
   - [ ] Works in deno
-  - [ ] Works with karma
-  - [ ] Works with testem
   - [ ] Works with jsdom
 - [x] Suite partitioning
   - [x] Deep partitioning
