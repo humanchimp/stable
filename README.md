@@ -4,6 +4,27 @@
 
 `stable` is a BDD test framework for javascript, built using some of that language's newer features, notably ES Modules and asynchronous generators. It's designed to be self contained and simple to use.
 
+## installation
+
+```bash
+npm install @topl/stable --save-dev
+```
+
+Note: this currently doesn't work since the package is not published to npm at this time.
+
+## usage
+
+```json
+// ...
+"scripts": {
+  "test": "stable"
+},
+```
+
+## configuration
+
+Optionally, you can control your configuration with finer grain by adding a `stable.config.js`. The schema of that file will need to be documented preparatory to releasing anything.
+
 ## some words for now
 
 This is mostly placeholder, since I am probably waiting until right before I release to write docs.
