@@ -3,6 +3,7 @@ const lib = require("./lib/stable");
 
 export function stable() {
   return {
+    filename: __filename,
     helpers: { stable: lib },
   };
 }

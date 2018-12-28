@@ -31,12 +31,12 @@ describeEach(
   ],
   ([code, pattern]) => {
     it("should throw an error", async () => {
-      shouldFail();
-      rescue(reason => {
+      await stable.dsl({ code });
+    })
+      .shouldFail()
+      .rescue(reason => {
         expect(reason.message).to.match(pattern);
       });
-      await stable.dsl({ code });
-    });
   },
 );
 

@@ -115,15 +115,15 @@ describe("Selection", () => {
 
     describe("when partitions == partitions", () => {
       it("should throw", () => {
-        shouldFail();
-        rescue(reason => {
+        new stable.Selection().partition(total, 7, 7);
+      })
+        .shouldFail()
+        .rescue(reason => {
           expect(reason).to.be.instanceOf(RangeError);
           expect(reason.message).to.match(
             /partition must be less than partitions/,
           );
         });
-        new stable.Selection().partition(total, 7, 7);
-      });
     });
   });
 });

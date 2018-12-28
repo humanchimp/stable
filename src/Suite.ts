@@ -2,7 +2,7 @@ import {
   Suite as SuiteInterface,
   SuiteParams,
   SuiteClosure,
-  Spec,
+  Spec as SpecInterface,
   Job,
   Effect,
   Report,
@@ -16,6 +16,9 @@ import { shuffle } from "./shuffle";
 import { Hooks } from "./Hooks";
 import { Listeners } from "./Listeners";
 import { flatMap } from "./flatMap";
+import { Spec } from "./Spec";
+
+const { assign } = Object;
 
 interface ComputedHooks {
   beforeEach: Effect[];
@@ -83,10 +86,12 @@ export class Suite implements SuiteInterface {
   }
 
   info(info: any): Suite {
-    this.specs.push({
-      description: descriptionForInfo(info),
-      skipped: true,
-    });
+    this.specs.push(
+      new Spec({
+        description: descriptionForInfo(info),
+        skipped: true,
+      }),
+    );
     return this;
   }
 
@@ -111,33 +116,39 @@ export class Suite implements SuiteInterface {
   }
 
   it(description: string = required(), test?: Effect): Suite {
-    this.specs.push({
-      description,
-      test,
-      skipped: test == null || this.skipped,
-      focused: this.focused,
-    });
+    this.specs.push(
+      new Spec({
+        description,
+        test,
+        skipped: test == null || this.skipped,
+        focused: this.focused,
+      }),
+    );
     return this;
   }
 
   fit(description: string, test: Effect = required()): Suite {
     this.isFocusMode = true;
-    this.specs.push({
-      description,
-      test,
-      focused: true,
-      skipped: this.skipped,
-    });
+    this.specs.push(
+      new Spec({
+        description,
+        test,
+        focused: true,
+        skipped: this.skipped,
+      }),
+    );
     return this;
   }
 
   xit(description: string = required(), test?: Effect): Suite {
-    this.specs.push({
-      description,
-      test,
-      skipped: true,
-      focused: this.focused,
-    });
+    this.specs.push(
+      new Spec({
+        description,
+        test,
+        skipped: true,
+        focused: this.focused,
+      }),
+    );
     return this;
   }
 
@@ -355,7 +366,8 @@ export class Suite implements SuiteInterface {
     test,
     focused,
     skipped,
-  }: Spec): Promise<Report> {
+    meta,
+  }: SpecInterface): Promise<Report> {
     description = this.prefixed(description);
 
     if (skipped || (this.isFocusMode && !focused)) {
@@ -363,6 +375,7 @@ export class Suite implements SuiteInterface {
         description,
         ok: true,
         skipped: true,
+        ...meta,
       };
     }
     const report: Report = { ...this.defaultOptions(), description };
@@ -370,6 +383,8 @@ export class Suite implements SuiteInterface {
     if (focused) {
       report.focused = true;
     }
+
+    assign(report, meta);
 
     this.listeners.pending.forEach(notify => notify(report, skip));
 

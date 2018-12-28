@@ -14,7 +14,6 @@
   "devDependencies": {
     "@babel/core": "^7.2.0",
     "@babel/plugin-proposal-async-generator-functions": "^7.2.0",
-    "@babel/plugin-proposal-optional-catch-binding": "^7.2.0",
     "@babel/plugin-syntax-async-generators": "^7.2.0",
     "@babel/preset-env": "^7.2.0",
     "@types/chai": "^4.1.7",
@@ -33,11 +32,13 @@
     "rollup-plugin-auto-external": "^2.0.0",
     "rollup-plugin-babel": "^4.0.3",
     "rollup-plugin-commonjs": "^9.2.0",
+    "rollup-plugin-insert": "^0.2.0",
     "rollup-plugin-json": "^3.1.0",
     "rollup-plugin-livereload": "^0.6.0",
     "rollup-plugin-node-resolve": "^3.4.0",
     "rollup-plugin-serve": "^0.6.0",
     "rollup-plugin-typescript": "^1.0.0",
+    "rollup-plugin-virtual": "^1.0.1",
     "seedrandom": "^2.4.4",
     "sinon": "^7.2.2",
     "tslib": "^1.9.3",
@@ -55,7 +56,8 @@
     "exclude": [
       "*.config.js",
       "test",
-      "cli"
+      "cli",
+      "plugins"
     ]
   },
   "dependencies": {}

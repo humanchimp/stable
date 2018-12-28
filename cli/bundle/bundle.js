@@ -1,12 +1,13 @@
-const pathLib = require("path");
 const { rollup } = require("rollup");
 const { from } = require("most");
 
-exports.bundle = function bundle({ files, plugins, format }) {
-  return from(files).map(path => entryPoint({ path, plugins, format }));
+exports.bundle = function bundle({ files, plugins, format, pluginsModule }) {
+  return from(files).map(path =>
+    entryPoint({ path, plugins, format, pluginsModule }),
+  );
 };
 
-async function entryPoint({ path, plugins, exclude, format = "iife" }) {
+async function entryPoint({ path, plugins, pluginsModule, format = "iife" }) {
   const bundle = await rollup({
     input: path,
     plugins,

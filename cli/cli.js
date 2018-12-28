@@ -54,7 +54,7 @@ if (helpMenuRequested) {
   console.log(help`
 Usage: 🐎 stable [command] [glob]
 
-run                 run the test suite by configuration.
+run                 run the test suite remotely.
                       [unimplemented]
                       [future default]
 eval                run the test suite in the main process.
@@ -104,7 +104,7 @@ Options:
 
 const glob = require("fast-glob");
 const { shuffle, Selection } = require("../lib/stable.js");
-const loadConfigFile = require("./loadConfigFile");
+const { loadConfigFile } = require("./loadConfigFile");
 const seedrandom = require("seedrandom");
 const selection = new Selection({
   filter,

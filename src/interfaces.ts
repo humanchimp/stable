@@ -61,11 +61,24 @@ export interface Suite {
   close(): AsyncIterableIterator<Report>;
 }
 
-export interface Spec {
+export interface SpecParams {
   description: string;
   test?: Effect;
   focused?: boolean;
   skipped?: boolean;
+}
+
+export interface Spec extends SpecParams {
+  meta: SpecMeta;
+  timeout(ms: number): Spec;
+  shouldFail(): Spec;
+  rescue(rescuer: ErrorHandler): Spec;
+}
+
+export interface SpecMeta {
+  shouldFail?: boolean;
+  timeout?: number;
+  rescuer?: ErrorHandler;
 }
 
 export interface Job {
@@ -74,9 +87,14 @@ export interface Job {
   series: number;
 }
 
-export interface Report extends Spec {
+export interface Report extends SpecParams {
   ok?: boolean;
   reason?: any;
+  startedAt?: number;
+  endedAt?: number;
+  elapsed?: number;
+  shouldFail?: boolean;
+  rescued?: boolean;
   [key: string]: any;
 }
 
@@ -153,21 +171,9 @@ export interface Sorter {
   (array: any[]): any[];
 }
 
-export interface DslParams {
-  code: string;
-  description?: string;
-  helpers?: DslHelpers;
-  listeners?: ListenersParam;
-  preludes?: string[];
-}
-
 export interface ListenersParam {
   pending?: Listener[];
   complete?: Listener[];
-}
-
-export interface DslHelpers {
-  [key: string]: any;
 }
 
 export interface Range {
@@ -179,6 +185,17 @@ export interface RunParams {
   generate?(suites: Suite[], sort: Sorter): AsyncIterableIterator<any>;
   perform?(any): any;
   sort?: Sorter;
+}
+
+export interface DslParams {
+  code: string;
+  description?: string;
+  helpers?: DslHelpers;
+  listeners?: ListenersParam;
+}
+
+export interface DslHelpers {
+  [key: string]: any;
 }
 
 export interface DslThunk {
@@ -209,17 +226,15 @@ export interface DslTableClosure {
 }
 
 export interface DslDescribeBlock {
-  (description: string, closure: DslSuiteClosure): Promise<any> | void;
+  (description: string, closure: DslSuiteClosure): Suite;
 }
 
 export interface DslDescribeEachBlock {
-  (description: string, table: any, closure: DslTableClosure): Promise<
-    any
-  > | void;
+  (description: string, table: any, closure: DslTableClosure): Suite;
 }
 
 export interface DslItBlock {
-  (description: string, closure: SpecClosure): Promise<any> | void;
+  (description: string, closure: SpecClosure): Spec;
 }
 
 export interface DslHookBlock {

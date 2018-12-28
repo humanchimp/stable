@@ -2855,6 +2855,13 @@ rollup-plugin-commonjs@^9.2.0:
     resolve "^1.8.1"
     rollup-pluginutils "^2.3.3"
 
+rollup-plugin-insert@^0.2.0:
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/rollup-plugin-insert/-/rollup-plugin-insert-0.2.0.tgz#96ae7fc88860070e8bd96e8aea438bb085aafcba"
+  integrity sha512-88tlPcSnmxiWHH5WsyEoD40wnZmubAEqwZmEoqT52wdZ4tKsQlI95V9zTQggPVNed4U81gxjy8OFWufxyLWljQ==
+  dependencies:
+    rollup-pluginutils "^2.3.1"
+
 rollup-plugin-json@^3.1.0:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/rollup-plugin-json/-/rollup-plugin-json-3.1.0.tgz#7c1daf60c46bc21021ea016bd00863561a03321b"
@@ -2893,6 +2900,11 @@ rollup-plugin-typescript@^1.0.0:
   dependencies:
     resolve "^1.8.1"
     rollup-pluginutils "^2.3.1"
+
+rollup-plugin-virtual@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/rollup-plugin-virtual/-/rollup-plugin-virtual-1.0.1.tgz#8227c94c605b981adfe433ea74de3551e42ffeb4"
+  integrity sha512-HCTBpV8MwP5lNzZrHD2moVxHIToHU1EkzkKGVj6Z0DcgUfxrxrZmeQirQeLz2yhnkJqRjwiVywK9CS8jDYakrw==
 
 rollup-pluginutils@^2.3.0, rollup-pluginutils@^2.3.1, rollup-pluginutils@^2.3.3:
   version "2.3.3"

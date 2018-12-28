@@ -116,12 +116,12 @@ describeEach(
   ([suiteDesciption, cases]) => {
     describeEach(suiteDesciption, cases, ([specDescription, thunk]) => {
       it(`requires a parameter that must be provided: ${specDescription}`, () => {
-        shouldFail();
-        rescue(reason => {
+        thunk();
+      })
+        .shouldFail()
+        .rescue(reason => {
           expect(reason.message).to.match(/required/);
         });
-        thunk();
-      });
     });
   },
 );

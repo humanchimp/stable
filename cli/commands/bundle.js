@@ -1,5 +1,8 @@
 const fs = require("fs");
-const { bundle } = require("../bundle/helpers");
+const virtual = require("rollup-plugin-virtual");
+const { rollup } = require("rollup");
+const { bundle } = require("../bundle/bundle");
+const { bundlePlugins } = require("../bundle/bundlePlugins");
 
 const names = [
   "describe",
@@ -37,20 +40,45 @@ exports.bundleCommand = async function bundleCommand({
     );
   }
 
+  const pluginsModule = await bundlePlugins(config.plugins);
+
   // TODO: this obviously won't work with sourcemaps so we're gonna need to figure that part out later
-  const bundles = await bundlesFromFiles({ files, rollupPlugins })
+  const bundles = await bundlesFromFiles({
+    files,
+    rollupPlugins,
+    pluginsModule,
+    format: "iife",
+  })
     .await()
     .reduce((bundle, { code }) => bundle + code, "");
 
-  await fs.promises.writeFile(
-    outFile,
-    `stable.dethunk(function (${names.join(
-      ",",
-    )}) {${bundles}}).then(stable.run);`,
-    "utf-8",
-  );
+  const ioc = await rollup({
+    input: "testbundle",
+    onwarn(message) {
+      // Suppressing a very chatty and unimportant warning
+      if (/is not exported by/.test(message)) {
+        return;
+      }
+    },
+    plugins: [
+      virtual({
+        testbundle: `
+import * as plugins from "pluginbundle";
+stable.dethunk(function (${names.join(
+          ",",
+        )}) {${bundles}}, stable.plugins(plugins)).then(stable.run)`,
+      }),
+      virtual({
+        pluginbundle: pluginsModule,
+      }),
+    ],
+  });
+
+  const { code } = await ioc.generate({ format: "iife" });
+
+  await fs.promises.writeFile(outFile, code, "utf-8");
 };
 
-function bundlesFromFiles({ files, rollupPlugins }) {
-  return bundle({ files, plugins: rollupPlugins });
+function bundlesFromFiles({ files, rollupPlugins, pluginsModule, format }) {
+  return bundle({ files, plugins: rollupPlugins, pluginsModule, format });
 }

@@ -3,6 +3,7 @@ const { expect } = require("chai");
 
 export function objectContaining() {
   return {
+    filename: __filename,
     helpers: {
       objectContaining: pattern => ({
         exec(sample) {

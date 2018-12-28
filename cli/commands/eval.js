@@ -1,8 +1,10 @@
+const { join } = require("path");
 const { of, startWith } = require("most");
 const { fromAsyncIterable } = require("most-async-iterable");
 const { describe, dsl } = require("../../lib/stable.js");
-const { bundle } = require("../bundle/helpers");
+const { bundle } = require("../bundle/bundle");
 const { transformForFormat, plan, summary } = require("../output/helpers");
+const { loadConfigFile } = require('../loadConfigFile');
 
 const { assign } = Object;
 
@@ -20,17 +22,15 @@ exports.evalCommand = async function evalCommand({
 }) {
   const transform = transformForFormat(format);
   const helpers = helpersForPlugins(config.plugins);
-  const listeners = listenersForPlugins(config.plugins);
-  const preludes = preludesForPlugins(config.plugins);
+  const listeners = await listenersForPlugins(config.plugins);
 
   const suite =
     stdinCode !== ""
-      ? await dsl({ code: stdinCode, helpers, listeners, preludes })
+      ? await dsl({ code: stdinCode, helpers, listeners })
       : await suitesFromFiles({
           files,
           helpers,
           listeners,
-          preludes,
           rollupPlugins,
         }).reduce((suite, s) => {
           suite.suites.push(s);
@@ -83,34 +83,45 @@ function helpersForPlugins(plugins) {
   );
 }
 
-function listenersForPlugins(plugins) {
-  return plugins
+async function listenersForPlugins(plugins) {
+  const oldStyle = plugins
     .filter(plugin => plugin.on != null)
-    .reduce(
-      (memo, { on: { pending = [], complete = [] } }) => ({
-        pending: memo.pending.concat(pending),
-        complete: memo.complete.concat(complete),
-      }),
-      { pending: [], complete: [] },
-    );
-}
+    .map(plugin => plugin.on);
+  const newStyle = await Promise.all(plugins
+    .filter(plugin => plugin.provides && plugin.provides.listeners)
+    .map(async plugin => {
+      const { pending, complete } = await loadConfigFile(join(forNow(plugin.package.name), plugin.provides.listeners));
 
-function preludesForPlugins(plugins) {
-  return plugins.map(plugin => plugin.prelude).filter(Boolean);
+      return {
+        pending: pending && pending.bind(null, plugin.config),
+        complete: complete && complete.bind(null, plugin.config),
+      }
+    }));
+
+  return [...oldStyle, ...newStyle].reduce(
+    (memo, { pending = [], complete = [] }) => ({
+      pending: memo.pending.concat(pending),
+      complete: memo.complete.concat(complete),
+    }),
+    { pending: [], complete: [] },
+  );
 }
 
 function suitesFromFiles({
   files,
   helpers,
   listeners,
-  preludes,
   rollupPlugins,
 }) {
   return bundle({ files, plugins: rollupPlugins, format: "iife" })
     .await()
     .map(({ code, path }) =>
-      dsl({ code, helpers, description: `${path} |`, listeners, preludes }),
+      dsl({ code, helpers, description: `${path} |`, listeners }),
     )
     .await()
     .multicast();
+}
+
+function forNow(path) {
+  return `./plugins/${path.slice("@topl/stable-plugin-".length)}`;
 }

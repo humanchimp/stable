@@ -7,6 +7,7 @@ export function glob({
   root = path.join(path.dirname(__filename), "test"),
 } = {}) {
   return {
+    filename: __filename,
     helpers: {
       async glob(pattern) {
         const files = await lib(pattern, { cwd: root });
