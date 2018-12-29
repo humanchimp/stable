@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { spy as createSpy } from "sinon";
-import { Suite, dethunk } from "stable";
+import { Suite, dethunk } from "@topl/stable";
 import { asyncSpread } from "./util/asyncSpread";
 
 describe("the dethunk helper", () => {

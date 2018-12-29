@@ -13,9 +13,11 @@
   },
   "devDependencies": {
     "@babel/core": "^7.2.0",
+    "@babel/generator": "^7.2.2",
     "@babel/plugin-proposal-async-generator-functions": "^7.2.0",
     "@babel/plugin-syntax-async-generators": "^7.2.0",
     "@babel/preset-env": "^7.2.0",
+    "@babel/traverse": "^7.2.3",
     "@types/chai": "^4.1.7",
     "@types/sinon": "^7.0.2",
     "array.prototype.flatmap": "^1.2.1",

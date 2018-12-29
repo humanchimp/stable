@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { asyncSpread } from "./util/asyncSpread";
 import { getFixtures } from "./util/getFixtures";
-import * as stable from "stable";
+import * as stable from "@topl/stable";
 
 info("https://github.com/humanchimp/stable/issues/1");
 

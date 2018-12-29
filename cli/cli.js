@@ -116,9 +116,6 @@ const sort =
     : identity;
 let stdinCode = "";
 
-const { evalCommand } = require("./commands/eval");
-const { bundleCommand } = require("./commands/bundle");
-
 if (readStdin) {
   process.stdin
     .on("data", data => (stdinCode += data))
@@ -154,12 +151,20 @@ async function main() {
 function implForCommand(cmd) {
   switch (cmd) {
     case "run":
-      throw new Error("unimplemented!");
-    case "bundle":
+      const { runCommand } = require("./commands/run");
+
+      return runCommand;
+    case "bundle": {
+      const { bundleCommand } = require("./commands/bundle");
+
       return bundleCommand;
+    }
     case "eval":
-    default:
+    default: {
+      const { evalCommand } = require("./commands/eval");
+
       return evalCommand;
+    }
   }
 }
 

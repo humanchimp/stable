@@ -4,3 +4,5 @@ lib
 coverage
 .nyc_output/
 static/
+package-lock.json
+yarn-error.log

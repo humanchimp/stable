@@ -9,7 +9,9 @@ exports.bundlePlugins = async function bundlePlugins(plugins) {
       config: plugin.config,
     }));
 
-  const listenerBundle = `${listenerModules
+  const listenerBundle = `
+import { plugins as convert } from '@topl/stable';
+${listenerModules
     .map(
       ({ exportName, path }) =>
         `import * as ${exportName}_raw from "${forNow(path)}";`,
@@ -28,7 +30,8 @@ const ${exportName} = {
 };`;
     })
     .join("\n")}
-export {${listenerModules.map(m => m.exportName).join(",")}};
+const plugins = convert({${listenerModules.map(m => m.exportName).join(",")}})
+export { plugins };
 `;
 
   return listenerBundle;

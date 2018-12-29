@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { spy as createSpy } from "sinon";
 import { asyncSpread } from "./util/asyncSpread";
-import * as stable from "stable";
+import * as stable from "@topl/stable";
 
 let subject;
 
@@ -19,12 +19,13 @@ describe("group", () => {
       expect(typeof subject.reports).to.equal("function");
     });
 
-    describe("Suite#it", () =>
+    describe("Suite#it", () => {
       it("should enqueue a spec", () => {
         expect(subject.specs).to.have.lengthOf(0);
         subject.it("it", () => {});
         expect(subject.specs).to.have.lengthOf(1);
-      }));
+      });
+    });
 
     describe("Suite#reports", () => {
       beforeEach(() => {

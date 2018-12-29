@@ -4,7 +4,7 @@ const { fromAsyncIterable } = require("most-async-iterable");
 const { describe, dsl } = require("../../lib/stable.js");
 const { bundle } = require("../bundle/bundle");
 const { transformForFormat, plan, summary } = require("../output/helpers");
-const { loadConfigFile } = require('../loadConfigFile');
+const { loadConfigFile } = require("../loadConfigFile");
 
 const { assign } = Object;
 
@@ -87,16 +87,20 @@ async function listenersForPlugins(plugins) {
   const oldStyle = plugins
     .filter(plugin => plugin.on != null)
     .map(plugin => plugin.on);
-  const newStyle = await Promise.all(plugins
-    .filter(plugin => plugin.provides && plugin.provides.listeners)
-    .map(async plugin => {
-      const { pending, complete } = await loadConfigFile(join(forNow(plugin.package.name), plugin.provides.listeners));
+  const newStyle = await Promise.all(
+    plugins
+      .filter(plugin => plugin.provides && plugin.provides.listeners)
+      .map(async plugin => {
+        const { pending, complete } = await loadConfigFile(
+          join(forNow(plugin.package.name), plugin.provides.listeners),
+        );
 
-      return {
-        pending: pending && pending.bind(null, plugin.config),
-        complete: complete && complete.bind(null, plugin.config),
-      }
-    }));
+        return {
+          pending: pending && pending.bind(null, plugin.config),
+          complete: complete && complete.bind(null, plugin.config),
+        };
+      }),
+  );
 
   return [...oldStyle, ...newStyle].reduce(
     (memo, { pending = [], complete = [] }) => ({
@@ -107,12 +111,7 @@ async function listenersForPlugins(plugins) {
   );
 }
 
-function suitesFromFiles({
-  files,
-  helpers,
-  listeners,
-  rollupPlugins,
-}) {
+function suitesFromFiles({ files, helpers, listeners, rollupPlugins }) {
   return bundle({ files, plugins: rollupPlugins, format: "iife" })
     .await()
     .map(({ code, path }) =>

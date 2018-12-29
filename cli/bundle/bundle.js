@@ -1,17 +1,27 @@
+const { isAbsolute } = require("path");
 const { rollup } = require("rollup");
 const { from } = require("most");
 
-exports.bundle = function bundle({ files, plugins, format, pluginsModule }) {
-  return from(files).map(path =>
-    entryPoint({ path, plugins, format, pluginsModule }),
-  );
+exports.bundle = function bundle({ files, plugins, format }) {
+  return from(files).map(path => entryPoint({ path, plugins, format }));
 };
 
-async function entryPoint({ path, plugins, pluginsModule, format = "iife" }) {
+async function entryPoint({ path, plugins, format = "iife" }) {
   const bundle = await rollup({
     input: path,
     plugins,
-    external: ["stable", "chai", "sinon"],
+    external(id) {
+      if (["tslib", "@topl/stable"].includes(id)) {
+        return false;
+      }
+      if (
+        (id[0] !== "." && !isAbsolute(id)) ||
+        id.slice(-5, id.length) === ".json"
+      ) {
+        return true;
+      }
+      return false;
+    },
     onwarn(message) {
       // Suppressing a very chatty and unimportant warning
       if (

@@ -1,8 +1,11 @@
 const fs = require("fs");
+const { join } = require("path");
 const virtual = require("rollup-plugin-virtual");
 const { rollup } = require("rollup");
 const { bundle } = require("../bundle/bundle");
 const { bundlePlugins } = require("../bundle/bundlePlugins");
+const babel = require("@babel/core");
+const { default: generate } = require("@babel/generator");
 
 const names = [
   "describe",
@@ -20,19 +23,26 @@ const names = [
   "afterEach",
   "info",
 ];
+const apiParams = names.join(",");
 
-exports.bundleCommand = async function bundleCommand({
+exports.bundleCommand = bundleCommand;
+exports.generateBundle = generateBundle;
+
+async function bundleCommand(params) {
+  const { outFile = `static/bundle.js`, bundleFormat = "iife" } = params;
+  const bundle = await generateBundle(params);
+
+  await bundle.write({
+    file: outFile,
+    format: bundleFormat,
+  });
+}
+
+async function generateBundle({
   config,
   files,
   rollupPlugins,
   stdinCode,
-  partition,
-  partitions,
-  sort,
-  selection,
-  format,
-  quiet,
-  outFile = `static/bundle.js`,
 }) {
   if (stdinCode) {
     throw new Error(
@@ -41,17 +51,52 @@ exports.bundleCommand = async function bundleCommand({
   }
 
   const pluginsModule = await bundlePlugins(config.plugins);
-
-  // TODO: this obviously won't work with sourcemaps so we're gonna need to figure that part out later
   const bundles = await bundlesFromFiles({
     files,
-    rollupPlugins,
+    rollupPlugins: [
+      ...rollupPlugins,
+      {
+        name: "stable-thunkify",
+        transform(code, filename) {
+          if (!files.some(file => filename.endsWith(`/${file}`))) {
+            return code;
+          }
+          const suiteModule = babel.parse(code);
+          const { program } = suiteModule;
+          const [imports, rest] = partition(program.body, node =>
+            ["ImportDeclaration"].includes(node.type),
+          );
+          const { program: exportProgram } = babel.parse(
+            `export function thunk(${apiParams}) {}`,
+          );
+          const { body: thunk } = exportProgram.body[0].declaration;
+
+          thunk.body = rest;
+          program.body = [...imports, exportProgram];
+
+          return generate(program);
+        },
+      },
+    ],
     pluginsModule,
-    format: "iife",
+    format: "esm",
   })
     .await()
-    .reduce((bundle, { code }) => bundle + code, "");
-
+    .reduce((bundle, b) => bundle.concat(b), []);
+  const libraryBundle = await rollup({
+    input: join(__dirname, "../../src/lib.ts"),
+    plugins: rollupPlugins,
+  });
+  const { code: libraryCode } = await libraryBundle.generate({ format: "esm" });
+  const testBundleCode = `
+import { dethunk, run } from "@topl/stable";
+import { plugins } from "pluginbundle";
+${bundles
+    .map((b, i) => `import { thunk as t${i} } from "${b.path}";`)
+    .join("\n")}
+Promise.all([${bundles
+    .map((_, i) => `dethunk(t${i}, plugins)`)
+    .join(",")}]).then(run);`;
   const ioc = await rollup({
     input: "testbundle",
     onwarn(message) {
@@ -62,23 +107,35 @@ exports.bundleCommand = async function bundleCommand({
     },
     plugins: [
       virtual({
-        testbundle: `
-import * as plugins from "pluginbundle";
-stable.dethunk(function (${names.join(
-          ",",
-        )}) {${bundles}}, stable.plugins(plugins)).then(stable.run)`,
+        testbundle: testBundleCode,
       }),
+      ...bundles.map(({ path, code }) =>
+        virtual({
+          [path]: code,
+        }),
+      ),
       virtual({
         pluginbundle: pluginsModule,
+      }),
+      virtual({
+        "@topl/stable": libraryCode,
       }),
     ],
   });
 
-  const { code } = await ioc.generate({ format: "iife" });
+  return ioc;
+}
 
-  await fs.promises.writeFile(outFile, code, "utf-8");
-};
+function bundlesFromFiles({ files, rollupPlugins, format }) {
+  return bundle({ files, plugins: rollupPlugins, format });
+}
 
-function bundlesFromFiles({ files, rollupPlugins, pluginsModule, format }) {
-  return bundle({ files, plugins: rollupPlugins, pluginsModule, format });
+function partition(collection, predicate) {
+  return collection.reduce(
+    (memo, candidate) => {
+      memo[1 - predicate(candidate)].push(candidate);
+      return memo;
+    },
+    [[], []],
+  );
 }
