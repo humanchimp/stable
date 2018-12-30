@@ -1,5 +1,5 @@
 import { fromAsyncIterable } from "most-async-iterable";
-import { coreSuite } from "../test/stable-builder-test";
+import { coreSuite } from "./stable-builder-test";
 
 const stream = fromAsyncIterable(coreSuite.reports()).multicast();
 
