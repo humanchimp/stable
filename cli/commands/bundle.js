@@ -38,76 +38,33 @@ async function bundleCommand(params) {
   });
 }
 
-async function generateBundle({
-  config,
-  files,
-  rollupPlugins,
-  stdinCode,
-}) {
+async function generateBundle({ config, files, rollupPlugins, stdinCode }) {
   if (stdinCode) {
     throw new Error(
       "reading from stdin is not currently supported by the bundle command",
     );
   }
 
-  const pluginsModule = await bundlePlugins(config.plugins);
-  const bundles = await bundlesFromFiles({
-    files,
-    rollupPlugins: [
-      ...rollupPlugins,
-      {
-        name: "stable-thunkify",
-        transform(code, filename) {
-          if (!files.some(file => filename.endsWith(`/${file}`))) {
-            return code;
-          }
-          const suiteModule = babel.parse(code);
-          const { program } = suiteModule;
-          const [imports, rest] = partition(program.body, node =>
-            ["ImportDeclaration"].includes(node.type),
-          );
-          const { program: exportProgram } = babel.parse(
-            `export function thunk(${apiParams}) {}`,
-          );
-          const { body: thunk } = exportProgram.body[0].declaration;
+  const [bundles, pluginBundle, libraryBundle] = await Promise.all([
+    bundlesFromFiles({
+      files,
+      plugins: [...rollupPlugins, thunkify({ files })],
+      format: "esm",
+    }),
+    bundlePlugins(config.plugins),
+    codeForLibrary(rollupPlugins),
+  ]);
 
-          thunk.body = rest;
-          program.body = [...imports, exportProgram];
-
-          return generate(program);
-        },
-      },
-    ],
-    pluginsModule,
-    format: "esm",
-  })
-    .await()
-    .reduce((bundle, b) => bundle.concat(b), []);
-  const libraryBundle = await rollup({
-    input: join(__dirname, "../../src/lib.ts"),
-    plugins: rollupPlugins,
-  });
-  const { code: libraryCode } = await libraryBundle.generate({ format: "esm" });
-  const testBundleCode = `
-import { dethunk, run } from "@topl/stable";
-import { plugins } from "pluginbundle";
-${bundles
-    .map((b, i) => `import { thunk as t${i} } from "${b.path}";`)
-    .join("\n")}
-Promise.all([${bundles
-    .map((_, i) => `dethunk(t${i}, plugins)`)
-    .join(",")}]).then(run);`;
-  const ioc = await rollup({
+  return rollup({
     input: "testbundle",
     onwarn(message) {
-      // Suppressing a very chatty and unimportant warning
       if (/is not exported by/.test(message)) {
         return;
       }
     },
     plugins: [
       virtual({
-        testbundle: testBundleCode,
+        testbundle: codeForTestBundle(bundles),
       }),
       ...bundles.map(({ path, code }) =>
         virtual({
@@ -115,19 +72,19 @@ Promise.all([${bundles
         }),
       ),
       virtual({
-        pluginbundle: pluginsModule,
+        pluginbundle: pluginBundle,
       }),
       virtual({
-        "@topl/stable": libraryCode,
+        "@topl/stable": libraryBundle,
       }),
     ],
   });
-
-  return ioc;
 }
 
-function bundlesFromFiles({ files, rollupPlugins, format }) {
-  return bundle({ files, plugins: rollupPlugins, format });
+function bundlesFromFiles({ files, plugins, format }) {
+  return bundle({ files, plugins, format })
+    .await()
+    .reduce((bundle, b) => bundle.concat(b), []);
 }
 
 function partition(collection, predicate) {
@@ -138,4 +95,50 @@ function partition(collection, predicate) {
     },
     [[], []],
   );
+}
+
+function codeForTestBundle(bundles) {
+  return `
+import { dethunk, run } from "@topl/stable";
+import { plugins } from "pluginbundle";
+${bundles
+    .map((b, i) => `import { thunk as t${i} } from "${b.path}";`)
+    .join("\n")}
+Promise.all([${bundles
+    .map((_, i) => `dethunk(t${i}, plugins)`)
+    .join(",")}]).then(run);`;
+}
+
+async function codeForLibrary(plugins) {
+  const libraryBundle = await rollup({
+    input: join(__dirname, "../../src/lib.ts"),
+    plugins,
+  });
+
+  return libraryBundle.generate({ format: "esm" });
+}
+
+function thunkify({ files }) {
+  return {
+    name: "stable-thunkify",
+    transform(code, filename) {
+      if (!files.some(file => filename.endsWith(`/${file}`))) {
+        return code;
+      }
+      const suiteModule = babel.parse(code);
+      const { program } = suiteModule;
+      const [imports, rest] = partition(program.body, node =>
+        ["ImportDeclaration"].includes(node.type),
+      );
+      const { program: exportProgram } = babel.parse(
+        `export function thunk(${apiParams}) {}`,
+      );
+      const { body: thunk } = exportProgram.body[0].declaration;
+
+      thunk.body = rest;
+      program.body = [...imports, exportProgram];
+
+      return generate(program);
+    },
+  };
 }

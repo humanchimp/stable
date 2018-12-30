@@ -868,13 +868,6 @@ builtin-modules@^2.0.0:
   resolved "https://registry.yarnpkg.com/builtin-modules/-/builtin-modules-2.0.0.tgz#60b7ef5ae6546bd7deefa74b08b62a43a232648e"
   integrity sha512-3U5kUA5VPsRUA3nofm/BXX7GVHKfxz0hOBAPxXrIvHzlDRkQVqEn6yi8QJegxl4LzOHLdvb7XF5dVawa/VVYBg==
 
-builtins@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/builtins/-/builtins-2.0.0.tgz#018999641e11252188652dbb2db01ad386fcdc46"
-  integrity sha512-8srrxpDx3a950BHYcbse+xMjupHHECvQYnShkoPz2ZLhTBrk/HQO6nWMh4o4ui8YYp2ourGVYXlGqFm+UYQwmA==
-  dependencies:
-    semver "^5.4.1"
-
 cache-base@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/cache-base/-/cache-base-1.0.1.tgz#0a7f46416831c8b662ee36fe4e7c59d76f666ab2"
@@ -2827,16 +2820,6 @@ rimraf@^2.6.1, rimraf@^2.6.2:
   dependencies:
     glob "^7.0.5"
 
-rollup-plugin-auto-external@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/rollup-plugin-auto-external/-/rollup-plugin-auto-external-2.0.0.tgz#98fd137d66c1cbe0f4e245b31560a72dbde896aa"
-  integrity sha512-HQM3ZkZYfSam1uoZtAB9sK26EiAsfs1phrkf91c/YX+S07wugyRXSigBxrIwiLr5EPPilKYmoMxsrnlGBsXnuQ==
-  dependencies:
-    builtins "^2.0.0"
-    read-pkg "^3.0.0"
-    safe-resolve "^1.0.0"
-    semver "^5.5.0"
-
 rollup-plugin-babel@^4.0.3:
   version "4.1.0"
   resolved "https://registry.yarnpkg.com/rollup-plugin-babel/-/rollup-plugin-babel-4.1.0.tgz#c97f50c82aa8e89ddaa116cdc5c832b8ba74db17"
@@ -2854,13 +2837,6 @@ rollup-plugin-commonjs@^9.2.0:
     magic-string "^0.25.1"
     resolve "^1.8.1"
     rollup-pluginutils "^2.3.3"
-
-rollup-plugin-insert@^0.2.0:
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/rollup-plugin-insert/-/rollup-plugin-insert-0.2.0.tgz#96ae7fc88860070e8bd96e8aea438bb085aafcba"
-  integrity sha512-88tlPcSnmxiWHH5WsyEoD40wnZmubAEqwZmEoqT52wdZ4tKsQlI95V9zTQggPVNed4U81gxjy8OFWufxyLWljQ==
-  dependencies:
-    rollup-pluginutils "^2.3.1"
 
 rollup-plugin-json@^3.1.0:
   version "3.1.0"
@@ -2933,11 +2909,6 @@ safe-regex@^1.1.0:
   integrity sha1-QKNmnzsHfR6UPURinhV91IAjvy4=
   dependencies:
     ret "~0.1.10"
-
-safe-resolve@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/safe-resolve/-/safe-resolve-1.0.0.tgz#fe34f8d29d7a3becfd249d0aa8a799b5c3cf6559"
-  integrity sha1-/jT40p16O+z9JJ0KqKeZtcPPZVk=
 
 "safer-buffer@>= 2.1.2 < 3":
   version "2.1.2"
