@@ -98,6 +98,20 @@ export interface Report extends SpecParams {
   [key: string]: any;
 }
 
+export interface Plan {
+  total: number;
+  planned: number;
+}
+
+export interface Summary {
+  total: number;
+  planned: number;
+  completed: number;
+  ok: number;
+  skipped: number;
+  done: boolean;
+}
+
 export interface SuiteParams {
   parent?: Suite;
   skipped?: boolean;

@@ -138,7 +138,7 @@ function thunkify({ files }) {
       thunk.body = rest;
       program.body = [...imports, exportProgram];
 
-      return generate(program);
+      return generate(program, { retainLines: true });
     },
   };
 }

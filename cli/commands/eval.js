@@ -32,9 +32,9 @@ exports.evalCommand = async function evalCommand({
           helpers,
           listeners,
           rollupPlugins,
-        }).reduce((suite, s) => {
-          suite.suites.push(s);
-          return suite;
+        }).reduce((memo, suite) => {
+          memo.suites.push(suite);
+          return memo;
         }, describe(null));
   let allSpecs = [...suite.orderedJobs()];
 

@@ -59,7 +59,7 @@ run                 run the test suite remotely.
                       [future default]
 eval                run the test suite in the main process.
                       [current default]
-bundle              bundle the test suite into UMD modules.
+bundle              bundle the test suite modules.
                       [unimplemented]
 
 Options:

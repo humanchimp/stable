@@ -6,6 +6,8 @@ import {
   Job,
   Effect,
   Report,
+  Plan,
+  Summary,
   Hooks as HooksInterface,
   Listeners as ListenersInterface,
   TableClosure,
@@ -279,20 +281,58 @@ export class Suite implements SuiteInterface {
     return [...segments, description].filter(Boolean).join(" ");
   }
 
+  async *run(
+    sort: Sorter = shuffle,
+    predicate: JobPredicate = Boolean,
+  ): AsyncIterableIterator<Plan | Report | Summary> {
+    const jobs = [...this.orderedJobs()];
+    const planned = jobs.filter(predicate);
+    const counts = {
+      total: jobs.length,
+      planned: planned.length,
+      completed: 0,
+      ok: 0,
+      skipped: 0,
+    };
+
+    yield {
+      total: counts.total,
+      planned: counts.planned,
+    } as Plan;
+    for await (const report of this.reportsForJobs(jobs, sort, predicate)) {
+      if (report.ok) {
+        counts.ok += 1;
+      }
+      if (report.skipped) {
+        counts.skipped += 1;
+      }
+      yield report;
+    }
+    yield { ...counts, done: true } as Summary;
+  }
+
   async *reports(
     sort: Sorter = shuffle,
     predicate: JobPredicate = Boolean,
   ): AsyncIterableIterator<Report> {
-    const jobs: Job[] = sort([...this.orderedJobs()])
+    yield* this.reportsForJobs([...this.orderedJobs()], sort, predicate);
+  }
+
+  private async *reportsForJobs(
+    jobs: Job[],
+    sort: Sorter,
+    predicate: JobPredicate,
+  ) {
+    const preparedJobs: Job[] = sort(jobs)
       .map((suite, index) => {
         suite.series = index;
         return suite;
       })
       .filter(predicate);
-    const counted = this.countSpecsBySuite(jobs);
+    const counted = this.countSpecsBySuite(preparedJobs);
     const poisoned = new Set();
 
-    for (const { spec, suite } of jobs) {
+    for (const { spec, suite } of preparedJobs) {
       const instance = suite as Suite;
 
       if (!poisoned.has(instance)) {
