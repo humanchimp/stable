@@ -29,6 +29,19 @@ interface ComputedHooks {
 }
 
 export class Suite implements SuiteInterface {
+  static from(suites: Suite[]): Suite {
+    return suites.length === 1
+      ? suites[0]
+      : suites.reduce((memo, suite) => {
+          memo.suites.push(suite);
+          return memo;
+        }, new this(null));
+  }
+
+  static of(...suites: Suite[]): Suite {
+    return this.from(suites);
+  }
+
   description: string;
 
   skipped: boolean;
@@ -306,9 +319,13 @@ export class Suite implements SuiteInterface {
       if (report.skipped) {
         counts.skipped += 1;
       }
+      counts.completed += 1;
       yield report;
     }
-    yield { ...counts, done: true } as Summary;
+    yield {
+      ...counts,
+      failed: counts.completed - counts.ok,
+    } as Summary;
   }
 
   async *reports(

@@ -1,9 +1,8 @@
 const { join } = require("path");
-const { of, startWith } = require("most");
 const { fromAsyncIterable } = require("most-async-iterable");
 const { describe, dsl } = require("../../lib/stable.js");
 const { bundle } = require("../bundle/bundle");
-const { transformForFormat, plan, summary } = require("../output/helpers");
+const { transformForFormat } = require("../output/helpers");
 const { loadConfigFile } = require("../loadConfigFile");
 
 const { assign } = Object;
@@ -36,43 +35,25 @@ exports.evalCommand = async function evalCommand({
           memo.suites.push(suite);
           return memo;
         }, describe(null));
-  let allSpecs = [...suite.orderedJobs()];
 
-  const counts = {
-    total: allSpecs.length,
-    planned: undefined,
-    completed: 0,
-    ok: 0,
-    skipped: 0,
-  };
   const predicate =
     partition != null && partitions != null
       ? selection.partition(counts.total, partition, partitions)
       : selection.predicate;
 
-  counts.planned = allSpecs.filter(predicate).length;
+  let failed = false;
 
-  await startWith(
-    plan(format, counts),
-    fromAsyncIterable(suite.reports(sort, predicate))
-      .tap(({ ok, skipped }) => {
-        counts.completed += 1;
-        if (ok) {
-          counts.ok += 1;
-        }
-        if (skipped) {
-          counts.skipped += 1;
-        }
-      })
-      .map(transform)
-      .continueWith(() => of(summary(format, counts))),
-  ).observe(console.log);
+  await fromAsyncIterable(suite.run(sort, predicate))
+    .tap(report => {
+      if (report.failed > 0) {
+        failed = true;
+      }
+    })
+    .map(transform)
+    .observe(console.log);
 
-  if (
-    (!quiet && counts.ok < counts.completed) ||
-    counts.completed < counts.planned
-  ) {
-    process.exit(1);
+  if (!quiet && failed) {
+    process.exit(1); // 👋
   }
 };
 

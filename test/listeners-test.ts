@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { spy } from "sinon";
-import { run, dsl } from "@topl/stable";
+import { run, dsl, reports } from "@topl/stable";
 
 const code = `
 describe("outer 1", () => {
@@ -44,9 +44,9 @@ describe("pending listener", () => {
     });
 
     await runWithListeners({ pending: pendingSpy });
-    expect(pendingSpy.getCalls().length).to.equal(5);
-    expect(specSpy.getCalls().length).to.equal(5);
-    expect(logSpy.getCalls().length).to.equal(5);
+    expect(pendingSpy.callCount).to.equal(5);
+    expect(specSpy.callCount).to.equal(5);
+    expect(logSpy.callCount).to.equal(5);
   });
 
   describe("skipping a test case from the listener", () => {
@@ -75,9 +75,9 @@ describe("pending listener", () => {
       await runWithListeners({
         pending: pendingSpy,
       });
-      expect(pendingSpy.getCalls().length).to.equal(5);
-      expect(specSpy.getCalls().length).to.equal(0);
-      expect(logSpy.getCalls().length).to.equal(5);
+      expect(pendingSpy.callCount).to.equal(5);
+      expect(specSpy.callCount).to.equal(0);
+      expect(logSpy.callCount).to.equal(5);
     });
   });
 });
@@ -89,9 +89,9 @@ describe("complete listener", () => {
     });
 
     await runWithListeners({ complete: completeSpy });
-    expect(specSpy.getCalls().length).to.equal(5);
-    expect(completeSpy.getCalls().length).to.equal(5);
-    expect(logSpy.getCalls().length).to.equal(5);
+    expect(specSpy.callCount).to.equal(5);
+    expect(completeSpy.callCount).to.equal(5);
+    expect(logSpy.callCount).to.equal(5);
   });
 
   it("should be possible to fail the test from the listener", async () => {
@@ -139,7 +139,7 @@ async function runWithListeners(listeners, spy = specSpy) {
         helpers: { spy },
       },
     }),
-    { perform: logSpy },
+    { generate: reports, perform: logSpy },
   );
 }
 

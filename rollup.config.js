@@ -15,7 +15,7 @@ export default {
     typescript({
       typescript: typescript3,
       target: "ES6",
-      lib: ["ES2015"]
+      lib: ["ES2015"],
     }),
     babel({
       presets: [
@@ -31,8 +31,6 @@ export default {
       plugins: [
         ["@babel/plugin-syntax-async-generators"],
         ["@babel/plugin-proposal-async-generator-functions"],
-        ["@babel/plugin-proposal-optional-catch-binding"],
-        ['babel-plugin-istanbul'],
       ],
       sourceMaps: true,
     }),

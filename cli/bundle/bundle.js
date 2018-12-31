@@ -34,11 +34,11 @@ async function entryPoint({ path, plugins, format = "iife" }) {
     },
   });
 
-  const { code } = await bundle.generate({
-    format,
-    name: "bundle",
-    sourcemap: "inline",
-  });
-
-  return { code, path };
+  return {
+    ...(await bundle.generate({
+      format,
+      name: "bundle",
+    })),
+    path,
+  };
 }

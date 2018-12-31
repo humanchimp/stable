@@ -1,11 +1,11 @@
-const fs = require("fs");
-const { join } = require("path");
+const { join, dirname } = require("path");
 const virtual = require("rollup-plugin-virtual");
 const { rollup } = require("rollup");
 const { bundle } = require("../bundle/bundle");
 const { bundlePlugins } = require("../bundle/bundlePlugins");
 const babel = require("@babel/core");
 const { default: generate } = require("@babel/generator");
+const istanbul = require("rollup-plugin-istanbul");
 
 const names = [
   "describe",
@@ -35,10 +35,17 @@ async function bundleCommand(params) {
   await bundle.write({
     file: outFile,
     format: bundleFormat,
+    sourcemap: "inline",
   });
 }
 
-async function generateBundle({ config, files, rollupPlugins, stdinCode }) {
+async function generateBundle({
+  config,
+  files,
+  rollupPlugins,
+  stdinCode,
+  onready,
+}) {
   if (stdinCode) {
     throw new Error(
       "reading from stdin is not currently supported by the bundle command",
@@ -50,25 +57,28 @@ async function generateBundle({ config, files, rollupPlugins, stdinCode }) {
       files,
       plugins: [...rollupPlugins, thunkify({ files })],
       format: "esm",
+      sourcemap: true,
     }),
     bundlePlugins(config.plugins),
     codeForLibrary(rollupPlugins),
   ]);
 
-  return rollup({
+  const shouldInstrument = /istanbul/.test(process.env.NYC_INSTRUMENTER);
+  const bundle = await rollup({
     input: "testbundle",
-    onwarn(message) {
-      if (/is not exported by/.test(message)) {
-        return;
-      }
-    },
+    // onwarn(message) {
+    //   if (/is not exported by/.test(message)) {
+    //     return;
+    //   }
+    // },
     plugins: [
+      istanbul(),
       virtual({
-        testbundle: codeForTestBundle(bundles),
+        testbundle: codeForTestBundle(bundles, onready),
       }),
-      ...bundles.map(({ path, code }) =>
+      ...bundles.map(b =>
         virtual({
-          [path]: code,
+          [b.path]: b,
         }),
       ),
       virtual({
@@ -79,10 +89,12 @@ async function generateBundle({ config, files, rollupPlugins, stdinCode }) {
       }),
     ],
   });
+
+  return bundle;
 }
 
-function bundlesFromFiles({ files, plugins, format }) {
-  return bundle({ files, plugins, format })
+function bundlesFromFiles({ files, plugins, format, sourcemap }) {
+  return bundle({ files, plugins, format, sourcemap })
     .await()
     .reduce((bundle, b) => bundle.concat(b), []);
 }
@@ -97,7 +109,7 @@ function partition(collection, predicate) {
   );
 }
 
-function codeForTestBundle(bundles) {
+function codeForTestBundle(bundles, onready = "run") {
   return `
 import { dethunk, run } from "@topl/stable";
 import { plugins } from "pluginbundle";
@@ -106,16 +118,16 @@ ${bundles
     .join("\n")}
 Promise.all([${bundles
     .map((_, i) => `dethunk(t${i}, plugins)`)
-    .join(",")}]).then(run);`;
+    .join(",")}]).then(${onready});`;
 }
 
 async function codeForLibrary(plugins) {
   const libraryBundle = await rollup({
     input: join(__dirname, "../../src/lib.ts"),
-    plugins,
+    plugins: [...plugins, istanbul()],
   });
 
-  return libraryBundle.generate({ format: "esm" });
+  return libraryBundle.generate({ format: "esm", sourcemap: "inline" });
 }
 
 function thunkify({ files }) {

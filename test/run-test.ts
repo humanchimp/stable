@@ -24,7 +24,7 @@ describe("the run helper", () => {
     it("should by default perform console.log", async () => {
       createSpy(console, "log");
       await stable.run(suites, { generate });
-      expect(console.log.calledThrice).to.be.true;
+      expect(console.log.callCount).to.equal(3);
       console.log.restore();
     });
 
@@ -70,11 +70,11 @@ describe("the run helper", () => {
         .it("should run three");
     });
 
-    it("should pull the specs out of the given generator", async () => {
+    it("should pull the specs out of the default generator", async () => {
       const spy = createSpy();
 
       await stable.run(suite, { perform: spy });
-      expect(spy.calledThrice).to.be.true;
+      expect(spy.callCount).to.equal(5);
     });
 
     describe("when called without options", () => {
@@ -83,7 +83,7 @@ describe("the run helper", () => {
       it("should by default perform console.log", async () => {
         createSpy(console, "log");
         await stable.run(suite);
-        expect(console.log.calledThrice).to.be.true;
+        expect(console.log.callCount).to.equal(5);
         console.log.restore();
       });
 

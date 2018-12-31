@@ -6,6 +6,7 @@ const {
   c: configFile = "stable.config.js",
   f: filter,
   g: grep,
+  r: runner = "eval",
   o: outputFormat = "inspect",
   s: readStdin,
   q: quiet,
@@ -22,6 +23,7 @@ const {
     c: "config",
     f: "filter",
     g: "grep",
+    r: "runner",
     o: "format",
     h: "help",
     s: "stdin",
@@ -74,6 +76,11 @@ Options:
 -g, --grep          a JavaScript regular expression to use for filtering by
                     suite description.
                       [string]
+-r, --runner        the runner to use
+                      [string]
+                      [default: eval]
+                      [in core: eval, vm]
+                      [planned: remote, isolate]
 -o, --format        the format of the output stream.
                       [string]
                       [default: tap]
@@ -139,9 +146,10 @@ async function main() {
     files,
     rollupPlugins,
     stdinCode,
+    runner,
+    format,
     partition,
     partitions,
-    format,
     sort,
     selection,
     quiet,

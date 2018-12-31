@@ -109,7 +109,6 @@ export interface Summary {
   completed: number;
   ok: number;
   skipped: number;
-  done: boolean;
 }
 
 export interface SuiteParams {
@@ -195,10 +194,19 @@ export interface Range {
   end: number;
 }
 
+export interface RunGenerator {
+  (
+    suites: Suite | Suite[],
+    sort?: Sorter,
+    predicate?: JobPredicate,
+  ): AsyncIterableIterator<any>;
+}
+
 export interface RunParams {
-  generate?(suites: Suite[], sort: Sorter): AsyncIterableIterator<any>;
-  perform?(any): any;
+  generate?: RunGenerator;
   sort?: Sorter;
+  predicate?: JobPredicate;
+  perform?(any): any;
 }
 
 export interface DslParams {

@@ -1,13 +1,32 @@
-import { RunParams } from "./interfaces";
-import { Suite } from "./suite";
+import {
+  RunParams,
+  Sorter,
+  Plan,
+  Report,
+  Summary,
+  JobPredicate,
+} from "./interfaces";
+import { Suite } from "./Suite";
 import { shuffle } from "./shuffle";
-import { reports } from "./reports";
 
 export async function run(
   suites: Suite | Suite[],
-  { generate = reports, perform = console.log, sort = shuffle }: RunParams = {},
+  {
+    generate = generator,
+    perform = console.log,
+    sort = shuffle,
+    predicate,
+  }: RunParams = {},
 ): Promise<void> {
-  for await (const report of generate([].concat(suites), sort)) {
+  for await (const report of generate([].concat(suites), sort, predicate)) {
     perform(report);
   }
+}
+
+export async function* generator(
+  suites: Suite | Suite[],
+  sort: Sorter = shuffle,
+  predicate: JobPredicate,
+): AsyncIterableIterator<Plan | Report | Summary> {
+  yield* Suite.from([].concat(suites)).run(sort, predicate);
 }
