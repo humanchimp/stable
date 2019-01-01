@@ -106,7 +106,7 @@ Options:
 -q, --quiet         don't send an exit code on failure.
 -h, --help          print this message.
 `);
-  return;
+  process.exit(0);
 }
 
 const glob = require("fast-glob");

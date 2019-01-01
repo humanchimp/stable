@@ -5,7 +5,8 @@ const { bundle } = require("../bundle/bundle");
 const { bundlePlugins } = require("../bundle/bundlePlugins");
 const babel = require("@babel/core");
 const { default: generate } = require("@babel/generator");
-const istanbul = require("rollup-plugin-istanbul");
+const t = require("@babel/types");
+const { default: traverse } = require("@babel/traverse");
 
 const names = [
   "describe",
@@ -35,7 +36,12 @@ async function bundleCommand(params) {
   await bundle.write({
     file: outFile,
     format: bundleFormat,
-    sourcemap: "inline",
+    sourcemap: true,
+    name: "stable",
+    globals: {
+      "sinon": "sinon",
+      "chai": "chai"
+    }
   });
 }
 
@@ -55,7 +61,10 @@ async function generateBundle({
   const [bundles, pluginBundle, libraryBundle] = await Promise.all([
     bundlesFromFiles({
       files,
-      plugins: [...rollupPlugins, thunkify({ files })],
+      plugins: [
+        ...rollupPlugins,
+        thunkify({ files }),
+      ],
       format: "esm",
       sourcemap: true,
     }),
@@ -63,7 +72,6 @@ async function generateBundle({
     codeForLibrary(rollupPlugins),
   ]);
 
-  const shouldInstrument = /istanbul/.test(process.env.NYC_INSTRUMENTER);
   const bundle = await rollup({
     input: "testbundle",
     // onwarn(message) {
@@ -72,7 +80,6 @@ async function generateBundle({
     //   }
     // },
     plugins: [
-      istanbul(),
       virtual({
         testbundle: codeForTestBundle(bundles, onready),
       }),
@@ -137,8 +144,7 @@ function thunkify({ files }) {
       if (!files.some(file => filename.endsWith(`/${file}`))) {
         return code;
       }
-      const suiteModule = babel.parse(code);
-      const { program } = suiteModule;
+      const { program } = babel.parse(code);
       const [imports, rest] = partition(program.body, node =>
         ["ImportDeclaration"].includes(node.type),
       );

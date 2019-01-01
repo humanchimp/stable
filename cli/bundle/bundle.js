@@ -22,7 +22,7 @@ async function entryPoint({ path, plugins, format = "iife" }) {
       }
       return false;
     },
-    onwarn(message) {
+    onwarn({ message }) {
       // Suppressing a very chatty and unimportant warning
       if (
         /The 'this' keyword is equivalent to 'undefined' at the top level of an ES module, and has been rewritten./.test(
@@ -31,6 +31,7 @@ async function entryPoint({ path, plugins, format = "iife" }) {
       ) {
         return;
       }
+      console.warn(message);
     },
   });
 
@@ -38,6 +39,7 @@ async function entryPoint({ path, plugins, format = "iife" }) {
     ...(await bundle.generate({
       format,
       name: "bundle",
+      sourcemap: true,
     })),
     path,
   };

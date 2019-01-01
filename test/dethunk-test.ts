@@ -4,10 +4,6 @@ import { Suite, dethunk } from "@topl/stable";
 import { asyncSpread } from "./util/asyncSpread";
 
 describe("the dethunk helper", () => {
-  it("should have a funny name", () => {
-    expect(dethunk.name).to.equal("dethunk");
-  });
-
   it("should call the thunk, injecting all the framework blocks", async () => {
     const spy = createSpy();
 

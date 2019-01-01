@@ -1,6 +1,6 @@
 const { join } = require("path");
 
-exports.bundlePlugins = async function bundlePlugins(plugins) {
+exports.bundlePlugins = function bundlePlugins(plugins) {
   const listenerModules = plugins
     .filter(plugin => plugin.provides && plugin.provides.listeners)
     .map(plugin => ({

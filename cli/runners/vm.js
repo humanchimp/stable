@@ -1,16 +1,16 @@
 const { of } = require("most");
 const { Script } = require("vm");
 
-exports.run = function run(code, sort, predicate) {
+exports.run = function run(code) {
   return of(
-    new Promise(done => {
+    new Promise(resolve => {
       global.__coverage__ || (global.__coverage__ = {});
 
       const script = new Script(code);
 
       script.runInNewContext({
         console: console,
-        stableRun: done,
+        stableRun: resolve,
         require,
         process: process,
         exports: {},

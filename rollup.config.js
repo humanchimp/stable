@@ -16,6 +16,7 @@ export default {
       typescript: typescript3,
       target: "ES6",
       lib: ["ES2015"],
+      sourceMap: true,
     }),
     babel({
       presets: [
