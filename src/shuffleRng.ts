@@ -4,21 +4,16 @@
 
 function shuffleRng(rng) {
   return function shuffle(array) {
-    var m = array.length,
-      t,
-      i;
+    let w = array.length;
 
     // While there remain elements to shuffle…
-    while (m) {
+    while (w) {
       // Pick a remaining element…
-      i = Math.floor(rng() * m--);
+      const o = Math.floor(rng() * w--);
 
       // And swap it with the current element.
-      t = array[m];
-      array[m] = array[i];
-      array[i] = t;
+      [array[w], array[o]] = [array[o], array[w]];
     }
-
     return array;
   };
 }
