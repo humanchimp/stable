@@ -7,9 +7,7 @@ export async function run(
   suites: Suite | Suite[],
   { generate = reports, perform = console.log, sort = shuffle }: RunParams,
 ): Promise<void> {
-  suites = [].concat(suites);
-
-  for await (const report of generate(suites, sort)) {
+  for await (const report of generate([].concat(suites), sort)) {
     perform(report);
   }
 }
