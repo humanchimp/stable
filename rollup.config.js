@@ -14,7 +14,7 @@ export default {
   plugins: [
     typescript({
       typescript: typescript3,
-      target: "ES6",
+      target: "es6",
       lib: ["ES2015"],
       sourceMap: true,
     }),

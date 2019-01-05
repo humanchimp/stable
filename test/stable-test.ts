@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { spy as createSpy } from "sinon";
 import { asyncSpread } from "./util/asyncSpread";
-import * as stable from "@topl/stable";
+import * as stable from "../src/lib";
 
 let subject;
 

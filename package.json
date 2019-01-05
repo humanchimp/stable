@@ -27,6 +27,7 @@
     "chai": "^4.2.0",
     "chalk": "^2.4.1",
     "fast-glob": "^2.2.4",
+    "fs-extra": "^7.0.1",
     "minimist": "^1.2.0",
     "most": "^1.7.3",
     "most-async-iterable": "^1.0.1",
@@ -44,7 +45,9 @@
     "rollup-plugin-virtual": "^1.0.1",
     "seedrandom": "^2.4.4",
     "sinon": "^7.2.2",
+    "sorcery": "^0.10.0",
     "source-map": "^0.7.3",
+    "tmp-promise": "^1.0.5",
     "tslib": "^1.9.3",
     "typescript": "^3.2.2"
   },

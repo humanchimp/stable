@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { spy as createSpy } from "sinon";
-import * as stable from "@topl/stable";
+import * as stable from "../src/lib";
 
 async function* generate(_, sort) {
   const result = [1, 2, 3];

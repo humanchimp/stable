@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import * as stable from "@topl/stable";
+import * as stable from "../src/lib";
 
 describe("the `describe` factory", () => {
   info(`\

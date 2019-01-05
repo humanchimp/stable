@@ -1,6 +1,8 @@
 import { expect } from "chai";
 import { spy } from "sinon";
-import { run, dsl, reports } from "@topl/stable";
+import { run } from "../src/run";
+import { dsl } from "../src/dsl";
+import { reports } from "../src/reports";
 
 const code = `
 describe("outer 1", () => {

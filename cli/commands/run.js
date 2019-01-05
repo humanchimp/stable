@@ -16,7 +16,6 @@ exports.runCommand = async function runCommand(params) {
   const bundle = await generateBundle({ ...params, onready: "stableRun" });
   const { code } = await bundle.generate({
     format: "cjs",
-    sourcemap: "inline",
   });
   const predicate =
     partition != null && partitions != null
