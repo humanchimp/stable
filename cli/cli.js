@@ -17,6 +17,7 @@ const {
   seed,
   partitions,
   partition,
+  coverage,
   _: [, , ...positionalParams],
 } = require("minimist")(process.argv, {
   alias: {
@@ -103,6 +104,9 @@ Options:
 --rollup            path to the rollup config for your project
                       [string]
                       [default: rollup.config.js]
+--coverage          format of code coverage report
+                      [string]
+                      [in core: html, lcov, json]
 -q, --quiet         don't send an exit code on failure.
 -h, --help          print this message.
 `);
@@ -153,6 +157,7 @@ async function main() {
     sort,
     selection,
     quiet,
+    coverage
   });
 }
 

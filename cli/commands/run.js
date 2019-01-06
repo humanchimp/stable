@@ -1,7 +1,11 @@
 const { Suite } = require("../../lib/stable");
 const { fromAsyncIterable } = require("most-async-iterable");
-const { generateBundle } = require("./bundle");
+const { bundleCommand } = require("./bundle");
 const { transformForFormat } = require("../output/helpers");
+const { dir } = require("tmp-promise");
+const { join, relative } = require("path");
+const { readFile, writeFile, copy } = require("fs-extra");
+const libReport = require('istanbul-lib-report');
 
 exports.runCommand = async function runCommand(params) {
   const {
@@ -12,11 +16,18 @@ exports.runCommand = async function runCommand(params) {
     format,
     quiet,
     runner,
+    outFile = join(process.cwd(), "stable-bundle.js"),
+    coverage,
   } = params;
-  const bundle = await generateBundle({ ...params, onready: "stableRun" });
-  const { code } = await bundle.generate({
-    format: "cjs",
+  await bundleCommand({
+    ...params,
+    bundleFormat: "cjs",
+    outFile,
+    onready: "stableRun",
   });
+
+  const code = await readFile(outFile, "utf-8");
+
   const predicate =
     partition != null && partitions != null
       ? selection.partition(counts.total, partition, partitions)
@@ -27,7 +38,7 @@ exports.runCommand = async function runCommand(params) {
   let failed = false;
 
   await run(code)
-    .chain(suites => fromAsyncIterable(Suite.from(suites).run(sort, predicate)))
+    .chain(suite => fromAsyncIterable(suite.run(sort, predicate)))
     .tap(report => {
       if (report.failed > 0) {
         failed = true;
@@ -35,6 +46,10 @@ exports.runCommand = async function runCommand(params) {
     })
     .map(transform)
     .observe(console.log);
+
+  if (coverage != null) {
+    await writeFile(join('.nyc_output', 'out.json'), JSON.stringify(__coverage__), 'utf-8');
+  }
 
   if (failed && !quiet) {
     process.exit(1); // 👋

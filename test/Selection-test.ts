@@ -1,7 +1,8 @@
 import { expect } from "chai";
 import { flatMap } from "../src/flatMap";
 import { partitionRangeForTotal } from "../src/partititionRangeForTotal";
-import * as stable from "../src/lib";
+import { Selection } from "../src/Selection";
+import { describe as libDescribe } from "../src/describe";
 
 const fixtureSuite = [
   "one fish",
@@ -13,7 +14,7 @@ const fixtureSuite = [
 ].reduce((memo, description) => {
   memo.describe(description, suite => suite.it("stub"));
   return memo;
-}, stable.describe(null));
+}, libDescribe(null));
 
 describe("Selection", () => {
   describe(".predicate", () => {
@@ -35,7 +36,7 @@ describe("Selection", () => {
           expect(
             filteredDescriptions(
               fixtureSuite,
-              new stable.Selection({ filter }).predicate,
+              new Selection({ filter }).predicate,
             ),
           ).to.eql(descriptions);
         });
@@ -61,7 +62,7 @@ describe("Selection", () => {
             expect(
               filteredDescriptions(
                 fixtureSuite,
-                new stable.Selection({ grep: grepPattern }).predicate,
+                new Selection({ grep: grepPattern }).predicate,
               ),
             ).to.eql(descriptions);
           });
@@ -74,7 +75,7 @@ describe("Selection", () => {
             expect(
               filteredDescriptions(
                 fixtureSuite,
-                new stable.Selection({ grep }).predicate,
+                new Selection({ grep }).predicate,
               ),
             ).to.eql(descriptions);
           });
@@ -106,7 +107,7 @@ describe("Selection", () => {
 
           expect(
             specs.filter(
-              new stable.Selection().partition(total, partition, partitions),
+              new Selection().partition(total, partition, partitions),
             ),
           ).to.eql(batch);
         });
@@ -115,7 +116,7 @@ describe("Selection", () => {
 
     describe("when partitions == partitions", () => {
       it("should throw", () => {
-        new stable.Selection().partition(total, 7, 7);
+        new Selection().partition(total, 7, 7);
       })
         .shouldFail()
         .rescue(reason => {

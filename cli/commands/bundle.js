@@ -6,8 +6,10 @@ const { default: generate } = require("@babel/generator");
 const t = require("@babel/types");
 const { default: traverse } = require("@babel/traverse");
 const { dir } = require("tmp-promise");
-const { copy, writeFile, mkdirp } = require("fs-extra");
+const { copy, writeFile, readFile, mkdirp } = require("fs-extra");
 const sorcery = require("sorcery");
+const multiEntry = require("rollup-plugin-multi-entry");
+const babelPluginIstanbul = require("babel-plugin-istanbul");
 
 const names = [
   "describe",
@@ -50,6 +52,10 @@ async function bundleCommand(params) {
   const chain = await sorcery.load(outFile);
 
   await chain.write();
+
+  // const { code } = await instrument(await readFile(outFile, 'utf-8'), chain.apply().toString(), outFile);
+
+  // await writeFile(outFile, code, 'utf-8');
 }
 
 async function generateBundle({
@@ -65,10 +71,10 @@ async function generateBundle({
     );
   }
 
-  const [bundles, pluginBundle, libraryBundle] = await Promise.all([
-    bundlesFromFiles({
+  const [bundle, pluginBundle, libraryBundle] = await Promise.all([
+    bundleFromFiles({
       files,
-      plugins: [...rollupPlugins, thunkify({ files })],
+      plugins: [...rollupPlugins],
     }),
     bundlePlugins(config.plugins),
     codeForLibrary(rollupPlugins),
@@ -79,21 +85,21 @@ async function generateBundle({
   try {
     await writeFile(join(tmp.path, "plugins.js"), pluginBundle, "utf-8");
 
-    for (const { input, bundle } of bundles) {
-      const bundlePath = join(
-        tmp.path,
-        `${basename(input, extname(input))}.js`,
-      );
+    // for (const { input, bundle } of bundles) {
+    const bundlePath = join(tmp.path, `bundle.js`);
 
-      await mkdirp(dirname(bundlePath));
-      await bundle.write({
-        file: bundlePath,
-        format: "esm",
-        sourcemap: "inline",
-      });
-    }
+    await mkdirp(dirname(bundlePath));
+    await bundle.write({
+      file: bundlePath,
+      format: "esm",
+      sourcemap: 'inline',
+    });
 
-    const testBundle = codeForTestBundle(bundles, onready);
+    // const chain = await sorcery.load(bundlePath);
+
+    // await chain.write();
+
+    const testBundle = codeForTestBundle(onready);
     const testBundlePath = join(tmp.path, "index.js");
 
     await writeFile(testBundlePath, testBundle, "utf-8");
@@ -108,34 +114,53 @@ async function generateBundle({
 
     return await rollup({
       input: testBundlePath,
+      plugins: [thunkify({ files: [bundlePath] })],
     });
   } finally {
-    await tmp.cleanup();
+    // await tmp.cleanup();
   }
 }
 
-function bundlesFromFiles({ files, plugins, format, sourcemap }) {
-  return Promise.all(
-    files.map(async input => ({
-      input,
-      bundle: await rollup({
-        input,
-        external(id) {
-          if (["tslib", "@topl/stable"].includes(id)) {
-            return false;
+function bundleFromFiles({ files, plugins, format, sourcemap }) {
+  return rollup({
+    input: files,
+    external(id) {
+      if (["tslib", "@topl/stable"].includes(id)) {
+        return false;
+      }
+      if (
+        (id[0] !== "." && !isAbsolute(id)) ||
+        id.slice(-5, id.length) === ".json"
+      ) {
+        return true;
+      }
+      return false;
+    },
+    plugins: [
+      ...plugins,
+      {
+        name: "stable-instrument",
+        transform(code, filename) {
+          if (files.includes(filename)) {
+            return;
           }
-          if (
-            (id[0] !== "." && !isAbsolute(id)) ||
-            id.slice(-5, id.length) === ".json"
-          ) {
-            return true;
-          }
-          return false;
+          return babel.transform(code, {
+            filename,
+            sourceMaps: true,
+            plugins: [
+              [
+                babelPluginIstanbul,
+                {
+                  include: ["src/**/*"],
+                },
+              ],
+            ],
+          });
         },
-        plugins,
-      }),
-    })),
-  );
+      },
+      multiEntry(),
+    ],
+  });
 }
 
 function partition(collection, predicate) {
@@ -148,22 +173,12 @@ function partition(collection, predicate) {
   );
 }
 
-function codeForTestBundle(bundles, onready = "run") {
+function codeForTestBundle(onready = "run") {
   return `
 import { dethunk, run } from "./stable";
 import { plugins } from "./plugins";
-${bundles
-    .map(
-      (b, i) =>
-        `import { thunk as t${i} } from "./${basename(
-          b.input,
-          extname(b.input),
-        )}";`,
-    )
-    .join("\n")}
-Promise.all([${bundles
-    .map((_, i) => `dethunk(t${i}, plugins)`)
-    .join(",")}]).then(${onready});`;
+import { thunk } from "./bundle"
+dethunk(thunk, plugins).then(${onready})`;
 }
 
 async function codeForLibrary(plugins) {
@@ -179,7 +194,7 @@ function thunkify({ files }) {
   return {
     name: "stable-thunkify",
     transform(code, filename) {
-      if (!files.some(file => filename.endsWith(`/${file}`))) {
+      if (!files.some(file => filename === file)) {
         return;
       }
       const ast = babel.parse(code, { filename });
