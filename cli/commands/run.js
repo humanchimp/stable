@@ -5,7 +5,9 @@ const { transformForFormat } = require("../output/helpers");
 const { dir } = require("tmp-promise");
 const { join, relative } = require("path");
 const { readFile, writeFile, copy } = require("fs-extra");
-const libReport = require('istanbul-lib-report');
+const { createSourceMapStore } = require("istanbul-lib-source-maps");
+const { createCoverageMap } = require("istanbul-lib-coverage");
+const sorcery = require("sorcery");
 
 exports.runCommand = async function runCommand(params) {
   const {
@@ -48,7 +50,11 @@ exports.runCommand = async function runCommand(params) {
     .observe(console.log);
 
   if (coverage != null) {
-    await writeFile(join('.nyc_output', 'out.json'), JSON.stringify(__coverage__), 'utf-8');
+    await writeFile(
+      join(".nyc_output", "out.json"),
+      JSON.stringify(__coverage__),
+      "utf-8",
+    );
   }
 
   if (failed && !quiet) {

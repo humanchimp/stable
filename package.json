@@ -28,6 +28,7 @@
     "chalk": "^2.4.1",
     "fast-glob": "^2.2.4",
     "fs-extra": "^7.0.1",
+    "istanbul-lib-coverage": "^2.0.1",
     "istanbul-lib-report": "^2.0.2",
     "minimist": "^1.2.0",
     "most": "^1.7.3",

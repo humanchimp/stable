@@ -1,4 +1,13 @@
-const { join, dirname, basename, extname, isAbsolute } = require("path");
+const { inspect } = require("util");
+
+const {
+  join,
+  dirname,
+  basename,
+  extname,
+  isAbsolute,
+  relative,
+} = require("path");
 const { from } = require("most");
 const { rollup } = require("rollup");
 const babel = require("@babel/core");
@@ -39,7 +48,7 @@ async function bundleCommand(params) {
   await bundle.write({
     file: outFile,
     format: bundleFormat,
-    sourcemap: true,
+    sourcemap: "inline",
     globals: {
       sinon: "sinon",
       chai: "chai",
@@ -52,10 +61,6 @@ async function bundleCommand(params) {
   const chain = await sorcery.load(outFile);
 
   await chain.write();
-
-  // const { code } = await instrument(await readFile(outFile, 'utf-8'), chain.apply().toString(), outFile);
-
-  // await writeFile(outFile, code, 'utf-8');
 }
 
 async function generateBundle({
@@ -63,6 +68,7 @@ async function generateBundle({
   files,
   rollupPlugins,
   stdinCode,
+  coverage: shouldInstrument,
   onready,
 }) {
   if (stdinCode) {
@@ -74,6 +80,7 @@ async function generateBundle({
   const [bundle, pluginBundle, libraryBundle] = await Promise.all([
     bundleFromFiles({
       files,
+      shouldInstrument,
       plugins: [...rollupPlugins],
     }),
     bundlePlugins(config.plugins),
@@ -85,19 +92,18 @@ async function generateBundle({
   try {
     await writeFile(join(tmp.path, "plugins.js"), pluginBundle, "utf-8");
 
-    // for (const { input, bundle } of bundles) {
     const bundlePath = join(tmp.path, `bundle.js`);
 
     await mkdirp(dirname(bundlePath));
     await bundle.write({
       file: bundlePath,
       format: "esm",
-      sourcemap: 'inline',
+      sourcemap: "inline",
     });
 
-    // const chain = await sorcery.load(bundlePath);
+    const chain = await sorcery.load(bundlePath);
 
-    // await chain.write();
+    await chain.write({ inline: true });
 
     const testBundle = codeForTestBundle(onready);
     const testBundlePath = join(tmp.path, "index.js");
@@ -117,11 +123,11 @@ async function generateBundle({
       plugins: [thunkify({ files: [bundlePath] })],
     });
   } finally {
-    // await tmp.cleanup();
+    await tmp.cleanup();
   }
 }
 
-function bundleFromFiles({ files, plugins, format, sourcemap }) {
+function bundleFromFiles({ files, plugins, shouldInstrument }) {
   return rollup({
     input: files,
     external(id) {
@@ -138,26 +144,45 @@ function bundleFromFiles({ files, plugins, format, sourcemap }) {
     },
     plugins: [
       ...plugins,
-      {
-        name: "stable-instrument",
-        transform(code, filename) {
-          if (files.includes(filename)) {
-            return;
-          }
-          return babel.transform(code, {
-            filename,
-            sourceMaps: true,
-            plugins: [
-              [
-                babelPluginIstanbul,
-                {
-                  include: ["src/**/*"],
-                },
-              ],
-            ],
-          });
-        },
-      },
+      ...(shouldInstrument
+        ? [
+            {
+              name: "stable-instrument",
+              async transform(code, id) {
+                if (files.includes(id) || id[0] === "\x00") {
+                  return;
+                }
+
+                let currentCode = await readFile(id, "utf-8");
+                let currentMap = null;
+                const memo = [];
+
+                for (const { transform } of plugins) {
+                  const result = await transform(currentCode, id);
+
+                  if (result == null) {
+                    break;
+                  }
+
+                  ({ map: currentMap, code: currentCode } = result);
+                }
+                return babel.transform(code, {
+                  filename: id,
+                  sourceMaps: "inline",
+                  plugins: [
+                    [
+                      babelPluginIstanbul,
+                      {
+                        include: ["src/**/*"],
+                        inputSourceMap: currentMap,
+                      },
+                    ],
+                  ],
+                });
+              },
+            },
+          ]
+        : []),
       multiEntry(),
     ],
   });

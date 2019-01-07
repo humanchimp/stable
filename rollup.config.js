@@ -8,7 +8,7 @@ export default {
   output: {
     format: "cjs",
     file: "lib/stable.js",
-    sourcemap: true,
+    sourcemap: 'inline',
   },
   external: ['chai', 'sinon'],
   plugins: [
@@ -16,7 +16,8 @@ export default {
       typescript: typescript3,
       target: "es6",
       lib: ["ES2015"],
-      sourceMap: true,
+      inlineSourceMap: true,
+      inlineSources: true
     }),
     babel({
       presets: [
@@ -33,7 +34,7 @@ export default {
         ["@babel/plugin-syntax-async-generators"],
         ["@babel/plugin-proposal-async-generator-functions"],
       ],
-      sourceMaps: true,
+      sourceMaps: 'inline',
     }),
     nodeResolve({
       extensions: [".js", ".ts"],

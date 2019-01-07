@@ -157,7 +157,7 @@ async function main() {
     sort,
     selection,
     quiet,
-    coverage
+    coverage,
   });
 }
 
