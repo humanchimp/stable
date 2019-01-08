@@ -16,7 +16,10 @@ export async function fixture(options) {
   );
 
   const fixtureModule = `${files
-    .map(file => `import ${mangle(file)} from ${JSON.stringify(`fixture:${file}`)}`)
+    .map(
+      file =>
+        `import ${mangle(file)} from ${JSON.stringify(`fixture:${file}`)}`,
+    )
     .join(";\n")}
 export default {
 ${files.map(it => `  ${JSON.stringify(it)}: ${mangle(it)}`).join(",\n")}

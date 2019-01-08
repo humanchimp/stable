@@ -168,7 +168,9 @@ function bundleFromFiles({ files, plugins, shouldInstrument }) {
                 let currentMap = null;
                 const memo = [];
 
-                for (const { transform } of plugins.filter(plugin => plugin.transform != null)) {
+                for (const { transform } of plugins.filter(
+                  plugin => plugin.transform != null,
+                )) {
                   const result = await transform(currentCode, id);
 
                   if (result == null) {
