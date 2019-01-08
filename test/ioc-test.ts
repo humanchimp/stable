@@ -1,12 +1,13 @@
 import { expect } from "chai";
+import sinon from "sinon";
 import { asyncSpread } from "./util/asyncSpread";
 import { getFixtures } from "./util/getFixtures";
 import * as stable from "../src/lib";
 
 info("https://github.com/humanchimp/stable/issues/1");
 
-describe("fixtures", async () => {
-  const fixtures = await getFixtures("fixtures/**");
+describe("fixtures", () => {
+  const fixtures = getFixtures();
 
   describeEach(
     "expected reports generated from applications of the DSL",

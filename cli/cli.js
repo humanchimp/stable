@@ -17,7 +17,7 @@ const {
   seed,
   partitions,
   partition,
-  coverage,
+  coverage = process.env.NYC_CWD != null,
   _: [, , ...positionalParams],
 } = require("minimist")(process.argv, {
   alias: {
@@ -57,13 +57,11 @@ if (helpMenuRequested) {
   console.log(help`
 Usage: 🐎 stable [command] [glob]
 
-run                 run the test suite remotely.
-                      [unimplemented]
-                      [future default]
-eval                run the test suite in the main process.
-                      [current default]
+run                 run the test suite using a runner. [default]
+
 bundle              bundle the test suite modules.
-                      [unimplemented]
+
+eval                run the test suite in the main process. [deprecated]
 
 Options:
 
@@ -163,20 +161,21 @@ async function main() {
 
 function implForCommand(cmd) {
   switch (cmd) {
-    case "run":
-      const { runCommand } = require("./commands/run");
-
-      return runCommand;
     case "bundle": {
       const { bundleCommand } = require("./commands/bundle");
 
       return bundleCommand;
     }
-    case "eval":
-    default: {
+    case "eval": {
       const { evalCommand } = require("./commands/eval");
 
       return evalCommand;
+    }
+    case "run":
+    default: {
+      const { runCommand } = require("./commands/run");
+
+      return runCommand;
     }
   }
 }

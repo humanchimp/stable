@@ -1,11 +1,11 @@
-import packageJson from './package.json';
+import packageJson from "./package.json";
 
 export function timing(config) {
   return {
     package: packageJson,
 
     provides: {
-      listeners: './listeners.js'
+      listeners: "./listeners.js",
     },
 
     config,

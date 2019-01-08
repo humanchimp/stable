@@ -1,6 +1,6 @@
 [
   {
-    "description": "info annotations See https://www.example.com/ for more information",
+    "description": "info annotations https://www.example.com",
     "ok": true,
     "skipped": true
   },

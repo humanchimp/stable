@@ -4,6 +4,7 @@ import { rescue } from "./plugins/rescue";
 import { sinon } from "./plugins/sinon";
 import { glob } from "./plugins/glob";
 import { stable } from './plugins/stable';
+import { fixture } from "./plugins/fixture";
 
 export default {
   glob: "test/**-test.{ts,js}",
@@ -16,5 +17,8 @@ export default {
     sinon(),
     glob(),
     stable(),
+    fixture({
+      include: 'test/fixture/**',
+    }),
   ],
 };

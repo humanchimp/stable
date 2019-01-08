@@ -10,10 +10,6 @@ export function complete(config, report, fail) {
 
   if (report.elapsed > specTimeout) {
     report.timedOut = true;
-    fail(
-      new Error(
-        `Timeout exceeded: ${report.elapsed}ms > ${specTimeout}ms`,
-      ),
-    );
+    fail(new Error(`Timeout exceeded: ${report.elapsed}ms > ${specTimeout}ms`));
   }
 }
