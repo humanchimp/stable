@@ -525,14 +525,7 @@ function descriptionForRow(description, table) {
 }
 
 function descriptionForInfo(info) {
-  // Do something reasonable in different scenarios...
-  try {
-    const url = new URL(info);
-
-    if (/https?:/.test(url.protocol)) {
-      return `See ${url} for more information`;
-    }
-  } catch (_) {}
+  // Do something reasonable in different scenarios, but for now...
   return info;
 }
 

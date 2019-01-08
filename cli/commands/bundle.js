@@ -19,6 +19,7 @@ const { copy, writeFile, readFile, mkdirp } = require("fs-extra");
 const sorcery = require("sorcery");
 const multiEntry = require("rollup-plugin-multi-entry");
 const babelPluginIstanbul = require("babel-plugin-istanbul");
+const virtual = require("rollup-plugin-virtual");
 
 const names = [
   "describe",
@@ -77,11 +78,17 @@ async function generateBundle({
     );
   }
 
+  const plugins = await Promise.all(config.plugins);
+  const pluginRollupPlugins = plugins
+    .map(plugin => plugin.provides && plugin.provides.plugins)
+    .filter(Boolean)
+    .reduce((memo, thunk) => memo.concat(thunk()), []);
+
   const [bundle, pluginBundle, libraryBundle] = await Promise.all([
     bundleFromFiles({
       files,
       shouldInstrument,
-      plugins: [...rollupPlugins],
+      plugins: [...pluginRollupPlugins, ...rollupPlugins],
     }),
     bundlePlugins(config.plugins),
     codeForLibrary(rollupPlugins),
@@ -131,14 +138,18 @@ function bundleFromFiles({ files, plugins, shouldInstrument }) {
   return rollup({
     input: files,
     external(id) {
-      if (["tslib", "@topl/stable"].includes(id)) {
+      if (["tslib"].includes(id)) {
         return false;
       }
       if (
         (id[0] !== "." && !isAbsolute(id)) ||
         id.slice(-5, id.length) === ".json"
       ) {
-        return true;
+        const isExternal = plugins.every(
+          plugin => plugin.resolveId == null || plugin.resolveId(id) == null,
+        );
+
+        return isExternal;
       }
       return false;
     },
@@ -157,7 +168,7 @@ function bundleFromFiles({ files, plugins, shouldInstrument }) {
                 let currentMap = null;
                 const memo = [];
 
-                for (const { transform } of plugins) {
+                for (const { transform } of plugins.filter(plugin => plugin.transform != null)) {
                   const result = await transform(currentCode, id);
 
                   if (result == null) {
