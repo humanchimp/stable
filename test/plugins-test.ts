@@ -13,7 +13,6 @@ beforeEach(() => {
   subject = plugins([
     { pending: a, complete: b },
     { complete: c },
-    { config: "hi" },
     { pending: d },
   ]);
 });
