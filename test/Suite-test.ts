@@ -6,7 +6,7 @@ import { Listeners } from "../src/Listeners";
 import { describe as createSuite } from "../src/describe";
 
 describe("static factories/explicit casts", () => {
-  let suites, subject;
+  let suites: Suite[], subject: Suite;
 
   beforeEach(() => {
     suites = [createSuite("a"), createSuite("b")];
@@ -64,7 +64,7 @@ describe("static factories/explicit casts", () => {
 
 describe("new Suite(description)", () => {
   const description = "yep fancy description";
-  let subject;
+  let subject: Suite;
 
   beforeEach(() => {
     subject = new Suite(description);
@@ -198,7 +198,7 @@ describe("new Suite(description)", () => {
 
     describe("when the suite itself is focused", () => {
       beforeEach(() => {
-        subject.focus = true;
+        subject.focused = true;
       });
 
       it("should be false", () => {
@@ -280,7 +280,7 @@ describe("new Suite(description)", () => {
     });
 
     it("is read only", () => {
-      subject.isDeeplyFocused = true;
+      (subject as any).isDeeplyFocused = true;
     })
       .shouldFail()
       .rescue(reason => {
@@ -485,20 +485,24 @@ describe("new Suite(description)", () => {
   const a = noop.bind(null);
   const b = noop.bind(null);
 
-  describeEach("method signatures which append a hook", [
-    [".beforeAll(hook)", 'beforeAll', [a, b]],
-    [".afterAll(hook)", 'afterAll', [b, a]],
-    [".beforeEach(hook)", 'beforeEach', [a, b]],
-    [".afterEach(hook)", 'afterEach', [b, a]],
-  ], ([signature, hook, expected]) => {
-    describe(signature, () => {
-      it("should appen the hooks in the correct order", () => {
-        subject[hook](a);
-        subject[hook](b);
-        expect(subject.hooks[hook]).to.eql(expected);
+  describeEach(
+    "method signatures which append a hook",
+    [
+      [".beforeAll(hook)", "beforeAll", [a, b]],
+      [".afterAll(hook)", "afterAll", [b, a]],
+      [".beforeEach(hook)", "beforeEach", [a, b]],
+      [".afterEach(hook)", "afterEach", [b, a]],
+    ],
+    ([signature, hook, expected]) => {
+      describe(signature, () => {
+        it("should appen the hooks in the correct order", () => {
+          subject[hook](a);
+          subject[hook](b);
+          expect(subject.hooks[hook]).to.eql(expected);
+        });
       });
-    });
-  });
+    },
+  );
 
   describe(".orderedJobs()", () => {
     it("should return an iterator", () => {
@@ -626,7 +630,7 @@ describe("new Suite(description)", () => {
     });
 
     describe("when the suite has parents", () => {
-      let s1, s2, s3;
+      let s1: Suite, s2: Suite, s3: Suite;
 
       beforeEach(() => {
         subject.describe(null, s => (s1 = s));
@@ -661,25 +665,180 @@ describe("new Suite(description)", () => {
     );
   });
 
+  describe("async iterator methods", () => {
+    beforeEach(() => {
+      subject
+        .it("should work")
+        .it("should work async", async () => {})
+        .it("should work too")
+        .it("gonna fail", () => {
+          throw new Error("contrived failure");
+        });
+    });
+
+    describe(".reports()", () => {
+      it("should return an asynchronous iterator over all the reports", async () => {
+        let memo = [];
+
+        for await (const report of subject.reports()) {
+          memo.push(report);
+        }
+        expect(memo.length).to.equal(4);
+        expect(memo.reduce((m, report) => m + report.ok, 0)).to.equal(3);
+      });
+
+      it("should iterate in shuffle order"); // No good way to test this?
+    });
+
+    describe(".reports(sorter)", () => {
+      it("should return an asynchronous iterator over all the reports", async () => {
+        let memo = [];
+
+        for await (const report of subject.reports()) {
+          memo.push(report);
+        }
+        expect(memo.length).to.equal(4);
+        expect(memo.reduce((m, report) => m + report.ok, 0)).to.equal(3);
+      });
+
+      it("should iterate in sort order", async () => {
+        const memo = [];
+
+        for await (const { description } of subject.reports(it => it)) {
+          memo.push(description);
+        }
+        expect(memo).to.eql([
+          "yep fancy description should work",
+          "yep fancy description should work async",
+          "yep fancy description should work too",
+          "yep fancy description gonna fail",
+        ]);
+      });
+    });
+
+    describe(".reports(sorter, predicate)", () => {
+      function predicate({ spec: { description } }) {
+        return !description.includes("too");
+      }
+
+      it("should return an asynchronous iterator over the reports for the jobs matching the predicate", async () => {
+        let memo = [];
+
+        for await (const report of subject.reports(it => it)) {
+          memo.push(report);
+        }
+        expect(memo.length).to.equal(4);
+        expect(memo.reduce((m, report) => m + report.ok, 0)).to.equal(3);
+      });
+
+      it("should iterate in sort order", async () => {
+        const memo = [];
+
+        for await (const { description } of subject.reports(
+          it => it,
+          predicate,
+        )) {
+          memo.push(description);
+        }
+        expect(memo).to.eql([
+          "yep fancy description should work",
+          "yep fancy description should work async",
+          "yep fancy description gonna fail",
+        ]);
+      });
+    });
+
+    describe(".reports(undefined, predicate)", () => {
+      function predicate({ spec: { description } }) {
+        return !description.includes("async");
+      }
+
+      it("should return an asynchronous iterator over the reports for the jobs matching the predicate", async () => {
+        let memo = [];
+
+        for await (const report of subject.reports(undefined, predicate)) {
+          memo.push(report);
+        }
+        expect(memo.length).to.equal(3);
+        expect(memo.reduce((m, report) => m + report.ok, 0)).to.equal(2);
+      });
+
+      it("should iterate in shuffle order"); // Assume it works?
+    });
+
+    describe(".run()", () => {
+      it("should return an asynchronous iterator over all the plan, reports and summary", async () => {
+        let memo = [];
+
+        for await (const report of subject.run()) {
+          memo.push(report);
+        }
+        expect(memo[0]).to.eql({
+          planned: 4,
+          total: 4,
+        });
+        expect(memo[memo.length - 1]).to.eql({
+          planned: 4,
+          total: 4,
+          ok: 3,
+          failed: 1,
+          skipped: 2,
+          completed: 4,
+        });
+        expect(memo).to.have.lengthOf(6);
+      });
+
+      it("should iterate in shuffle order"); // :thinking_face:
+    });
+
+    describe(".run(sorter)", () => {
+      it(
+        "should return an asynchronous iterator over all the plan, reports and summary",
+      );
+
+      it("should iterate in sort order");
+    });
+
+    describe(".run(sorter, predicate)", () => {
+      it(
+        "should return an asynchronous iterator over the plan, reports and summary for the jobs matching the predicate",
+      );
+
+      it("should iterate in sort order");
+    });
+
+    describe(".run(undefined, predicate)", () => {
+      it(
+        "should return an asynchronous iterator over the plan, reports and summary for the jobs matching the predicate",
+      );
+
+      it("should iterate in shuffle order"); // I'm not overly worried about testing this
+    });
+  });
+
   describeEach(
     "erroneous method signature",
     [
       [".info()", () => subject.info(), /required/],
       [".it()", () => subject.it(), /required/],
       [".xit()", () => subject.xit(), /required/],
-      [".fit()", () => subject.fit(), /required/],
+      [".fit()", () => (subject as any).fit(), /required/],
       [".fit(description)", () => subject.fit("hai"), /required/],
       [".beforeAll()", () => subject.beforeAll(), /required/],
       [".afterAll()", () => subject.afterAll(), /required/],
       [".beforeEach()", () => subject.beforeEach(), /required/],
       [".afterEach()", () => subject.afterEach(), /required/],
-      [".describe()", () => subject.describe(), /required/],
+      [".describe()", () => (subject as any).describe(), /required/],
       [".describe(description)", () => subject.describe("bonjour"), /required/],
-      [".xdescribe()", () => subject.xdescribe(), /required/],
+      [".xdescribe()", () => (subject as any).xdescribe(), /required/],
       [".xdescribe(description)", () => subject.describe("hola"), /required/],
-      [".fdescribe()", () => subject.fdescribe(), /required/],
-      [".fdescribe(description)", () => subject.fdescribe("caio"), /required/],
-      [".describeEach()", () => subject.describeEach(), /required/],
+      [".fdescribe()", () => (subject as any).fdescribe(), /required/],
+      [
+        ".fdescribe(description)",
+        () => (subject as any).fdescribe("caio"),
+        /required/,
+      ],
+      [".describeEach()", () => (subject as any).describeEach(), /required/],
       [
         ".describeEach(description)",
         () => subject.describe("aloha"),
@@ -690,26 +849,26 @@ describe("new Suite(description)", () => {
         () => subject.describeEach("zdravstvuyte", [1, 2, 3]),
         /required/,
       ],
-      [".fdescribeEach()", () => subject.fdescribeEach(), /required/],
+      [".fdescribeEach()", () => (subject as any).fdescribeEach(), /required/],
       [
         ".fdescribeEach(description)",
-        () => subject.fdescribe("nǐn hǎo"),
+        () => (subject as any).fdescribe("nǐn hǎo"),
         /required/,
       ],
       [
         ".fdescribeEach(description, table)",
-        () => subject.fdescribeEach("konnichiwa", [1, 2, 3]),
+        () => (subject as any).fdescribeEach("konnichiwa", [1, 2, 3]),
         /required/,
       ],
-      [".xdescribeEach()", () => subject.xdescribeEach(), /required/],
+      [".xdescribeEach()", () => (subject as any).xdescribeEach(), /required/],
       [
         ".xdescribeEach(description)",
-        () => subject.xdescribe("hallo"),
+        () => (subject as any).xdescribe("hallo"),
         /required/,
       ],
       [
         ".xdescribeEach(description, table)",
-        () => subject.xdescribeEach("anyoung", [1, 2, 3]),
+        () => (subject as any).xdescribeEach("anyoung", [1, 2, 3]),
         /required/,
       ],
     ],

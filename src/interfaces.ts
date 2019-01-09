@@ -57,6 +57,10 @@ export interface Suite {
     sort?: Sorter,
     predicate?: JobPredicate,
   ): AsyncIterableIterator<Report>;
+  run(
+    sort?: Sorter,
+    predicate?: JobPredicate,
+  ): AsyncIterableIterator<Plan | Report | Summary>;
   open(): AsyncIterableIterator<Report>;
   close(): AsyncIterableIterator<Report>;
 }

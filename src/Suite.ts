@@ -194,7 +194,7 @@ export class Suite implements SuiteInterface {
   fdescribe(
     description: string,
     closure: SuiteClosure,
-    options: SuiteParams,
+    options?: SuiteParams,
   ): Suite {
     this.describe(description, closure, { ...options, focused: true });
     return this;
@@ -203,7 +203,7 @@ export class Suite implements SuiteInterface {
   xdescribe(
     description: string,
     closure: SuiteClosure,
-    options: SuiteParams,
+    options?: SuiteParams,
   ): Suite {
     this.describe(description, closure, { ...options, skipped: true });
     return this;
@@ -213,7 +213,7 @@ export class Suite implements SuiteInterface {
     description: string,
     table: any[],
     closure: TableClosure = required(),
-    options: SuiteParams,
+    options?: SuiteParams,
   ): Suite {
     const baseOptions = {
       ...this.defaultOptions(options),
@@ -241,7 +241,7 @@ export class Suite implements SuiteInterface {
     description: string,
     table: any[],
     closure: TableClosure,
-    options: SuiteParams,
+    options?: SuiteParams,
   ): Suite {
     this.describeEach(description, table, closure, {
       ...options,
@@ -254,7 +254,7 @@ export class Suite implements SuiteInterface {
     description: string,
     table: any[],
     closure: TableClosure,
-    options: SuiteParams,
+    options?: SuiteParams,
   ): Suite {
     this.describeEach(description, table, closure, {
       ...options,
