@@ -10,7 +10,7 @@ export interface Suite {
   isFocusMode: boolean;
   isDeeplyFocused: boolean;
   orderedJobs(): IterableIterator<Job>;
-  parents(): IterableIterator<Suite>;
+  andParents(): IterableIterator<Suite>;
   describe(
     description: string,
     closure: SuiteClosure,
@@ -30,19 +30,19 @@ export interface Suite {
     description: string,
     table: any[],
     closure: TableClosure,
-    options: SuiteParams,
+    options?: SuiteParams,
   ): Suite;
   xdescribeEach(
     description: string,
     table: any[],
     closure: TableClosure,
-    options: SuiteParams,
+    options?: SuiteParams,
   ): Suite;
   fdescribeEach(
     description: string,
     table: any[],
     closure: TableClosure,
-    options: SuiteParams,
+    options?: SuiteParams,
   ): Suite;
   it(description: string, test?: Effect): Suite;
   xit(description: string, test?: Effect): Suite;

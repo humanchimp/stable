@@ -6,8 +6,6 @@ import {
   SpecParams,
 } from "./interfaces";
 
-const { assign } = Object;
-
 export class Spec implements SpecInterface {
   description: string;
 
@@ -19,8 +17,16 @@ export class Spec implements SpecInterface {
 
   meta: SpecMeta = {};
 
-  constructor(params: SpecParams) {
-    assign(this, params);
+  constructor({
+    description,
+    test,
+    focused = false,
+    skipped = false,
+  }: SpecParams) {
+    this.description = description;
+    this.test = test;
+    this.focused = focused;
+    this.skipped = skipped;
   }
 
   timeout(ms: number): Spec {

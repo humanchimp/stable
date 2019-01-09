@@ -100,7 +100,7 @@ export class Suite implements SuiteInterface {
     return this.suites.some(suite => suite.focused || suite.isDeeplyFocused);
   }
 
-  info(info: any): Suite {
+  info(info: any = required()): Suite {
     this.specs.push(
       new Spec({
         description: descriptionForInfo(info),
@@ -178,7 +178,7 @@ export class Suite implements SuiteInterface {
   describe(
     description: string,
     closure: SuiteClosure = required(),
-    options: SuiteParams,
+    options?: SuiteParams,
   ): Suite {
     const suite = new Suite(description, {
       ...this.defaultOptions(options),
@@ -277,7 +277,7 @@ export class Suite implements SuiteInterface {
     }
   }
 
-  *parents(): IterableIterator<SuiteInterface> {
+  *andParents(): IterableIterator<SuiteInterface> {
     let suite: SuiteInterface = this;
 
     do {
@@ -288,7 +288,7 @@ export class Suite implements SuiteInterface {
   prefixed(description: string): string {
     const segments = [];
 
-    for (const node of this.parents()) {
+    for (const node of this.andParents()) {
       segments.unshift(node.description);
     }
     return [...segments, description].filter(Boolean).join(" ");
@@ -481,7 +481,7 @@ export class Suite implements SuiteInterface {
     if (this.computedHooks != null) {
       return;
     }
-    const suites = [...this.parents()];
+    const suites = [...this.andParents()];
     const afterEach = flatMap(suites, suite => suite.hooks.afterEach);
     const beforeEach = flatMap(
       suites.reverse(),
@@ -493,7 +493,7 @@ export class Suite implements SuiteInterface {
 
   private countSpecsBySuite(jobs: Job[]): Map<SuiteInterface, number> {
     return jobs.reduce((memo, { suite }: Job) => {
-      for (const s of suite.parents()) {
+      for (const s of suite.andParents()) {
         inc(memo, s, 1);
       }
       return memo;
@@ -504,7 +504,7 @@ export class Suite implements SuiteInterface {
     counted: Map<SuiteInterface, number>,
     suite: SuiteInterface,
   ) {
-    for (const s of suite.parents()) {
+    for (const s of suite.andParents()) {
       if (inc(counted, s, -1) === 0) {
         yield* await s.close();
       }
