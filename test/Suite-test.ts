@@ -495,7 +495,7 @@ describe("new Suite(description)", () => {
     ],
     ([signature, hook, expected]) => {
       describe(signature, () => {
-        it("should appen the hooks in the correct order", () => {
+        it("should append the hooks in the correct order", () => {
           subject[hook](a);
           subject[hook](b);
           expect(subject.hooks[hook]).to.eql(expected);
@@ -503,6 +503,70 @@ describe("new Suite(description)", () => {
       });
     },
   );
+
+  describe(".open()", () => {
+    describe("when there are no exceptions", () => {
+      let superSpy;
+
+      beforeEach(() => {
+        superSpy = spy();
+
+        const spy1 = () => superSpy(1);
+        const spy2 = () => superSpy(2);
+        const spy3 = () => superSpy(3);
+        subject.beforeAll(spy1).beforeAll(spy2).beforeAll(spy3);
+      })
+
+      it("should return essentially an empty async iterator", async () => {
+        for await (const _ of subject.open()) {
+          throw new Error("unreachable");
+        }
+      });
+
+      it("should run all the hooks in FIFO order", async () => {
+        for await (const _ of subject.open());
+
+        expect(superSpy.getCalls().map(call => call.args)).to.eql([
+          [1],
+          [2],
+          [3],
+        ]);
+      });
+    })
+
+    describe("when there are exceptions", () => {
+      let superSpy;
+
+      beforeEach(() => {
+        superSpy = spy();
+
+        const spy1 = () => superSpy(1);
+        const spy2 = () => {
+          throw new Error("contrived");
+        };
+        const spy3 = () => superSpy(3);
+
+        subject.beforeAll(spy1).beforeAll(spy2).beforeAll(spy3);
+      })
+
+      it("should return an iterator over the reports for hooks where exceptions occurred", async () => {
+        for await (const report of subject.open());
+      })
+        .shouldFail()
+        .rescue(reason => {
+          expect(reason.message).to.match(/contrived/);
+          expect(superSpy.getCalls().map(call => call.args)).to.eql([
+            [1],
+          ]);
+        });
+    })
+  });
+
+  describe(".close()", () => {
+    it("should return an async iterator over reports, if any, from the `afterAll` hooks, if any, in LIFO order");
+
+    it("should call all the hooks");
+  })
 
   describe(".orderedJobs()", () => {
     it("should return an iterator", () => {
