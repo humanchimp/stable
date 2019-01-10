@@ -9,6 +9,8 @@ import {
 import { Suite } from "./Suite";
 import { shuffle } from "./shuffle";
 
+export async function run(suite: Suite, params: RunParams);
+export async function run(suites: Suite[], params: RunParams);
 export async function run(
   suites: Suite | Suite[],
   {

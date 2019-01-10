@@ -1013,22 +1013,207 @@ describe("new Suite(description, { listeners })", () => {
       expect(pendingSpy.calledOnce).to.be.true;
       expect(specSpy.called).to.be.false;
     });
+
+    it("will be called for neither skipped specs nor stubs", async () => {
+      const pendingSpy = spy();
+      const specSpy = spy();
+
+      const subject: Suite = new Suite(
+        "pending listener is capable of skipping the test",
+        {
+          listeners: {
+            pending: [pendingSpy],
+          },
+        },
+      )
+        .xit("would pass but is skipped", specSpy)
+        .it("is a mere stub");
+
+      for await (const _ of subject.reports(it => it));
+
+      expect(pendingSpy.called).to.be.false;
+      expect(specSpy.called).to.be.false;
+    });
+
+    it("is possible to set the report ok in advance", async () => {
+      const pendingSpy = spy((report, skip) => {
+        report.ok = false;
+        report.reason = new Error("it's embarrassing! i'll tell you later");
+        skip();
+      });
+      const specSpy = spy(() => {
+        expect(pendingSpy.calledOnce).to.be.true;
+      });
+
+      const subject: Suite = new Suite(
+        "pending listener is capable of skipping the test",
+        {
+          listeners: {
+            pending: [pendingSpy],
+          },
+        },
+      )
+        .it("runs... oh, does it run... yes! yes! IT'S ALIVE!!!", specSpy)
+        .it("is a mere stub");
+
+      for await (const _ of subject.reports(it => it));
+
+      expect(pendingSpy.called).to.be.true;
+      expect(specSpy.called).to.be.false;
+    });
   });
 
   describe('when multiple "pending" listeners are passed', () => {
-    it("should call them in FIFO order");
+    it("should call them in order", async () => {
+      const pendingSpy1 = spy(() => {
+        expect(pendingSpy2.called).to.be.false;
+      });
+      const pendingSpy2 = spy(() => {
+        expect(pendingSpy1.calledOnce).to.be.true;
+      });
+
+      const specSpy = spy();
+
+      const subject: Suite = new Suite(
+        "pending listener is capable of skipping the test",
+        {
+          listeners: {
+            pending: [pendingSpy1, pendingSpy2],
+          },
+        },
+      ).it("should be skipped", specSpy);
+
+      for await (const _ of subject.reports(it => it));
+
+      expect(pendingSpy1.calledOnce).to.be.true;
+      expect(pendingSpy2.calledOnce).to.be.true;
+      expect(specSpy.calledOnce).to.be.true;
+    });
   });
 
   describe('when a "completed" listener was passed', () => {
-    it("should schedule the listener to run after running each test");
+    it("should schedule the listener to run after running each test", async () => {
+      const completeSpy = spy();
+      const spec1Spy = spy(() => {
+        expect(completeSpy.called).to.be.false;
+      });
+      const spec2Spy = spy(() => {
+        expect(completeSpy.called).to.be.false;
+      });
 
-    it(
-      "should be capable of failing an otherwise passing test from the listener",
-    );
+      const subject: Suite = new Suite("pending fires each time", {
+        listeners: {
+          complete: [completeSpy],
+        },
+      })
+        .it("test 1", spec1Spy)
+        .it("test 2", spec2Spy);
 
-    it(
-      "should be capable of passing an otherwise failing test from the listener",
-    );
+      for await (const _ of subject.reports(it => it));
+
+      expect(completeSpy.calledTwice).to.be.true;
+      expect(spec1Spy.calledOnce).to.be.true;
+      expect(spec2Spy.calledOnce).to.be.true;
+    });
+
+    it("should be capable of failing an otherwise passing test from the listener", async () => {
+      const completeSpy = spy((_, fail) => {
+        fail();
+      });
+      const specSpy = spy();
+
+      const subject: Suite = new Suite(
+        "pending listener is capable of skipping the test",
+        {
+          listeners: {
+            complete: [completeSpy],
+          },
+        },
+      ).it("passes with flying colors", specSpy);
+
+      for await (const report of subject.reports(it => it)) {
+        expect(report.ok).to.be.false; // B-but!
+      }
+
+      expect(completeSpy.calledOnce).to.be.true;
+      expect(specSpy.called).to.be.true;
+    });
+
+    it("should do nothing when attempting to fail a failed test", async () => {
+      const completeSpy = spy((_, fail) => {
+        fail();
+      });
+      const specSpy = spy(() => {
+        expect("eleventynine").to.be.instanceOf(Number);
+      });
+
+      const subject: Suite = new Suite(
+        "pending listener is capable of skipping the test",
+        {
+          listeners: {
+            complete: [completeSpy],
+          },
+        },
+      ).it("doesn't like that", specSpy);
+
+      for await (const report of subject.reports(it => it)) {
+        expect(report.ok).to.be.false; // B-but!
+      }
+
+      expect(completeSpy.calledOnce).to.be.true;
+      expect(specSpy.called).to.be.true;
+    });
+
+    it("should be capable of passing an otherwise failing test from the listener (by setting ok)", async () => {
+      const completeSpy = spy(report => {
+        report.ok = true;
+        report.orAnythingElseForThatMatter = true;
+      });
+      const specSpy = spy(() => {
+        expect("up").to.equal("down");
+      });
+
+      const subject: Suite = new Suite(
+        "pending listener is capable of skipping the test",
+        {
+          listeners: {
+            complete: [completeSpy],
+          },
+        },
+      ).it("fails woefully", specSpy);
+
+      for await (const report of subject.reports(it => it)) {
+        expect(report.ok).to.be.true;
+        expect(report.orAnythingElseForThatMatter).to.be.true;
+      }
+
+      expect(completeSpy.calledOnce).to.be.true;
+      expect(specSpy.called).to.be.true;
+    });
+
+    it("will be called for neither skipped specs nor stubs", async () => {
+      const completeSpy = spy(report => {
+        report.ok = true;
+        report.orAnythingElseForThatMatter = true;
+      });
+      const specSpy = spy();
+
+      const subject: Suite = new Suite(
+        "pending listener is capable of skipping the test",
+        {
+          listeners: {
+            complete: [completeSpy],
+          },
+        },
+      )
+        .xit("would pass but is skipped", specSpy)
+        .it("is a mere stub");
+
+      for await (const _ of subject.reports(it => it));
+
+      expect(completeSpy.called).to.be.false;
+      expect(specSpy.called).to.be.false;
+    });
   });
 
   describe('when multiple "complete" listeners are passed', () => {

@@ -1,3 +1,4 @@
+import { Suite } from "../src/interfaces";
 import { expect } from "chai";
 import { spy } from "sinon";
 import { run } from "../src/run";
@@ -27,7 +28,6 @@ describe("outer 2", () => {
 
 let specSpy;
 let logSpy;
-let suiteOptions;
 
 beforeEach(() => {
   specSpy = spy();
@@ -133,16 +133,15 @@ describe("complete listener", () => {
 });
 
 async function runWithListeners(listeners, spy = specSpy) {
-  await run(
-    await dsl({
-      ...{
-        code,
-        listeners,
-        helpers: { spy },
-      },
-    }),
-    { generate: reports, perform: logSpy },
-  );
+  const suite: Suite = await dsl({
+    ...{
+      code,
+      listeners,
+      helpers: { spy },
+    },
+  });
+
+  await run(suite, { generate: reports, perform: logSpy });
 }
 
 function contrivedFailure() {
