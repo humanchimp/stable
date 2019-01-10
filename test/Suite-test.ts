@@ -792,25 +792,110 @@ describe("new Suite(description)", () => {
     });
 
     describe(".run(sorter)", () => {
-      it(
-        "should return an asynchronous iterator over all the plan, reports and summary",
-      );
+      it("should return an asynchronous iterator over all the plan, reports and summary", async () => {
+        let memo = [];
 
-      it("should iterate in sort order");
+        for await (const report of subject.run(it => it)) {
+          memo.push(report);
+        }
+        expect(memo[0]).to.eql({
+          planned: 4,
+          total: 4,
+        });
+        expect(memo[memo.length - 1]).to.eql({
+          planned: 4,
+          total: 4,
+          ok: 3,
+          failed: 1,
+          skipped: 2,
+          completed: 4,
+        });
+        expect(memo).to.have.lengthOf(6);
+      });
+
+      it("should iterate in sort order", async () => {
+        const memo = [];
+
+        for await (const { description } of subject.reports(it => it)) {
+          memo.push(description);
+        }
+        expect(memo).to.eql([
+          "yep fancy description should work",
+          "yep fancy description should work async",
+          "yep fancy description should work too",
+          "yep fancy description gonna fail",
+        ]);
+      });
     });
 
     describe(".run(sorter, predicate)", () => {
-      it(
-        "should return an asynchronous iterator over the plan, reports and summary for the jobs matching the predicate",
-      );
+      function predicate({ spec: { description } }) {
+        return !description.includes("fail");
+      }
 
-      it("should iterate in sort order");
+      it("should return an asynchronous iterator over all the plan, reports and summary", async () => {
+        let memo = [];
+
+        for await (const report of subject.run(it => it, predicate)) {
+          memo.push(report);
+        }
+        expect(memo[0]).to.eql({
+          planned: 3,
+          total: 4,
+        });
+        expect(memo[memo.length - 1]).to.eql({
+          planned: 3,
+          total: 4,
+          ok: 3,
+          failed: 0,
+          skipped: 2,
+          completed: 3,
+        });
+        expect(memo).to.have.lengthOf(5);
+      });
+
+      it("should iterate in sort order", async () => {
+        const memo = [];
+
+        for await (const { description } of subject.reports(
+          it => it,
+          predicate,
+        )) {
+          memo.push(description);
+        }
+        expect(memo).to.eql([
+          "yep fancy description should work",
+          "yep fancy description should work async",
+          "yep fancy description should work too",
+        ]);
+      });
     });
 
     describe(".run(undefined, predicate)", () => {
-      it(
-        "should return an asynchronous iterator over the plan, reports and summary for the jobs matching the predicate",
-      );
+      function predicate({ spec: { description } }) {
+        return description.includes("work");
+      }
+
+      it("should return an asynchronous iterator over all the plan, reports and summary", async () => {
+        let memo = [];
+
+        for await (const report of subject.run(undefined, predicate)) {
+          memo.push(report);
+        }
+        expect(memo[0]).to.eql({
+          planned: 3,
+          total: 4,
+        });
+        expect(memo[memo.length - 1]).to.eql({
+          planned: 3,
+          total: 4,
+          ok: 3,
+          failed: 0,
+          skipped: 2,
+          completed: 3,
+        });
+        expect(memo).to.have.lengthOf(5);
+      });
 
       it("should iterate in shuffle order"); // I'm not overly worried about testing this
     });
@@ -880,6 +965,79 @@ describe("new Suite(description)", () => {
         });
     },
   );
+});
+
+describe("new Suite(description, { listeners })", () => {
+  describe('when a "pending" listener was passed', () => {
+    it("should schedule the listener to run before running each test", async () => {
+      const pendingSpy = spy();
+      const spec1Spy = spy(() => {
+        expect(pendingSpy.calledOnce).to.be.true;
+      });
+      const spec2Spy = spy(() => {
+        expect(pendingSpy.calledTwice).to.be.true;
+      });
+
+      const subject: Suite = new Suite("pending fires each time", {
+        listeners: {
+          pending: [pendingSpy],
+        },
+      })
+        .it("test 1", spec1Spy)
+        .it("test 2", spec2Spy);
+
+      for await (const _ of subject.reports(it => it));
+
+      expect(pendingSpy.calledTwice).to.be.true;
+      expect(spec1Spy.calledOnce).to.be.true;
+      expect(spec2Spy.calledOnce).to.be.true;
+    });
+
+    it("should be capable of skipping a test from the listener", async () => {
+      const pendingSpy = spy((_, skip) => {
+        skip();
+      });
+      const specSpy = spy();
+
+      const subject: Suite = new Suite(
+        "pending listener is capable of skipping the test",
+        {
+          listeners: {
+            pending: [pendingSpy],
+          },
+        },
+      ).it("should be skipped", specSpy);
+
+      for await (const _ of subject.reports(it => it));
+
+      expect(pendingSpy.calledOnce).to.be.true;
+      expect(specSpy.called).to.be.false;
+    });
+  });
+
+  describe('when multiple "pending" listeners are passed', () => {
+    it("should call them in FIFO order");
+  });
+
+  describe('when a "completed" listener was passed', () => {
+    it("should schedule the listener to run after running each test");
+
+    it(
+      "should be capable of failing an otherwise passing test from the listener",
+    );
+
+    it(
+      "should be capable of passing an otherwise failing test from the listener",
+    );
+  });
+
+  describe('when multiple "complete" listeners are passed', () => {
+    it("should call them in LIFO order");
+  });
+
+  describe('when both "pending" and "completed" listeners are passed', () => {
+    it("should call the both");
+  });
 });
 
 describe("new Suite()", () => {

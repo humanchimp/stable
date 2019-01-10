@@ -46,7 +46,7 @@ describe("group", () => {
       });
     });
 
-    describe("Suite#xdescribe", suite => {
+    describe("Suite#xdescribe", () => {
       beforeEach(() => {
         subject.xdescribe("xdescribe", s1 =>
           s1
