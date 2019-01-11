@@ -443,8 +443,9 @@ export class Suite implements SuiteInterface {
 
     assign(report, meta);
 
-    this.listeners.pending.forEach(notify => notify(report, skip));
-
+    for (const notify of this.listeners.pending) {
+      notify(report, skip);
+    }
     if (!skipped) {
       const reason = await runTest(test);
 
@@ -460,8 +461,9 @@ export class Suite implements SuiteInterface {
         report.ok = true;
       }
     }
-
-    this.listeners.complete.forEach(notify => notify(report, fail));
+    for (const notify of this.listeners.complete) {
+      notify(report, fail);
+    }
 
     return report;
 

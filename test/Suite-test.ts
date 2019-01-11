@@ -140,6 +140,101 @@ describe("new Suite(description)", () => {
       expect(subject.isFocusMode).to.be.true;
     });
 
+    describe("semantics when enabled", () => {
+      let spec1Spy, spec2Spy, spec4Spy;
+
+      beforeEach(() => {
+        spec1Spy = spy();
+        spec2Spy = spy();
+        spec4Spy = spy();
+
+        subject
+          .it("test 1", spec1Spy)
+          .it("test 2", spec2Spy)
+          .it("stub")
+          .xit("skipped", spec4Spy);
+
+        subject.isFocusMode = true;
+      });
+
+      it("means that by default children are skipped", async () => {
+        for await (const report of subject.reports()) {
+          expect(report.skipped).to.be.true;
+          expect(report.ok).to.be.true;
+        }
+      });
+
+      it("means that children can be focused explictly to run", async () => {
+        const focusedSpy = spy();
+
+        subject.fit("i will run", focusedSpy);
+        for await (const _ of subject.reports());
+        expect(focusedSpy.calledOnce).to.be.true;
+      });
+
+      it("means that children are focused if their parent is focused", async () => {
+        const focusedSpy = spy();
+
+        subject.fdescribe("focused", s => {
+          s.it("test", focusedSpy);
+        });
+        for await (const _ of subject.reports());
+        expect(focusedSpy.calledOnce).to.be.true;
+      });
+
+      it("means that decendants are focused if their ancestor is focused", async () => {
+        const focusedSpy = spy();
+
+        subject.fdescribe("focused", s => {
+          s.describe("implicitly focused", s2 => {
+            s2.it("test", focusedSpy);
+          });
+        });
+        for await (const _ of subject.reports());
+        expect(focusedSpy.calledOnce).to.be.true;
+      });
+
+      it("is possible to skip specs that have focused parents", async () => {
+        const focusedSpy = spy();
+
+        subject.fdescribe("focused", s => {
+          s.xit("test", focusedSpy);
+        });
+        for await (const _ of subject.reports());
+        expect(focusedSpy.called).to.be.false;
+      });
+
+      it("is possible to skip suites that have focused parents", async () => {
+        const focusedSpy = spy();
+
+        subject.fdescribe("focused", s => {
+          s.xdescribe("test", s2 => {
+            s2.it("would run but its parent is skipped", focusedSpy);
+          });
+        });
+        for await (const _ of subject.reports());
+        expect(focusedSpy.called).to.be.false;
+      });
+
+      it("is currently the case that skipping trumps focusing", async () => {
+        const focusedSpy = spy();
+
+        subject.fdescribe("focused", s => {
+          s.xdescribe("test", s2 => {
+            s2.fit("would run but its parent is skipped", focusedSpy);
+          });
+        });
+        for await (const _ of subject.reports());
+        expect(focusedSpy.called).to.be.false;
+      });
+
+      afterEach(() => {
+        expect(spec1Spy.called).to.be.false;
+        expect(spec2Spy.called).to.be.false;
+        expect(spec4Spy.called).to.be.false;
+      });
+    });
+
     describe("downward propagation and fanout", () => {
       beforeEach(() => {
         subject.describe("outer 1", s =>
@@ -500,6 +595,17 @@ describe("new Suite(description)", () => {
           subject[hook](b);
           expect(subject.hooks[hook]).to.eql(expected);
         });
+
+        it("should call the hooks when the spec is run", async () => {
+          const hookSpy = spy();
+          const specSpy = spy();
+
+          subject[hook](hookSpy);
+          subject.it("breezes by", specSpy);
+          for await (const _ of subject.reports());
+          expect(hookSpy.calledOnce).to.be.true;
+          expect(specSpy.calledOnce).to.be.true;
+        });
       });
     },
   );
@@ -514,10 +620,14 @@ describe("new Suite(description)", () => {
         const spy1 = () => superSpy(1);
         const spy2 = () => superSpy(2);
         const spy3 = () => superSpy(3);
-        subject.beforeAll(spy1).beforeAll(spy2).beforeAll(spy3);
-      })
 
-      it("should return essentially an empty async iterator", async () => {
+        subject
+          .beforeAll(spy1)
+          .beforeAll(spy2)
+          .beforeAll(spy3);
+      });
+
+      it("should return an empty async iterator", async () => {
         for await (const _ of subject.open()) {
           throw new Error("unreachable");
         }
@@ -532,9 +642,9 @@ describe("new Suite(description)", () => {
           [3],
         ]);
       });
-    })
+    });
 
-    describe("when there are exceptions", () => {
+    describe("when opening a suite causes exceptions to be thrown", () => {
       let superSpy;
 
       beforeEach(() => {
@@ -546,27 +656,138 @@ describe("new Suite(description)", () => {
         };
         const spy3 = () => superSpy(3);
 
-        subject.beforeAll(spy1).beforeAll(spy2).beforeAll(spy3);
-      })
+        subject
+          .beforeAll(spy1)
+          .beforeAll(spy2)
+          .beforeAll(spy3);
+      });
 
-      it("should return an iterator over the reports for hooks where exceptions occurred", async () => {
-        for await (const report of subject.open());
+      it("should bail midway", async () => {
+        for await (const _ of subject.open());
       })
         .shouldFail()
         .rescue(reason => {
           expect(reason.message).to.match(/contrived/);
-          expect(superSpy.getCalls().map(call => call.args)).to.eql([
-            [1],
-          ]);
+          expect(superSpy.getCalls().map(call => call.args)).to.eql([[1]]);
         });
-    })
+
+      describe("attempting to run specs with a bad `beforeAll` hook", () => {
+        it("should not run the specs", async () => {
+          const specSpy = spy();
+
+          subject.it("a spec", specSpy).it("another spec", specSpy);
+          for await (const _ of subject.reports());
+          expect(specSpy.called).to.be.false;
+        });
+      });
+    });
+
+    it("is idempotent", async () => {
+      const spy1 = spy();
+      const spy2 = spy();
+      const specSpy = spy();
+
+      const subject = new Suite("reopen an open suite")
+        .beforeAll(spy1)
+        .beforeAll(spy2)
+        .it("does nothing", specSpy);
+
+      for await (const report of subject.open());
+      for await (const report of subject.open()); // reopening
+      for await (const report of subject.open()); // once more for gratuity
+
+      expect(spy1.calledOnce).to.be.true;
+      expect(spy2.calledOnce).to.be.true;
+      expect(specSpy.called).to.be.false;
+    });
   });
 
   describe(".close()", () => {
-    it("should return an async iterator over reports, if any, from the `afterAll` hooks, if any, in LIFO order");
+    describe("when the suite is not open", () => {
+      it("should not call the `afterAll` hooks", async () => {
+        const hookSpy = spy();
 
-    it("should call all the hooks");
-  })
+        subject.afterAll(hookSpy).afterAll(hookSpy);
+        for await (const _ of subject.close());
+        expect(hookSpy.called).to.be.false;
+      });
+    });
+
+    describe("when there are no exceptions", () => {
+      let superSpy;
+
+      beforeEach(async () => {
+        superSpy = spy();
+
+        const spy1 = () => superSpy(1);
+        const spy2 = () => superSpy(2);
+        const spy3 = () => superSpy(3);
+
+        subject
+          .afterAll(spy1)
+          .afterAll(spy2)
+          .afterAll(spy3);
+
+        for await (const _ of subject.open());
+      });
+
+      it("should return an empty async iterator", async () => {
+        for await (const _ of subject.close()) {
+          throw new Error("unreachable");
+        }
+      });
+
+      it("should run all the hooks in LIFO order", async () => {
+        for await (const _ of subject.close());
+
+        expect(superSpy.getCalls().map(call => call.args)).to.eql([
+          [3],
+          [2],
+          [1],
+        ]);
+      });
+    });
+
+    describe("when opening a suite causes exceptions to be thrown", () => {
+      let superSpy;
+
+      beforeEach(() => {
+        superSpy = spy();
+
+        const spy1 = () => superSpy(1);
+        const spy2 = () => {
+          throw new Error("contrived");
+        };
+        const spy3 = () => superSpy(3);
+
+        subject
+          .beforeAll(spy1)
+          .beforeAll(spy2)
+          .beforeAll(spy3);
+      });
+
+      it("should bail midway", async () => {
+        for await (const _ of subject.open());
+      })
+        .shouldFail()
+        .rescue(reason => {
+          expect(reason.message).to.match(/contrived/);
+          expect(superSpy.getCalls().map(call => call.args)).to.eql([[1]]);
+        });
+    });
+
+    it("is idempotent", async () => {
+      const hookSpy = spy();
+
+      subject.afterAll(hookSpy);
+      for await (const _ of subject.open());
+      for await (const _ of subject.close());
+      for await (const _ of subject.close());
+      for await (const _ of subject.close()); // third time's the charm!
+
+      expect(hookSpy.calledOnce).to.be.true;
+    });
+  });
 
   describe(".orderedJobs()", () => {
     it("should return an iterator", () => {
@@ -1050,7 +1271,7 @@ describe("new Suite(description, { listeners })", () => {
         .it("test 1", spec1Spy)
         .it("test 2", spec2Spy);
 
-      for await (const _ of subject.reports(it => it));
+      for await (const _ of subject.reports());
 
       expect(pendingSpy.calledTwice).to.be.true;
       expect(spec1Spy.calledOnce).to.be.true;
@@ -1072,7 +1293,7 @@ describe("new Suite(description, { listeners })", () => {
         },
       ).it("should be skipped", specSpy);
 
-      for await (const _ of subject.reports(it => it));
+      for await (const _ of subject.reports());
 
       expect(pendingSpy.calledOnce).to.be.true;
       expect(specSpy.called).to.be.false;
@@ -1093,7 +1314,7 @@ describe("new Suite(description, { listeners })", () => {
         .xit("would pass but is skipped", specSpy)
         .it("is a mere stub");
 
-      for await (const _ of subject.reports(it => it));
+      for await (const _ of subject.reports());
 
       expect(pendingSpy.called).to.be.false;
       expect(specSpy.called).to.be.false;
@@ -1120,7 +1341,7 @@ describe("new Suite(description, { listeners })", () => {
         .it("runs... oh, does it run... yes! yes! IT'S ALIVE!!!", specSpy)
         .it("is a mere stub");
 
-      for await (const _ of subject.reports(it => it));
+      for await (const _ of subject.reports());
 
       expect(pendingSpy.called).to.be.true;
       expect(specSpy.called).to.be.false;
@@ -1147,7 +1368,7 @@ describe("new Suite(description, { listeners })", () => {
         },
       ).it("should be skipped", specSpy);
 
-      for await (const _ of subject.reports(it => it));
+      for await (const _ of subject.reports());
 
       expect(pendingSpy1.calledOnce).to.be.true;
       expect(pendingSpy2.calledOnce).to.be.true;
@@ -1173,7 +1394,7 @@ describe("new Suite(description, { listeners })", () => {
         .it("test 1", spec1Spy)
         .it("test 2", spec2Spy);
 
-      for await (const _ of subject.reports(it => it));
+      for await (const _ of subject.reports());
 
       expect(completeSpy.calledTwice).to.be.true;
       expect(spec1Spy.calledOnce).to.be.true;
@@ -1195,7 +1416,7 @@ describe("new Suite(description, { listeners })", () => {
         },
       ).it("passes with flying colors", specSpy);
 
-      for await (const report of subject.reports(it => it)) {
+      for await (const report of subject.reports()) {
         expect(report.ok).to.be.false; // B-but!
       }
 
@@ -1220,7 +1441,7 @@ describe("new Suite(description, { listeners })", () => {
         },
       ).it("doesn't like that", specSpy);
 
-      for await (const report of subject.reports(it => it)) {
+      for await (const report of subject.reports()) {
         expect(report.ok).to.be.false; // B-but!
       }
 
@@ -1246,7 +1467,7 @@ describe("new Suite(description, { listeners })", () => {
         },
       ).it("fails woefully", specSpy);
 
-      for await (const report of subject.reports(it => it)) {
+      for await (const report of subject.reports()) {
         expect(report.ok).to.be.true;
         expect(report.orAnythingElseForThatMatter).to.be.true;
       }
@@ -1273,7 +1494,7 @@ describe("new Suite(description, { listeners })", () => {
         .xit("would pass but is skipped", specSpy)
         .it("is a mere stub");
 
-      for await (const _ of subject.reports(it => it));
+      for await (const _ of subject.reports());
 
       expect(completeSpy.called).to.be.false;
       expect(specSpy.called).to.be.false;
@@ -1281,11 +1502,50 @@ describe("new Suite(description, { listeners })", () => {
   });
 
   describe('when multiple "complete" listeners are passed', () => {
-    it("should call them in LIFO order");
+    it("should call them in order", async () => {
+      const spy1 = spy(() => {
+        expect(spy2.called).to.be.false;
+      });
+      const spy2 = spy(() => {
+        expect(spy1.called).to.be.true;
+      });
+      const specSpy = spy(() => {
+        expect(spy1.called).to.be.false;
+        expect(spy2.called).to.be.false;
+      });
+      const subject: Suite = new Suite("multiple complete listeners", {
+        listeners: {
+          complete: [spy1, spy2],
+        },
+      }).it("passes elegantly", specSpy);
+
+      for await (const _ of subject.reports());
+
+      expect(spy1.calledOnce).to.be.true;
+      expect(spy2.calledOnce).to.be.true;
+      expect(specSpy.called).to.be.true;
+    });
   });
 
   describe('when both "pending" and "completed" listeners are passed', () => {
-    it("should call the both");
+    it("should call them both", async () => {
+      const pendingSpy = spy();
+      const completeSpy = spy();
+      const specSpy = spy();
+
+      const subject: Suite = new Suite("typical plugin", {
+        listeners: {
+          pending: [pendingSpy],
+          complete: [completeSpy],
+        },
+      }).it("should run", specSpy);
+
+      for await (const _ of subject.reports());
+
+      expect(pendingSpy.calledOnce).to.be.true;
+      expect(completeSpy.calledOnce).to.be.true;
+      expect(specSpy.calledOnce).to.be.true;
+    });
   });
 });
 
