@@ -18,6 +18,7 @@ exports.evalCommand = async function evalCommand({
   selection,
   format,
   quiet,
+  verbose,
 }) {
   const transform = transformForFormat(format);
   const helpers = helpersForPlugins(config.plugins);
@@ -31,6 +32,7 @@ exports.evalCommand = async function evalCommand({
           helpers,
           listeners,
           rollupPlugins,
+          verbose,
         }).reduce((memo, suite) => {
           memo.suites.push(suite);
           return memo;
@@ -92,8 +94,14 @@ async function listenersForPlugins(plugins) {
   );
 }
 
-function suitesFromFiles({ files, helpers, listeners, rollupPlugins }) {
-  return bundle({ files, plugins: rollupPlugins, format: "iife" })
+function suitesFromFiles({
+  files,
+  helpers,
+  listeners,
+  rollupPlugins,
+  verbose,
+}) {
+  return bundle({ files, plugins: rollupPlugins, format: "iife", verbose })
     .await()
     .map(({ code, path }) =>
       dsl({ code, helpers, description: `${path} |`, listeners }),

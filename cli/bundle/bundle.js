@@ -2,11 +2,13 @@ const { isAbsolute } = require("path");
 const { rollup } = require("rollup");
 const { from } = require("most");
 
-exports.bundle = function bundle({ files, plugins, format }) {
-  return from(files).map(path => entryPoint({ path, plugins, format }));
+exports.bundle = function bundle({ files, plugins, format, verbose }) {
+  return from(files).map(path =>
+    entryPoint({ path, plugins, format, verbose }),
+  );
 };
 
-async function entryPoint({ path, plugins, format = "iife" }) {
+async function entryPoint({ path, plugins, format = "iife", verbose }) {
   const bundle = await rollup({
     input: path,
     plugins,
@@ -31,7 +33,9 @@ async function entryPoint({ path, plugins, format = "iife" }) {
       ) {
         return;
       }
-      console.warn(message);
+      if (verbose) {
+        console.warn(message);
+      }
     },
   });
 

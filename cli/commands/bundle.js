@@ -71,6 +71,7 @@ async function generateBundle({
   stdinCode,
   coverage: shouldInstrument,
   onready,
+  verbose,
 }) {
   if (stdinCode) {
     throw new Error(
@@ -88,6 +89,7 @@ async function generateBundle({
     bundleFromFiles({
       files,
       shouldInstrument,
+      verbose,
       plugins: [...pluginRollupPlugins, ...rollupPlugins],
     }),
     bundlePlugins(config.plugins),
@@ -127,6 +129,7 @@ async function generateBundle({
 
     return await rollup({
       input: testBundlePath,
+      onwarn: verbose ? console.warn : () => {},
       plugins: [thunkify({ files: [bundlePath] })],
     });
   } finally {
@@ -134,9 +137,10 @@ async function generateBundle({
   }
 }
 
-function bundleFromFiles({ files, plugins, shouldInstrument }) {
+function bundleFromFiles({ files, plugins, shouldInstrument, verbose }) {
   return rollup({
     input: files,
+    onwarn: verbose ? console.warn : () => {},
     external(id) {
       if (["tslib"].includes(id)) {
         return false;

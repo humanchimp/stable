@@ -10,6 +10,7 @@ const {
   o: outputFormat = "inspect",
   s: readStdin,
   q: quiet,
+  v: verbose,
   ordered,
   sort: algorithm = ordered ? "ordered" : "shuffle",
   help: helpMenuRequested = false,
@@ -17,6 +18,7 @@ const {
   seed,
   partitions,
   partition,
+  "hide-skips": hideSkips = "focus",
   coverage = process.env.NYC_CWD != null,
   _: [, , ...positionalParams],
 } = require("minimist")(process.argv, {
@@ -29,6 +31,7 @@ const {
     h: "help",
     s: "stdin",
     q: "quiet",
+    v: "verbose",
   },
 });
 
@@ -99,12 +102,18 @@ Options:
 --seed              for seeding the random number generator used by the built-
                     in shuffle algorithm.
                       [string]
---rollup            path to the rollup config for your project
+--rollup            path to the rollup config for your project.
                       [string]
                       [default: rollup.config.js]
---coverage          format of code coverage report
+--coverage          format of code coverage report.
                       [string]
                       [in core: html, lcov, json]
+--hide-skips        hide skipped specs from the stream.
+                      [string or boolean]
+                      [default: 'focus']
+-v, --verbose       be chattier.
+                      [boolean]
+                      [default: false]
 -q, --quiet         don't send an exit code on failure.
 -h, --help          print this message.
 `);
@@ -156,6 +165,7 @@ async function main() {
     selection,
     quiet,
     coverage,
+    hideSkips,
   });
 }
 

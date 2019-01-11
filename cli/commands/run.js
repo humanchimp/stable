@@ -20,12 +20,15 @@ exports.runCommand = async function runCommand(params) {
     runner,
     outFile = join(process.cwd(), "stable-bundle.js"),
     coverage,
+    hideSkips,
+    verbose,
   } = params;
   await bundleCommand({
     ...params,
     bundleFormat: "cjs",
     outFile,
     onready: "stableRun",
+    verbose,
   });
 
   const code = await readFile(outFile, "utf-8");
@@ -40,7 +43,18 @@ exports.runCommand = async function runCommand(params) {
   let failed = false;
 
   await run(code)
-    .chain(suite => fromAsyncIterable(suite.run(sort, predicate)))
+    .chain(suite =>
+      fromAsyncIterable(suite.run(sort, predicate)).filter(report => {
+        switch (hideSkips) {
+          case true:
+            return !report.skipped;
+          case "focus": {
+            return !report.skipped || !suite.isFocusMode;
+          }
+        }
+        return true;
+      }),
+    )
     .tap(report => {
       if (report.failed > 0) {
         failed = true;
@@ -49,7 +63,7 @@ exports.runCommand = async function runCommand(params) {
     .map(transform)
     .observe(console.log);
 
-  if (coverage != null) {
+  if (coverage != null && typeof __coverage__ !== "undefined") {
     await writeFile(
       join(".nyc_output", "out.json"),
       JSON.stringify(__coverage__),
