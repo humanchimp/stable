@@ -8,13 +8,16 @@ export default {
   output: {
     format: "cjs",
     file: "lib/stable.js",
-    sourcemap: true,
+    sourcemap: 'inline',
   },
+  external: ['chai', 'sinon'],
   plugins: [
     typescript({
       typescript: typescript3,
-      target: "ES6",
-      lib: ["ES2015"]
+      target: "es6",
+      lib: ["ES2015"],
+      inlineSourceMap: true,
+      inlineSources: true
     }),
     babel({
       presets: [
@@ -30,10 +33,8 @@ export default {
       plugins: [
         ["@babel/plugin-syntax-async-generators"],
         ["@babel/plugin-proposal-async-generator-functions"],
-        ["@babel/plugin-proposal-optional-catch-binding"],
-        ['babel-plugin-istanbul'],
       ],
-      sourceMaps: true,
+      sourceMaps: 'inline',
     }),
     nodeResolve({
       extensions: [".js", ".ts"],

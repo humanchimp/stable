@@ -1,4 +1,7 @@
+import { expect } from "chai";
+import { spy as createSpy } from "sinon";
 import { asyncSpread } from "./util/asyncSpread";
+import * as stable from "../src/lib";
 
 let subject;
 
@@ -16,12 +19,13 @@ describe("group", () => {
       expect(typeof subject.reports).to.equal("function");
     });
 
-    describe("Suite#it", () =>
+    describe("Suite#it", () => {
       it("should enqueue a spec", () => {
         expect(subject.specs).to.have.lengthOf(0);
         subject.it("it", () => {});
         expect(subject.specs).to.have.lengthOf(1);
-      }));
+      });
+    });
 
     describe("Suite#reports", () => {
       beforeEach(() => {
@@ -42,7 +46,7 @@ describe("group", () => {
       });
     });
 
-    describe("Suite#xdescribe", suite => {
+    describe("Suite#xdescribe", () => {
       beforeEach(() => {
         subject.xdescribe("xdescribe", s1 =>
           s1
@@ -104,7 +108,7 @@ describe("group", () => {
 
     describe("when a closure is passed", () => {
       beforeEach(() => {
-        spy = sinon.spy();
+        spy = createSpy();
         subject = stable.describe("test", spy);
       });
 

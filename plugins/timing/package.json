@@ -1,0 +1,11 @@
+{
+  "name": "@topl/stable-plugin-timing",
+  "version": "1.0.0",
+  "description": "Adds timers to stable",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Christopher Thorn <christopherthorn82@gmail.com>",
+  "license": "MIT"
+}

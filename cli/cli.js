@@ -1,13 +1,16 @@
 #!/usr/bin/env node
+const commands = new Set(["run", "bundle", "eval"]);
 
 // <cli flags>
 const {
   c: configFile = "stable.config.js",
   f: filter,
   g: grep,
+  r: runner = "eval",
   o: outputFormat = "inspect",
   s: readStdin,
   q: quiet,
+  v: verbose,
   ordered,
   sort: algorithm = ordered ? "ordered" : "shuffle",
   help: helpMenuRequested = false,
@@ -15,18 +18,30 @@ const {
   seed,
   partitions,
   partition,
-  _: [, , ...explicitFiles],
+  "hide-skips": hideSkips = "focus",
+  coverage = process.env.NYC_CWD != null,
+  _: [, , ...positionalParams],
 } = require("minimist")(process.argv, {
   alias: {
     c: "config",
     f: "filter",
     g: "grep",
+    r: "runner",
     o: "format",
     h: "help",
     s: "stdin",
     q: "quiet",
+    v: "verbose",
   },
 });
+
+let command, explicitFiles;
+
+if (positionalParams.length >= 1 && commands.has(positionalParams[0])) {
+  [command, ...explicitFiles] = positionalParams;
+} else {
+  [explicitFiles = []] = [positionalParams];
+}
 
 const format = [].concat(outputFormat).pop();
 
@@ -43,7 +58,13 @@ if (partition != null && partitions == null) {
 // </cli flags>
 if (helpMenuRequested) {
   console.log(help`
-Usage: 🐎 stable [glob]
+Usage: 🐎 stable [command] [glob]
+
+run                 run the test suite using a runner. [default]
+
+bundle              bundle the test suite modules.
+
+eval                run the test suite in the main process. [deprecated]
 
 Options:
 
@@ -57,6 +78,11 @@ Options:
 -g, --grep          a JavaScript regular expression to use for filtering by
                     suite description.
                       [string]
+-r, --runner        the runner to use
+                      [string]
+                      [default: eval]
+                      [in core: eval, vm]
+                      [planned: remote, isolate]
 -o, --format        the format of the output stream.
                       [string]
                       [default: tap]
@@ -76,24 +102,27 @@ Options:
 --seed              for seeding the random number generator used by the built-
                     in shuffle algorithm.
                       [string]
---rollup            path to the rollup config for your project
+--rollup            path to the rollup config for your project.
                       [string]
                       [default: rollup.config.js]
+--coverage          format of code coverage report.
+                      [string]
+                      [in core: html, lcov, json]
+--hide-skips        hide skipped specs from the stream.
+                      [string or boolean]
+                      [default: 'focus']
+-v, --verbose       be chattier.
+                      [boolean]
+                      [default: false]
 -q, --quiet         don't send an exit code on failure.
 -h, --help          print this message.
 `);
-  return;
+  process.exit(0);
 }
 
-const { of, from, startWith } = require("most");
-const { fromAsyncIterable } = require("most-async-iterable");
 const glob = require("fast-glob");
-const { inspect } = require("util");
-const { rollup } = require("rollup");
-const { describe, dsl, shuffle, Selection } = require("../lib/stable.js");
-const loadConfigFile = require("./loadConfigFile");
-const { assign } = Object;
-const transform = transformForFormat(format);
+const { shuffle, Selection } = require("../lib/stable.js");
+const { loadConfigFile } = require("./loadConfigFile");
 const seedrandom = require("seedrandom");
 const selection = new Selection({
   filter,
@@ -115,194 +144,48 @@ if (readStdin) {
 }
 
 async function main() {
+  const cmd = implForCommand(command);
   const config = await loadConfigFile(configFile);
-  const { plugins } = await loadConfigFile(rollupConfigPath);
-  const helpers = helpersForPlugins(config.plugins);
-  const listeners = listenersForPlugins(config.plugins);
-  const preludes = preludesForPlugins(config.plugins);
+  const { plugins: rollupPlugins } = await loadConfigFile(rollupConfigPath);
   const files =
     explicitFiles.length > 0
       ? explicitFiles
       : await glob(config.glob || "**-test.js");
-  const suite =
-    stdinCode !== ""
-      ? await dsl({ code: stdinCode, helpers, listeners, preludes })
-      : await suitesFromFiles(
-          { files, helpers, listeners, preludes },
-          plugins,
-        ).reduce((suite, s) => {
-          suite.suites.push(s);
-          return suite;
-        }, describe(null));
-  let allSpecs = [...suite.orderedJobs()];
 
-  const counts = {
-    total: allSpecs.length,
-    planned: undefined,
-    completed: 0,
-    ok: 0,
-    skipped: 0,
-  };
-  const predicate =
-    partition != null && partitions != null
-      ? selection.partition(counts.total, partition, partitions)
-      : selection.predicate;
-
-  counts.planned = allSpecs.filter(predicate).length;
-
-  await startWith(
-    plan(counts),
-    fromAsyncIterable(suite.reports(sort, predicate))
-      .tap(({ ok, skipped }) => {
-        counts.completed += 1;
-        if (ok) {
-          counts.ok += 1;
-        }
-        if (skipped) {
-          counts.skipped += 1;
-        }
-      })
-      .map(transform)
-      .continueWith(() => of(summary(counts))),
-  ).observe(console.log);
-
-  if (
-    (!quiet && counts.ok < counts.completed) ||
-    counts.completed < counts.planned
-  ) {
-    process.exit(1);
-  }
-}
-
-function helpersForPlugins(plugins) {
-  return plugins.reduce(
-    (memo, { helpers }) => assign(memo, helpers),
-    Object.create(null),
-  );
-}
-
-function listenersForPlugins(plugins) {
-  return plugins
-    .filter(plugin => plugin.on != null)
-    .reduce(
-      (memo, { on: { pending = [], complete = [] } }) => ({
-        pending: memo.pending.concat(pending),
-        complete: memo.complete.concat(complete),
-      }),
-      { pending: [], complete: [] },
-    );
-}
-
-function preludesForPlugins(plugins) {
-  return plugins.map(plugin => plugin.prelude).filter(Boolean);
-}
-
-function suitesFromFiles({ files, helpers, listeners, preludes }, plugins) {
-  return from(files)
-    .map(path => entryPoint(path, plugins))
-    .await()
-    .map(({ code, path }) =>
-      dsl({ code, helpers, description: `${path} |`, listeners, preludes }),
-    )
-    .await()
-    .multicast();
-}
-
-async function entryPoint(path, plugins) {
-  const bundle = await rollup({
-    input: path,
-    plugins,
-    onwarn(message) {
-      // Suppressing a very chatty and unimportant warning
-      if (
-        /The 'this' keyword is equivalent to 'undefined' at the top level of an ES module, and has been rewritten./.test(
-          message,
-        )
-      ) {
-        return;
-      }
-    },
+  await cmd({
+    config,
+    files,
+    rollupPlugins,
+    stdinCode,
+    runner,
+    format,
+    partition,
+    partitions,
+    sort,
+    selection,
+    quiet,
+    coverage,
+    hideSkips,
   });
-
-  const { code } = await bundle.generate({
-    format: "iife",
-    name: "bundle",
-    sourcemap: "inline",
-  });
-
-  return { code, path };
 }
 
-let count = 0;
+function implForCommand(cmd) {
+  switch (cmd) {
+    case "bundle": {
+      const { bundleCommand } = require("./commands/bundle");
 
-function tap({ ok, description, reason, skipped }) {
-  return `${ok ? "" : "not "}ok ${++count} ${description}${
-    !ok ? formatReason(reason) : ""
-  }${skipped ? " # SKIP" : ""}`;
-}
+      return bundleCommand;
+    }
+    case "eval": {
+      const { evalCommand } = require("./commands/eval");
 
-function formatReason(reason) {
-  return reason
-    ? `
+      return evalCommand;
+    }
+    case "run":
+    default: {
+      const { runCommand } = require("./commands/run");
 
-${reason.stack
-        .split("\n")
-        .map(line => `    ${line}`)
-        .join("\n")}
-`
-    : "";
-}
-
-function transformForFormat(format) {
-  switch (format) {
-    case "inspect":
-      return it => inspect(it, { depth: 10, colors: true });
-    case "json":
-    case "jsonlines":
-      return it => JSON.stringify(it);
-    case "tap":
-      return tap;
-  }
-  throw new Error(`unsupported format: -f ${format}`);
-}
-
-function plan({ total, planned }) {
-  switch (format) {
-    case "inspect":
-      return { total, planned };
-    case "json":
-    case "jsonlines":
-      return JSON.stringify({ total, planned });
-    case "tap":
-      return `1..${planned}`;
-  }
-}
-
-function summary(counts) {
-  const report = { ...counts, failed: counts.completed - counts.ok };
-
-  switch (format) {
-    case "inspect":
-      return report;
-    case "json":
-    case "jsonlines":
-      return JSON.stringify(report);
-    case "tap": {
-      const { ok, skipped, completed } = report;
-
-      return `
-# ok ${ok}${
-        ok !== completed
-          ? `
-# failed ${completed - ok}`
-          : ""
-      }${
-        skipped !== 0
-          ? `
-# skipped ${skipped}`
-          : ""
-      }
-`;
+      return runCommand;
     }
   }
 }

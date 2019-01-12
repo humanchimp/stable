@@ -1,0 +1,8 @@
+{
+  "name": "@topl/stable-plugin-fixture",
+  "version": "1.0.0",
+  "description": "bundle fixture data as modules",
+  "main": "index.js",
+  "author": "Christopher Thorn <christopherthorn82@gmail.com>",
+  "license": "MIT"
+}

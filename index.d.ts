@@ -1,5 +1,9 @@
 type ThunkResult = Promise<any> | void;
 
+interface Rescuer {
+  (reason: any): void;
+}
+
 interface Thunk {
   (): ThunkResult;
 }
@@ -8,52 +12,43 @@ interface TableThunk {
   (row: any): ThunkResult;
 }
 
-interface Hook {
+interface DslHook {
   (hook: Thunk): void;
 }
 
-interface Suite {
+interface DslSuite {
   (description: string, closure: Thunk): void;
 }
 
-interface TableSuite {
+interface DslTableSuite {
   (description: string, table: any[], closure: TableThunk): void;
 }
 
 interface Spec {
-  (description: string, closure?: Thunk): void;
+  timeout(ms: number): Spec;
+  shouldFail(): Spec;
+  rescue(rescuer: Rescuer): Spec;
 }
 
-interface ShouldFail {
-  (): void;
+interface DslSpec {
+  (description: string, closure?: Thunk): Spec;
 }
 
-interface Rescuer {
-  (reason: any): void;
-}
-
-interface Info {
+interface DslInfo {
   (content: any): void;
 }
 
-interface Timeout {
-  (ms: number): void;
-}
-
-declare var beforeAll: Hook;
-declare var beforeEach: Hook;
-declare var afterAll: Hook;
-declare var afterEach: Hook;
-declare var describe: Suite;
-declare var xdescribe: Suite;
-declare var fdescribe: Suite;
-declare var describeEach: TableSuite;
-declare var xdescribeEach: TableSuite;
-declare var fdescribeEach: TableSuite;
-declare var it: Spec;
-declare var xit: Spec;
-declare var fit: Spec;
-declare var shouldFail: ShouldFail;
-declare var rescue: Rescuer;
-declare var info: Info;
-declare var timeout: Timeout;
+declare var beforeAll: DslHook;
+declare var beforeEach: DslHook;
+declare var afterAll: DslHook;
+declare var afterEach: DslHook;
+declare var describe: DslSuite;
+declare var xdescribe: DslSuite;
+declare var fdescribe: DslSuite;
+declare var describeEach: DslTableSuite;
+declare var xdescribeEach: DslTableSuite;
+declare var fdescribeEach: DslTableSuite;
+declare var it: DslSpec;
+declare var xit: DslSpec;
+declare var fit: DslSpec;
+declare var info: DslInfo;

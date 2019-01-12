@@ -1,19 +1,11 @@
-import { Suite, Report, Sorter } from "./interfaces";
+import { Report, Sorter, JobPredicate } from "./interfaces";
+import { Suite } from "./Suite";
 import { shuffle } from "./shuffle";
-import { describe } from "./describe";
 
 export async function* reports(
   suites: Suite | Suite[],
   sort: Sorter = shuffle,
+  predicate?: JobPredicate,
 ): AsyncIterableIterator<Report> {
-  suites = [].concat(suites);
-
-  const suite = suites.reduce((memo, suite) => {
-    memo.suites.push(suite);
-    return memo;
-  }, describe(null));
-
-  for await (const result of suite.reports(sort)) {
-    yield result;
-  }
+  yield* Suite.from([].concat(suites)).reports(sort, predicate);
 }

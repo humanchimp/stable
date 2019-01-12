@@ -2,10 +2,12 @@ import {
   Suite as SuiteInterface,
   SuiteParams,
   SuiteClosure,
-  Spec,
+  Spec as SpecInterface,
   Job,
   Effect,
   Report,
+  Plan,
+  Summary,
   Hooks as HooksInterface,
   Listeners as ListenersInterface,
   TableClosure,
@@ -16,6 +18,9 @@ import { shuffle } from "./shuffle";
 import { Hooks } from "./Hooks";
 import { Listeners } from "./Listeners";
 import { flatMap } from "./flatMap";
+import { Spec } from "./Spec";
+
+const { assign } = Object;
 
 interface ComputedHooks {
   beforeEach: Effect[];
@@ -24,6 +29,19 @@ interface ComputedHooks {
 }
 
 export class Suite implements SuiteInterface {
+  static from(suites: Suite[]): Suite {
+    return suites.length === 1
+      ? suites[0]
+      : suites.reduce((memo, suite) => {
+          memo.suites.push(suite);
+          return memo;
+        }, new this(null));
+  }
+
+  static of(...suites: Suite[]): Suite {
+    return this.from(suites);
+  }
+
   description: string;
 
   skipped: boolean;
@@ -82,11 +100,13 @@ export class Suite implements SuiteInterface {
     return this.suites.some(suite => suite.focused || suite.isDeeplyFocused);
   }
 
-  info(info: any): Suite {
-    this.specs.push({
-      description: descriptionForInfo(info),
-      skipped: true,
-    });
+  info(info: any = required()): Suite {
+    this.specs.push(
+      new Spec({
+        description: descriptionForInfo(info),
+        skipped: true,
+      }),
+    );
     return this;
   }
 
@@ -111,33 +131,39 @@ export class Suite implements SuiteInterface {
   }
 
   it(description: string = required(), test?: Effect): Suite {
-    this.specs.push({
-      description,
-      test,
-      skipped: test == null || this.skipped,
-      focused: this.focused,
-    });
+    this.specs.push(
+      new Spec({
+        description,
+        test,
+        skipped: test == null || this.skipped,
+        focused: this.focused,
+      }),
+    );
     return this;
   }
 
   fit(description: string, test: Effect = required()): Suite {
     this.isFocusMode = true;
-    this.specs.push({
-      description,
-      test,
-      focused: true,
-      skipped: this.skipped,
-    });
+    this.specs.push(
+      new Spec({
+        description,
+        test,
+        focused: true,
+        skipped: this.skipped,
+      }),
+    );
     return this;
   }
 
   xit(description: string = required(), test?: Effect): Suite {
-    this.specs.push({
-      description,
-      test,
-      skipped: true,
-      focused: this.focused,
-    });
+    this.specs.push(
+      new Spec({
+        description,
+        test,
+        skipped: true,
+        focused: this.focused,
+      }),
+    );
     return this;
   }
 
@@ -152,7 +178,7 @@ export class Suite implements SuiteInterface {
   describe(
     description: string,
     closure: SuiteClosure = required(),
-    options: SuiteParams,
+    options?: SuiteParams,
   ): Suite {
     const suite = new Suite(description, {
       ...this.defaultOptions(options),
@@ -168,7 +194,7 @@ export class Suite implements SuiteInterface {
   fdescribe(
     description: string,
     closure: SuiteClosure,
-    options: SuiteParams,
+    options?: SuiteParams,
   ): Suite {
     this.describe(description, closure, { ...options, focused: true });
     return this;
@@ -177,7 +203,7 @@ export class Suite implements SuiteInterface {
   xdescribe(
     description: string,
     closure: SuiteClosure,
-    options: SuiteParams,
+    options?: SuiteParams,
   ): Suite {
     this.describe(description, closure, { ...options, skipped: true });
     return this;
@@ -187,7 +213,7 @@ export class Suite implements SuiteInterface {
     description: string,
     table: any[],
     closure: TableClosure = required(),
-    options: SuiteParams,
+    options?: SuiteParams,
   ): Suite {
     const baseOptions = {
       ...this.defaultOptions(options),
@@ -215,7 +241,7 @@ export class Suite implements SuiteInterface {
     description: string,
     table: any[],
     closure: TableClosure,
-    options: SuiteParams,
+    options?: SuiteParams,
   ): Suite {
     this.describeEach(description, table, closure, {
       ...options,
@@ -228,7 +254,7 @@ export class Suite implements SuiteInterface {
     description: string,
     table: any[],
     closure: TableClosure,
-    options: SuiteParams,
+    options?: SuiteParams,
   ): Suite {
     this.describeEach(description, table, closure, {
       ...options,
@@ -251,7 +277,7 @@ export class Suite implements SuiteInterface {
     }
   }
 
-  *parents(): IterableIterator<SuiteInterface> {
+  *andParents(): IterableIterator<SuiteInterface> {
     let suite: SuiteInterface = this;
 
     do {
@@ -262,26 +288,68 @@ export class Suite implements SuiteInterface {
   prefixed(description: string): string {
     const segments = [];
 
-    for (const node of this.parents()) {
+    for (const node of this.andParents()) {
       segments.unshift(node.description);
     }
     return [...segments, description].filter(Boolean).join(" ");
+  }
+
+  async *run(
+    sort: Sorter = shuffle,
+    predicate: JobPredicate = Boolean,
+  ): AsyncIterableIterator<Plan | Report | Summary> {
+    const jobs = [...this.orderedJobs()];
+    const planned = jobs.filter(predicate);
+    const counts = {
+      total: jobs.length,
+      planned: planned.length,
+      completed: 0,
+      ok: 0,
+      skipped: 0,
+    };
+
+    yield {
+      total: counts.total,
+      planned: counts.planned,
+    } as Plan;
+    for await (const report of this.reportsForJobs(jobs, sort, predicate)) {
+      if (report.ok) {
+        counts.ok += 1;
+      }
+      if (report.skipped) {
+        counts.skipped += 1;
+      }
+      counts.completed += 1;
+      yield report;
+    }
+    yield {
+      ...counts,
+      failed: counts.completed - counts.ok,
+    } as Summary;
   }
 
   async *reports(
     sort: Sorter = shuffle,
     predicate: JobPredicate = Boolean,
   ): AsyncIterableIterator<Report> {
-    const jobs: Job[] = sort([...this.orderedJobs()])
+    yield* this.reportsForJobs([...this.orderedJobs()], sort, predicate);
+  }
+
+  private async *reportsForJobs(
+    jobs: Job[],
+    sort: Sorter,
+    predicate: JobPredicate,
+  ) {
+    const preparedJobs: Job[] = sort(jobs)
       .map((suite, index) => {
         suite.series = index;
         return suite;
       })
       .filter(predicate);
-    const counted = this.countSpecsBySuite(jobs);
+    const counted = this.countSpecsBySuite(preparedJobs);
     const poisoned = new Set();
 
-    for (const { spec, suite } of jobs) {
+    for (const { spec, suite } of preparedJobs) {
       const instance = suite as Suite;
 
       if (!poisoned.has(instance)) {
@@ -355,7 +423,8 @@ export class Suite implements SuiteInterface {
     test,
     focused,
     skipped,
-  }: Spec): Promise<Report> {
+    meta,
+  }: SpecInterface): Promise<Report> {
     description = this.prefixed(description);
 
     if (skipped || (this.isFocusMode && !focused)) {
@@ -363,6 +432,7 @@ export class Suite implements SuiteInterface {
         description,
         ok: true,
         skipped: true,
+        ...meta,
       };
     }
     const report: Report = { ...this.defaultOptions(), description };
@@ -371,8 +441,11 @@ export class Suite implements SuiteInterface {
       report.focused = true;
     }
 
-    this.listeners.pending.forEach(notify => notify(report, skip));
+    assign(report, meta);
 
+    for (const notify of this.listeners.pending) {
+      notify(report, skip);
+    }
     if (!skipped) {
       const reason = await runTest(test);
 
@@ -388,8 +461,9 @@ export class Suite implements SuiteInterface {
         report.ok = true;
       }
     }
-
-    this.listeners.complete.forEach(notify => notify(report, fail));
+    for (const notify of this.listeners.complete) {
+      notify(report, fail);
+    }
 
     return report;
 
@@ -409,7 +483,7 @@ export class Suite implements SuiteInterface {
     if (this.computedHooks != null) {
       return;
     }
-    const suites = [...this.parents()];
+    const suites = [...this.andParents()];
     const afterEach = flatMap(suites, suite => suite.hooks.afterEach);
     const beforeEach = flatMap(
       suites.reverse(),
@@ -421,15 +495,18 @@ export class Suite implements SuiteInterface {
 
   private countSpecsBySuite(jobs: Job[]): Map<SuiteInterface, number> {
     return jobs.reduce((memo, { suite }: Job) => {
-      for (const s of suite.parents()) {
+      for (const s of suite.andParents()) {
         inc(memo, s, 1);
       }
       return memo;
     }, new Map<SuiteInterface, number>());
   }
 
-  private async *countSpec(counted: Map<SuiteInterface, number>, suite: SuiteInterface) {
-    for (const s of suite.parents()) {
+  private async *countSpec(
+    counted: Map<SuiteInterface, number>,
+    suite: SuiteInterface,
+  ) {
+    for (const s of suite.andParents()) {
       if (inc(counted, s, -1) === 0) {
         yield* await s.close();
       }
@@ -450,14 +527,7 @@ function descriptionForRow(description, table) {
 }
 
 function descriptionForInfo(info) {
-  // Do something reasonable in different scenarios...
-  try {
-    const url = new URL(info);
-
-    if (/https?:/.test(url.protocol)) {
-      return `See ${url} for more information`;
-    }
-  } catch (_) {}
+  // Do something reasonable in different scenarios, but for now...
   return info;
 }
 

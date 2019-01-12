@@ -10,7 +10,7 @@ export interface Suite {
   isFocusMode: boolean;
   isDeeplyFocused: boolean;
   orderedJobs(): IterableIterator<Job>;
-  parents(): IterableIterator<Suite>;
+  andParents(): IterableIterator<Suite>;
   describe(
     description: string,
     closure: SuiteClosure,
@@ -30,19 +30,19 @@ export interface Suite {
     description: string,
     table: any[],
     closure: TableClosure,
-    options: SuiteParams,
+    options?: SuiteParams,
   ): Suite;
   xdescribeEach(
     description: string,
     table: any[],
     closure: TableClosure,
-    options: SuiteParams,
+    options?: SuiteParams,
   ): Suite;
   fdescribeEach(
     description: string,
     table: any[],
     closure: TableClosure,
-    options: SuiteParams,
+    options?: SuiteParams,
   ): Suite;
   it(description: string, test?: Effect): Suite;
   xit(description: string, test?: Effect): Suite;
@@ -57,15 +57,32 @@ export interface Suite {
     sort?: Sorter,
     predicate?: JobPredicate,
   ): AsyncIterableIterator<Report>;
+  run(
+    sort?: Sorter,
+    predicate?: JobPredicate,
+  ): AsyncIterableIterator<Plan | Report | Summary>;
   open(): AsyncIterableIterator<Report>;
   close(): AsyncIterableIterator<Report>;
 }
 
-export interface Spec {
+export interface SpecParams {
   description: string;
   test?: Effect;
   focused?: boolean;
   skipped?: boolean;
+}
+
+export interface Spec extends SpecParams {
+  meta: SpecMeta;
+  timeout(ms: number): Spec;
+  shouldFail(): Spec;
+  rescue(rescuer: ErrorHandler): Spec;
+}
+
+export interface SpecMeta {
+  shouldFail?: boolean;
+  timeout?: number;
+  rescuer?: ErrorHandler;
 }
 
 export interface Job {
@@ -74,10 +91,28 @@ export interface Job {
   series: number;
 }
 
-export interface Report extends Spec {
+export interface Report extends SpecParams {
   ok?: boolean;
   reason?: any;
+  startedAt?: number;
+  endedAt?: number;
+  elapsed?: number;
+  shouldFail?: boolean;
+  rescued?: boolean;
   [key: string]: any;
+}
+
+export interface Plan {
+  total: number;
+  planned: number;
+}
+
+export interface Summary {
+  total: number;
+  planned: number;
+  completed: number;
+  ok: number;
+  skipped: number;
 }
 
 export interface SuiteParams {
@@ -137,6 +172,14 @@ export interface TableClosure {
   (suite: Suite, table: any[]): void;
 }
 
+export interface SpecClosure {
+  (): void;
+}
+
+export interface HookClosure {
+  (): void;
+}
+
 export interface JobPredicate {
   (job: Job): boolean;
 }
@@ -145,21 +188,9 @@ export interface Sorter {
   (array: any[]): any[];
 }
 
-export interface DslParams {
-  code: string;
-  description?: string;
-  helpers?: DslHelpers;
-  listeners?: ListenersParam;
-  preludes?: string[];
-}
-
 export interface ListenersParam {
   pending?: Listener[];
   complete?: Listener[];
-}
-
-export interface DslHelpers {
-  [key: string]: any;
 }
 
 export interface Range {
@@ -167,8 +198,75 @@ export interface Range {
   end: number;
 }
 
+export interface RunGenerator {
+  (
+    suites: Suite | Suite[],
+    sort?: Sorter,
+    predicate?: JobPredicate,
+  ): AsyncIterableIterator<any>;
+}
+
 export interface RunParams {
-  generate(suites: Suite[], sort: Sorter): AsyncIterableIterator<any>;
-  perform(any): any;
-  sort: Sorter;
+  generate?: RunGenerator;
+  sort?: Sorter;
+  predicate?: JobPredicate;
+  perform?(any): any;
+}
+
+export interface DslParams {
+  code: string;
+  description?: string;
+  helpers?: DslHelpers;
+  listeners?: ListenersParam;
+}
+
+export interface DslHelpers {
+  [key: string]: any;
+}
+
+export interface DslThunk {
+  (
+    describe: DslDescribeBlock,
+    xdescribe: DslDescribeBlock,
+    fdescribe: DslDescribeBlock,
+    describeEach: DslDescribeEachBlock,
+    xdescribeEach: DslDescribeEachBlock,
+    fdescribeEach: DslDescribeEachBlock,
+    it: DslItBlock,
+    xit: DslItBlock,
+    fit: DslItBlock,
+    beforeAll: DslHookBlock,
+    afterAll: DslHookBlock,
+    beforeEach: DslHookBlock,
+    afterEach: DslHookBlock,
+    info: DslInfoBlock,
+  ): void;
+}
+
+export interface DslSuiteClosure {
+  (): void;
+}
+
+export interface DslTableClosure {
+  (table: any): void;
+}
+
+export interface DslDescribeBlock {
+  (description: string, closure: DslSuiteClosure): Suite;
+}
+
+export interface DslDescribeEachBlock {
+  (description: string, table: any, closure: DslTableClosure): Suite;
+}
+
+export interface DslItBlock {
+  (description: string, closure: SpecClosure): Spec;
+}
+
+export interface DslHookBlock {
+  (closure: HookClosure): Promise<any> | void;
+}
+
+export interface DslInfoBlock {
+  (...rest: any[]): void;
 }

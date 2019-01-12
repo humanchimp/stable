@@ -4,3 +4,7 @@ lib
 coverage
 .nyc_output/
 static/
+package-lock.json
+yarn-error.log
+stable-bundle.js
+stable-bundle.js.map

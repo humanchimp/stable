@@ -1,5 +1,8 @@
+import { expect } from "chai";
 import { flatMap } from "../src/flatMap";
 import { partitionRangeForTotal } from "../src/partititionRangeForTotal";
+import { Selection } from "../src/Selection";
+import { describe as libDescribe } from "../src/describe";
 
 const fixtureSuite = [
   "one fish",
@@ -11,7 +14,7 @@ const fixtureSuite = [
 ].reduce((memo, description) => {
   memo.describe(description, suite => suite.it("stub"));
   return memo;
-}, stable.describe(null));
+}, libDescribe(null));
 
 describe("Selection", () => {
   describe(".predicate", () => {
@@ -33,7 +36,7 @@ describe("Selection", () => {
           expect(
             filteredDescriptions(
               fixtureSuite,
-              new stable.Selection({ filter }).predicate,
+              new Selection({ filter }).predicate,
             ),
           ).to.eql(descriptions);
         });
@@ -59,7 +62,7 @@ describe("Selection", () => {
             expect(
               filteredDescriptions(
                 fixtureSuite,
-                new stable.Selection({ grep: grepPattern }).predicate,
+                new Selection({ grep: grepPattern }).predicate,
               ),
             ).to.eql(descriptions);
           });
@@ -72,7 +75,7 @@ describe("Selection", () => {
             expect(
               filteredDescriptions(
                 fixtureSuite,
-                new stable.Selection({ grep }).predicate,
+                new Selection({ grep }).predicate,
               ),
             ).to.eql(descriptions);
           });
@@ -104,7 +107,7 @@ describe("Selection", () => {
 
           expect(
             specs.filter(
-              new stable.Selection().partition(total, partition, partitions),
+              new Selection().partition(total, partition, partitions),
             ),
           ).to.eql(batch);
         });
@@ -113,15 +116,15 @@ describe("Selection", () => {
 
     describe("when partitions == partitions", () => {
       it("should throw", () => {
-        shouldFail();
-        rescue(reason => {
+        new Selection().partition(total, 7, 7);
+      })
+        .shouldFail()
+        .rescue(reason => {
           expect(reason).to.be.instanceOf(RangeError);
           expect(reason.message).to.match(
             /partition must be less than partitions/,
           );
         });
-        new stable.Selection().partition(total, 7, 7);
-      });
     });
   });
 });

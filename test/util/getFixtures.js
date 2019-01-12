@@ -1,16 +1,14 @@
+import fixtures from "fixture";
+
 import { partition } from "./partition";
 
-export async function getFixtures(pattern) {
-  const files = (await glob(pattern)).sort((a, b) =>
-    a.file.localeCompare(b.file),
-  );
-  const [suites, reports] = partition(files, ({ file }) =>
-    file.endsWith(".js"),
-  );
+export function getFixtures() {
+  const files = Object.keys(fixtures).sort((a, b) => a.localeCompare(b));
+  const [reports, suites] = partition(files, file => file.endsWith(".json"));
 
   return suites.map((suite, index) => ({
-    fixture: suite.file.replace(/\.js$/, ""),
-    code: suite.contents,
-    data: JSON.parse(reports[index].contents),
+    fixture: suite.replace(/\.js$/, ""),
+    code: fixtures[suite],
+    data: JSON.parse(fixtures[reports[index]]),
   }));
 }

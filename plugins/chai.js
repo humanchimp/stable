@@ -1,9 +1,8 @@
-const { expect } = require("chai");
-
 export function chai() {
   return {
+    filename: __filename,
     helpers: {
-      expect,
+      chai: require("chai"),
     },
   };
 }

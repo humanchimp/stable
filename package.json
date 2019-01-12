@@ -13,17 +13,23 @@
   },
   "devDependencies": {
     "@babel/core": "^7.2.0",
+    "@babel/generator": "^7.2.2",
     "@babel/plugin-proposal-async-generator-functions": "^7.2.0",
-    "@babel/plugin-proposal-optional-catch-binding": "^7.2.0",
     "@babel/plugin-syntax-async-generators": "^7.2.0",
     "@babel/preset-env": "^7.2.0",
+    "@babel/traverse": "^7.2.3",
+    "@babel/types": "^7.2.2",
     "@types/chai": "^4.1.7",
     "@types/sinon": "^7.0.2",
     "array.prototype.flatmap": "^1.2.1",
     "babel-plugin-istanbul": "^5.1.0",
+    "babelrc-rollup": "^3.0.0",
     "chai": "^4.2.0",
     "chalk": "^2.4.1",
     "fast-glob": "^2.2.4",
+    "fs-extra": "^7.0.1",
+    "istanbul-lib-coverage": "^2.0.1",
+    "istanbul-lib-report": "^2.0.2",
     "minimist": "^1.2.0",
     "most": "^1.7.3",
     "most-async-iterable": "^1.0.1",
@@ -34,11 +40,15 @@
     "rollup-plugin-commonjs": "^9.2.0",
     "rollup-plugin-json": "^3.1.0",
     "rollup-plugin-livereload": "^0.6.0",
+    "rollup-plugin-multi-entry": "^2.1.0",
     "rollup-plugin-node-resolve": "^3.4.0",
     "rollup-plugin-serve": "^0.6.0",
     "rollup-plugin-typescript": "^1.0.0",
+    "rollup-plugin-virtual": "^1.0.1",
     "seedrandom": "^2.4.4",
     "sinon": "^7.2.2",
+    "sorcery": "^0.10.0",
+    "tmp-promise": "^1.0.5",
     "tslib": "^1.9.3",
     "typescript": "^3.2.2"
   },
@@ -51,11 +61,8 @@
     "trailingComma": "all"
   },
   "nyc": {
-    "exclude": [
-      "*.config.js",
-      "test",
-      "cli"
-    ]
+    "instrument": false,
+    "include": "src/**"
   },
   "dependencies": {}
 }
