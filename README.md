@@ -81,9 +81,12 @@ Options:
 ```json
 // ...
 "scripts": {
-  "test": "stable"
+  "test": "stable",
+  "cover": "nyc stable"
 },
 ```
+
+You should disable `nyc` instrumentation, since `stable` must perform code instrumentation itself. 
 
 ## configuration
 
