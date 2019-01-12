@@ -2,7 +2,7 @@
 
 [![codecov](https://codecov.io/gh/humanchimp/stable/branch/master/graph/badge.svg?token=mYDCN5PRsc)](https://codecov.io/gh/humanchimp/stable)
 
-`stable` is a BDD test framework for javascript, built using some of that language's newer features, notably ES Modules and asynchronous generators. It's designed to be self contained and simple to use.
+`stable` is a BDD test framework for javascript and TypeScript. It's designed to be self contained and simple to use.
 
 ## installation
 
@@ -90,7 +90,7 @@ _Figure 2_: In this example, `describe` is a factory method which is the entry p
 - [x] [Simple interop with a streams library](examples/streams.js)
 
 ## trivia
-
+- stable was written in TypeScript (a superset of javascript) using some of javascript's newer features, notably ES Modules and asynchronous generators.
 - you can pass stable, the library, into stable, the framework. To do so, you could use stable, the plugin. this is mostly useful for using stable to test stable. plugins are used in conjunction with `stable`, the cli.
 
 ## license
