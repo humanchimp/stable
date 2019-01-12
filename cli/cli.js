@@ -64,8 +64,6 @@ run                 run the test suite using a runner. [default]
 
 bundle              bundle the test suite modules.
 
-eval                run the test suite in the main process. [deprecated]
-
 Options:
 
 -c, --config        the path of the config file relative to the working
@@ -175,11 +173,6 @@ function implForCommand(cmd) {
       const { bundleCommand } = require("./commands/bundle");
 
       return bundleCommand;
-    }
-    case "eval": {
-      const { evalCommand } = require("./commands/eval");
-
-      return evalCommand;
     }
     case "run":
     default: {
