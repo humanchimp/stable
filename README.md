@@ -14,6 +14,72 @@ Note: this currently doesn't work since the package is not published to npm at t
 
 ## usage
 
+### cli
+
+```
+Usage: 🐎 stable [command] [glob]
+
+run                 run the test suite using a runner. [default]
+
+bundle              bundle the test suite modules.
+
+eval                run the test suite in the main process. [deprecated]
+
+Options:
+
+-c, --config        the path of the config file relative to the working
+                    directory.
+                      [string]
+                      [default: stable.config.js]
+-s, --stdin         read stdin.
+-f, --filter        a substring match to filter by suite description.
+                      [string]
+-g, --grep          a JavaScript regular expression to use for filtering by
+                    suite description.
+                      [string]
+-r, --runner        the runner to use
+                      [string]
+                      [default: eval]
+                      [in core: eval, vm]
+                      [planned: remote, isolate]
+-o, --format        the format of the output stream.
+                      [string]
+                      [default: tap]
+                      [in core: tap, json, inspect]
+--sort              the sort algorithm used when visiting the specs. By
+                    default, specs are shuffled using the Fisher-Yates
+                    algorithm. You can defeat this feature by passing
+                    --sort=ordered.
+                      [string]
+                      [default: shuffle]
+                      [in core: shuffle, ordered]
+--ordered           a convenient shorthand for --sort=ordered
+--partitions        the total of partitions to divide the specs by.
+                      [number]
+--partition         the partition to run and report.
+                      [number]
+--seed              for seeding the random number generator used by the built-
+                    in shuffle algorithm.
+                      [string]
+--rollup            path to the rollup config for your project.
+                      [string]
+                      [default: rollup.config.js]
+--coverage          format of code coverage report.
+                      [string]
+                      [in core: html, lcov, json]
+--hide-skips        hide skipped specs from the stream.
+                      [string or boolean]
+                      [default: 'focus']
+-v, --verbose       be chattier.
+                      [boolean]
+                      [default: false]
+-q, --quiet         don't send an exit code on failure.
+-h, --help          print this message.
+
+```
+
+### package.json
+
 ```json
 // ...
 "scripts": {
