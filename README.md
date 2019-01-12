@@ -158,7 +158,6 @@ _Figure 2_: In this example, `describe` is a factory method which is the entry p
 
 ## trivia
 - stable was written in TypeScript (a superset of javascript) using some of javascript's newer features, notably ES Modules and asynchronous generators.
-- you can pass stable, the library, into stable, the framework. To do so, you could use stable, the plugin. this is mostly useful for using stable to test stable. plugins are used in conjunction with `stable`, the cli.
 
 ## license
 
