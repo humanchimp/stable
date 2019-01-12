@@ -253,14 +253,21 @@ export interface DslTableClosure {
 
 export interface DslDescribeBlock {
   (description: string, closure: DslSuiteClosure): Suite;
+  skip?: DslDescribeBlock;
+  only?: DslDescribeBlock;
+  each?: DslDescribeEachBlock;
 }
 
 export interface DslDescribeEachBlock {
   (description: string, table: any, closure: DslTableClosure): Suite;
+  skip?: DslDescribeEachBlock;
+  only?: DslDescribeEachBlock;
 }
 
 export interface DslItBlock {
   (description: string, closure: SpecClosure): Spec;
+  skip?: DslItBlock;
+  only?: DslItBlock;
 }
 
 export interface DslHookBlock {

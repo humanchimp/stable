@@ -29,6 +29,8 @@ describeEach(
   [
     [`fit("focusing a stub")`, /required/],
     [`fdescribe("suites aren't stubs")`, /required/],
+    [`describeEach("describe each requires a table")`, /required/],
+    // [`describe.each("describeEach requires a closure", [])`, /required/],
   ],
   ([code, pattern]) => {
     it("should throw an error", async () => {

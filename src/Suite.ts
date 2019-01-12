@@ -14,11 +14,12 @@ import {
   JobPredicate,
   Sorter,
 } from "./interfaces";
-import { shuffle } from "./shuffle";
+import { Spec } from "./Spec";
 import { Hooks } from "./Hooks";
 import { Listeners } from "./Listeners";
+import { shuffle } from "./shuffle";
 import { flatMap } from "./flatMap";
-import { Spec } from "./Spec";
+import { required } from "./required";
 
 const { assign } = Object;
 
@@ -529,10 +530,6 @@ function descriptionForRow(description, table) {
 function descriptionForInfo(info) {
   // Do something reasonable in different scenarios, but for now...
   return info;
-}
-
-function required(): any {
-  throw new Error("required");
 }
 
 function inc(map, key, offset) {
