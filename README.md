@@ -2,7 +2,7 @@
 
 [![codecov](https://codecov.io/gh/humanchimp/stable/branch/master/graph/badge.svg?token=mYDCN5PRsc)](https://codecov.io/gh/humanchimp/stable)
 
-`stable` is a BDD test framework for javascript and TypeScript. It's designed to be self contained and simple to use.
+`stable` is a BDD framework for javascript and TypeScript. It's designed to be self contained and simple to use.
 
 ## installation
 
