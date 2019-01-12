@@ -1,4 +1,4 @@
-# :horse: stable
+# :racehorse: stable
 
 [![codecov](https://codecov.io/gh/humanchimp/stable/branch/master/graph/badge.svg?token=mYDCN5PRsc)](https://codecov.io/gh/humanchimp/stable)
 
