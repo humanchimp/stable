@@ -18,6 +18,7 @@ const {
   seed,
   partitions,
   partition,
+  port = 10001,
   "hide-skips": hideSkips = "focus",
   coverage = process.env.NYC_CWD != null,
   _: [, , ...positionalParams],
@@ -32,6 +33,7 @@ const {
     s: "stdin",
     q: "quiet",
     v: "verbose",
+    p: "port",
   },
 });
 
@@ -109,6 +111,8 @@ Options:
 --hide-skips        hide skipped specs from the stream.
                       [string or boolean]
                       [default: 'focus']
+-p, --port          the port to listen on whenever stable needs an http server.
+                      [default: 10001]
 -v, --verbose       be chattier.
                       [boolean]
                       [default: false]
@@ -163,7 +167,9 @@ async function main() {
     selection,
     quiet,
     coverage,
+    port,
     hideSkips,
+    verbose,
   });
 }
 

@@ -287,7 +287,7 @@ describe("new Suite(description)", () => {
   });
 
   describe(".isDeeplyFocused", () => {
-    it("should be false be default", () => {
+    it("should be false by default", () => {
       expect(subject.isDeeplyFocused).to.be.false;
     });
 

@@ -1,19 +1,13 @@
-const { Suite } = require("../../lib/stable");
 const { fromAsyncIterable } = require("most-async-iterable");
 const { bundleCommand } = require("./bundle");
 const { transformForFormat } = require("../output/helpers");
-const { dir } = require("tmp-promise");
-const { join, relative } = require("path");
-const { readFile, writeFile, copy } = require("fs-extra");
-const { createSourceMapStore } = require("istanbul-lib-source-maps");
-const { createCoverageMap } = require("istanbul-lib-coverage");
-const sorcery = require("sorcery");
+const { join } = require("path");
+const { readFile, writeFile } = require("fs-extra");
 
 exports.runCommand = async function runCommand(params) {
   const {
     partition,
     partitions,
-    sort,
     selection,
     format,
     quiet,
@@ -25,7 +19,7 @@ exports.runCommand = async function runCommand(params) {
   } = params;
   await bundleCommand({
     ...params,
-    bundleFormat: "cjs",
+    bundleFormat: runner === "remote" ? "iife" : "cjs",
     outFile,
     onready: "stableRun",
     verbose,
@@ -42,19 +36,7 @@ exports.runCommand = async function runCommand(params) {
 
   let failed = false;
 
-  await run(code)
-    .chain(suite =>
-      fromAsyncIterable(suite.run(sort, predicate)).filter(report => {
-        switch (hideSkips) {
-          case true:
-            return !report.skipped;
-          case "focus": {
-            return !report.skipped || !suite.isFocusMode;
-          }
-        }
-        return true;
-      }),
-    )
+  await run(code, { ...params, predicate })
     .tap(report => {
       if (report.failed > 0) {
         failed = true;
@@ -82,6 +64,8 @@ function implForRunner(runner) {
       return require("../runners/eval");
     case "vm":
       return require("../runners/vm");
+    case "remote":
+      return require("../runners/remote");
   }
   throw new Error("unreachable: unknown runner type");
 }
