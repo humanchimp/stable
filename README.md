@@ -23,8 +23,6 @@ run                 run the test suite using a runner. [default]
 
 bundle              bundle the test suite modules.
 
-eval                run the test suite in the main process. [deprecated]
-
 Options:
 
 -c, --config        the path of the config file relative to the working
