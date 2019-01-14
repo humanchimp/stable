@@ -85,11 +85,11 @@ Options:
 },
 ```
 
-You should disable `nyc` instrumentation, since `stable` performs code instrumentation itself. 
+It makes sense to disable `nyc` instrumentation, since `stable` performs code instrumentation itself. 
 
 ```json
 "nyc": {
-  "instrument": false,
+  "instrument": false
 },
  ```
 
