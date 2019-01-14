@@ -79,14 +79,19 @@ Options:
 ### package.json
 
 ```json
-// ...
 "scripts": {
   "test": "stable",
   "cover": "nyc stable"
 },
 ```
 
-You should disable `nyc` instrumentation, since `stable` must perform code instrumentation itself. 
+You should disable `nyc` instrumentation, since `stable` performs code instrumentation itself. 
+
+```json
+"nyc": {
+  "instrument": false,
+},
+ ```
 
 ## configuration
 
