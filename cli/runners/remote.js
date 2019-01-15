@@ -29,6 +29,9 @@ sock.addEventListener('open', () => {
 async function stableRun(suite) {
   if (ready) {
     await streamReportsToMothership(suite);
+    if (typeof __coverage__ !== 'undefined') {
+      await sock.send(JSON.stringify({ __coverage__ }));
+    }
     sock.close(1000);
   } else {
     sock.addEventListener('open', () => {
@@ -39,6 +42,12 @@ async function stableRun(suite) {
 
 async function streamReportsToMothership(suite) {
   for await (const message of suite.run()) {
+
+    if (message.planned != null) {
+      // Append the user agent to the plan and summary
+      message.userAgent = navigator.userAgent;
+    }
+
     sock.send(JSON.stringify(message));
   }
 }
@@ -85,5 +94,12 @@ async function streamReportsToMothership(suite) {
       fromEvent("message", ws).takeUntil(fromEvent("close", ws).tap(stop)),
     )
     .map(message => message.data)
-    .map(JSON.parse);
+    .map(JSON.parse)
+    .filter(({ __coverage__: coverage }) => {
+      if (coverage != null) {
+        global.__coverage__ = coverage;
+        return false;
+      }
+      return true;
+    });
 };

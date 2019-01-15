@@ -4,11 +4,8 @@ const {
   join,
   dirname,
   basename,
-  extname,
   isAbsolute,
-  relative,
 } = require("path");
-const { from } = require("most");
 const { rollup } = require("rollup");
 const babel = require("@babel/core");
 const { default: generate } = require("@babel/generator");
@@ -19,7 +16,6 @@ const { copy, writeFile, readFile, mkdirp } = require("fs-extra");
 const sorcery = require("sorcery");
 const multiEntry = require("rollup-plugin-multi-entry");
 const babelPluginIstanbul = require("babel-plugin-istanbul");
-const virtual = require("rollup-plugin-virtual");
 
 const names = [
   "describe",
