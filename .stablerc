@@ -1,0 +1,15 @@
+---
+include: ./**/*.spec.{ts,js}
+plugins:
+- - timing
+  - timeout: 200
+- - rescue
+- - fixture
+  - include: ./spec/fixture/**/*
+custom_runners:
+- - headless chrome
+  - runner: remote
+    agent: /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
+    arguments:
+    - --headless
+    - --remote-debugging-port=9222

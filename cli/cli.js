@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-const commands = new Set(["run", "bundle", "eval"]);
+const commands = new Set(["run", "bundle", "config"]);
 
 // <cli flags>
 const {
@@ -65,6 +65,9 @@ Usage: 🐎 stable [command] [glob]
 run                 run the test suite using a runner. [default]
 
 bundle              bundle the test suite modules.
+
+config              perform the algorithm to generate the config
+                    relative to the given path, else the pwd.
 
 Options:
 
@@ -179,6 +182,11 @@ function implForCommand(cmd) {
       const { bundleCommand } = require("./commands/bundle");
 
       return bundleCommand;
+    }
+    case "config": {
+      const { configCommand } = require("./commands/config");
+
+      return configCommand;
     }
     case "run":
     default: {

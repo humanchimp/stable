@@ -1,11 +1,6 @@
 const { inspect } = require("util");
 
-const {
-  join,
-  dirname,
-  basename,
-  isAbsolute,
-} = require("path");
+const { join, dirname, basename, isAbsolute } = require("path");
 const { rollup } = require("rollup");
 const babel = require("@babel/core");
 const { default: generate } = require("@babel/generator");
