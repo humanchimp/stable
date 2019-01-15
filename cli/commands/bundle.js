@@ -57,6 +57,7 @@ async function bundleCommand(params) {
 
 async function generateBundle({
   config,
+  plugins,
   files,
   rollupPlugins,
   stdinCode,
@@ -64,13 +65,10 @@ async function generateBundle({
   onready,
   verbose,
 }) {
-  if (stdinCode) {
-    throw new Error(
-      "reading from stdin is not currently supported by the bundle command",
-    );
+  if (plugins == null) {
+    plugins = await Promise.all(config.plugins);
   }
 
-  const plugins = await Promise.all(config.plugins);
   const pluginRollupPlugins = plugins
     .map(plugin => plugin.provides && plugin.provides.plugins)
     .filter(Boolean)

@@ -157,6 +157,12 @@ async function main() {
       ? explicitFiles
       : await glob(config.glob || "**-test.js");
 
+  if (stdinCode) {
+    throw new Error(
+      "reading from stdin is temporarily not supported",
+    );
+  }
+
   await cmd({
     config,
     files,

@@ -47,14 +47,23 @@ async function configArray(files) {
   const [map, configs] = await configsForFiles(files);
   const includes = [
     ...new Set(
-      [...configs.entries()].map(([, { include }]) => include).filter(Boolean),
+      [...configs.entries()]
+        .reduce((memo, [, { include }]) => memo.concat(include), [])
+        .filter(Boolean),
     ),
   ];
 
-  const moarFiles = (await Promise.all(includes.map(glob))).reduce((memo, files) => memo.concat(files));
+  const moarFiles = (await Promise.all(includes.map(glob))).reduce(
+    (memo, files) => memo.concat(files),
+  );
 
-  console.log(moarFiles);
-
+  if (moarFiles.length > 0) {
+    for (const file of moarFiles) {
+      if (!map.has(file)) {
+        return configArray([...new Set(files.concat(moarFiles))]);
+      }
+    }
+  }
   return [...map.entries()].map(([filename, rcfile]) => ({
     filename,
     config: configs.get(rcfile),
@@ -68,7 +77,36 @@ async function loadStablercs(rcs) {
     configs.unshift(safeLoad(stablerc));
   }
 
-  return configs.reduce((memo, config) => assign(memo, config), {});
+  return ["include", "plugins", "runners", "custom_runners"].reduce(
+    (memo, key) => {
+      switch (key) {
+        case "plugins":
+          memo.plugins = instantiatePlugins(configs.reduce(pluginsConfigsReducer, {}));
+        case "include":
+        case "runners":
+        case "custom_runners":
+          memo[key] = configs.reduce((memo, config) => memo.concat(config[key]), []).filter(Boolean);
+          return memo;
+      }
+    },
+    Object.create(null),
+  );
+
+  // return configs.reduce((memo, config) => assign(memo, config), {});
+}
+
+function instantiatePlugins(reduced) {
+ console.log(reduced);
+}
+
+function pluginsConfigsReducer(memo, config) {
+  if (config.plugins == null) {
+    return;
+  }
+  for (const [pluginName, pluginConfig] of config.plugins) {
+    memo[pluginName] = (memo[pluginName] || []).concat(pluginConfig || []);
+  }
+  return memo;
 }
 
 async function configObject(filename) {
