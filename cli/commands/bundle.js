@@ -57,17 +57,13 @@ async function bundleCommand(params) {
 
 async function generateBundle({
   config,
-  plugins,
   files,
   rollupPlugins,
-  stdinCode,
   coverage: shouldInstrument,
   onready,
   verbose,
 }) {
-  if (plugins == null) {
-    plugins = await Promise.all(config.plugins);
-  }
+  const plugins = [...config.plugins.entries()].map(([, {plugin}]) => plugin);
 
   const pluginRollupPlugins = plugins
     .map(plugin => plugin.provides && plugin.provides.plugins)
@@ -81,7 +77,7 @@ async function generateBundle({
       verbose,
       plugins: [...pluginRollupPlugins, ...rollupPlugins],
     }),
-    bundlePlugins(config.plugins),
+    bundlePlugins(plugins),
     codeForLibrary(rollupPlugins),
   ]);
 

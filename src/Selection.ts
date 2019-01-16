@@ -13,7 +13,7 @@ export class Selection implements SelectionInterface {
 
   filter: string;
 
-  constructor(options: SelectionParams) {
+  constructor(options?: SelectionParams) {
     assign(this, options);
     if (typeof this.grep === "string") {
       this.grep = new RegExp(this.grep); // no escaping

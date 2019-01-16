@@ -5,15 +5,20 @@ const commonjs = require("rollup-plugin-commonjs");
 
 // All the cleverness of the below derives from copying from the rollup source code 🙇
 
-exports.loadConfigFile = async function loadConfigFile(
-  configPath,
-  commandOptions = {},
-) {
+exports.loadConfigFile = loadConfigFile;
+exports.loadModule = loadModule;
+
+function loadConfigFile(configPath, commandOptions = {}) {
   const configFile = path.isAbsolute(configPath)
     ? configPath
     : path.join(process.cwd(), configPath);
+
+  return loadModule(configFile);
+}
+
+async function loadModule(input) {
   const bundle = await rollup({
-    input: configFile,
+    input,
     external: id => {
       return (
         (id[0] !== "." && !path.isAbsolute(id)) ||
@@ -33,16 +38,16 @@ exports.loadConfigFile = async function loadConfigFile(
   const defaultLoader = require.extensions[".js"];
 
   require.extensions[".js"] = (module, filename) => {
-    if (filename === configFile) {
+    if (filename === input) {
       module._compile(code, filename);
     } else {
       defaultLoader(module, filename);
     }
   };
 
-  delete require.cache[configFile];
+  delete require.cache[input];
 
-  const configFileContent = await require(configFile);
+  const configFileContent = await require(input);
   const config =
     typeof configFileContent === "function"
       ? await configFileContent(commandOptions)
@@ -51,4 +56,4 @@ exports.loadConfigFile = async function loadConfigFile(
   require.extensions[".js"] = defaultLoader;
 
   return config;
-};
+}

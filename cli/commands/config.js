@@ -3,22 +3,31 @@ const { exists, readFile, stat } = require("fs-extra");
 const { safeLoad, safeDump } = require("js-yaml");
 const { highlight } = require("cli-highlight");
 const glob = require("fast-glob");
+const { loadModule } = require("../loadConfigFile");
 const { assign } = Object;
 
 exports.configCommand = async function configCommand(params) {
+  const configs = await getConfigs(params, { loadPlugins: false });
+
   console.log(
-    highlight(safeDump(await getConfigs(params)), { language: "yaml" }),
+    highlight(safeDump(configs, { skipInvalid: true }), { language: "yaml" }),
   );
 };
 
-async function getConfigs({ files }) {
+exports.getConfigs = getConfigs;
+exports.configObject = configObject;
+exports.configArray = configArray;
+
+async function getConfigs({ files }, options = {}) {
+  files = [].concat(files);
+
   if (files.length > 1) {
-    return configArray(files);
+    return configArray(files, options);
   }
-  return configObject(files[0]);
+  return configObject(files[0], options);
 }
 
-async function configsForFiles(files) {
+async function configsForFiles(files, { loadPlugins }) {
   const rcs = new Set();
   const map = new Map();
 
@@ -37,14 +46,17 @@ async function configsForFiles(files) {
     map,
     new Map(
       await Promise.all(
-        [...rcs].map(async rc => [rc, await loadStablercs(stablercs(rc))]),
+        [...rcs].map(async rc => [
+          rc,
+          await loadStablercs(stablercs(rc), { loadPlugins }),
+        ]),
       ),
     ),
   ];
 }
 
-async function configArray(files) {
-  const [map, configs] = await configsForFiles(files);
+async function configArray(files, { loadPlugins } = {}) {
+  const [map, configs] = await configsForFiles(files, { loadPlugins });
   const includes = [
     ...new Set(
       [...configs.entries()]
@@ -55,12 +67,15 @@ async function configArray(files) {
 
   const moarFiles = (await Promise.all(includes.map(glob))).reduce(
     (memo, files) => memo.concat(files),
+    [],
   );
 
   if (moarFiles.length > 0) {
     for (const file of moarFiles) {
       if (!map.has(file)) {
-        return configArray([...new Set(files.concat(moarFiles))]);
+        return configArray([...new Set(files.concat(moarFiles))], {
+          loadPlugins,
+        });
       }
     }
   }
@@ -70,46 +85,60 @@ async function configArray(files) {
   }));
 }
 
-async function loadStablercs(rcs) {
+async function loadStablercs(rcs, { loadPlugins = true }) {
   const configs = [];
 
   for await (const stablerc of rcs) {
     configs.unshift(safeLoad(stablerc));
   }
+  const memo = Object.create(null);
 
-  return ["include", "plugins", "runners", "custom_runners"].reduce(
-    (memo, key) => {
-      switch (key) {
-        case "plugins":
-          memo.plugins = instantiatePlugins(configs.reduce(pluginsConfigsReducer, {}));
-        case "include":
-        case "runners":
-        case "custom_runners":
-          memo[key] = configs.reduce((memo, config) => memo.concat(config[key]), []).filter(Boolean);
-          return memo;
-      }
-    },
-    Object.create(null),
-  );
-
-  // return configs.reduce((memo, config) => assign(memo, config), {});
-}
-
-function instantiatePlugins(reduced) {
- console.log(reduced);
-}
-
-function pluginsConfigsReducer(memo, config) {
-  if (config.plugins == null) {
-    return;
-  }
-  for (const [pluginName, pluginConfig] of config.plugins) {
-    memo[pluginName] = (memo[pluginName] || []).concat(pluginConfig || []);
+  for (const key of ["include", "plugins", "runners", "custom_runners"]) {
+    switch (key) {
+      case "plugins":
+        if (loadPlugins) {
+          memo[key] = await instantiatePlugins(
+            configs.reduce(pluginsConfigsReducer, new Map()),
+          );
+          break;
+        }
+      case "include":
+      case "runners":
+      case "custom_runners":
+        memo[key] = configs
+          .reduce((memo, config) => memo.concat(config[key]), [])
+          .filter(Boolean);
+        break;
+    }
   }
   return memo;
 }
 
-async function configObject(filename) {
+async function instantiatePlugins(map) {
+  const instances = new Map();
+
+  // TODO: support external plugins. I have definite plans for this, but I'm not ready to work on it yet.
+  for (const [pluginName, config] of map.entries()) {
+    const { [pluginName]: thunk } = await loadModule(
+      join(__dirname, "../../plugins", pluginName, "index.js"),
+    );
+
+    instances.set(pluginName, { config, plugin: await thunk(config) });
+  }
+  return instances;
+}
+
+function pluginsConfigsReducer(memo, config) {
+  if (config.plugins == null) {
+    return memo;
+  }
+  for (const [pluginName, pluginConfig] of config.plugins) {
+    memo.set(pluginName, (memo[pluginName] || []).concat(pluginConfig || []));
+  }
+  return memo;
+}
+
+async function configObject(filename, { loadPlugins } = {}) {
   const file = join(process.cwd(), filename);
   let dir;
   {
@@ -122,7 +151,7 @@ async function configObject(filename) {
     }
   }
 
-  return loadStablercs(stablercs(dir));
+  return loadStablercs(stablercs(dir), { loadPlugins });
 }
 
 async function* stablercs(dir) {

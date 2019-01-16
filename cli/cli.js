@@ -3,7 +3,6 @@ const commands = new Set(["run", "bundle", "config"]);
 
 // <cli flags>
 const {
-  c: configFile = "stable.config.js",
   f: filter,
   g: grep,
   r: runner = "eval",
@@ -71,10 +70,6 @@ config              perform the algorithm to generate the config
 
 Options:
 
--c, --config        the path of the config file relative to the working
-                    directory.
-                      [string]
-                      [default: stable.config.js]
 -s, --stdin         read stdin.
 -f, --filter        a substring match to filter by suite description.
                       [string]
@@ -128,6 +123,7 @@ Options:
 const glob = require("fast-glob");
 const { shuffle, Selection } = require("../lib/stable.js");
 const { loadConfigFile } = require("./loadConfigFile");
+const { configObject } = require("./commands/config");
 const seedrandom = require("seedrandom");
 const selection = new Selection({
   filter,
@@ -150,17 +146,19 @@ if (readStdin) {
 
 async function main() {
   const cmd = implForCommand(command);
-  const config = await loadConfigFile(configFile);
+  const config = await configObject(".");
+  const files = [];
+
+  for (const include of explicitFiles.length > 0
+    ? explicitFiles
+    : config.include) {
+    files.push(...(await glob(include)));
+  }
+
   const { plugins: rollupPlugins } = await loadConfigFile(rollupConfigPath);
-  const files =
-    explicitFiles.length > 0
-      ? explicitFiles
-      : await glob(config.glob || "**-test.js");
 
   if (stdinCode) {
-    throw new Error(
-      "reading from stdin is temporarily not supported",
-    );
+    throw new Error("reading from stdin is temporarily not supported");
   }
 
   await cmd({
