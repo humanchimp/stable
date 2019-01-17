@@ -123,7 +123,7 @@ Options:
 const glob = require("fast-glob");
 const { shuffle, Selection } = require("../lib/stable.js");
 const { loadConfigFile } = require("./loadConfigFile");
-const { configObject } = require("./commands/config");
+const { configObject, configArray } = require("./commands/config");
 const seedrandom = require("seedrandom");
 const selection = new Selection({
   filter,
@@ -146,14 +146,17 @@ if (readStdin) {
 
 async function main() {
   const cmd = implForCommand(command);
-  const config = await configObject(".");
+
+  const entry = await configObject(".", { loadPlugins: false });
   const files = [];
 
   for (const include of explicitFiles.length > 0
     ? explicitFiles
-    : config.include) {
+    : entry.include) {
     files.push(...(await glob(include)));
   }
+
+  const configs = await configArray(files);
 
   const { plugins: rollupPlugins } = await loadConfigFile(rollupConfigPath);
 
@@ -162,7 +165,7 @@ async function main() {
   }
 
   await cmd({
-    config,
+    configs,
     files,
     rollupPlugins,
     stdinCode,

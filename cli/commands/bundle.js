@@ -56,17 +56,36 @@ async function bundleCommand(params) {
 }
 
 async function generateBundle({
-  config,
+  configs,
   files,
   rollupPlugins,
   coverage: shouldInstrument,
   onready,
   verbose,
 }) {
-  const plugins = [...config.plugins.entries()].map(([, {plugin}]) => plugin);
+  const seen = new Map();
 
-  const pluginRollupPlugins = plugins
-    .map(plugin => plugin.provides && plugin.provides.plugins)
+  for (const {
+    filename,
+    config: { plugins },
+  } of configs) {
+    if (!seen.has(plugins)) {
+      seen.set(plugins, [filename]);
+    } else {
+      seen.get(plugins).push(filename);
+    }
+  }
+
+  // This is pretty gross, but I basically need to load all the rollup plugins
+  // and mash them all together. I need to think a lot more about bundling and
+  // do something a lot smarter here, but this is an iteration.
+  const pluginRollupPlugins = [...seen.keys()]
+    .map(mungePlugins)
+    .reduce((memo, plugin) => memo.concat(plugin), [])
+    .reduce(
+      (memo, plugin) => memo.concat(plugin.provides && plugin.provides.plugins),
+      [],
+    )
     .filter(Boolean)
     .reduce((memo, thunk) => memo.concat(thunk()), []);
 
@@ -77,7 +96,9 @@ async function generateBundle({
       verbose,
       plugins: [...pluginRollupPlugins, ...rollupPlugins],
     }),
-    bundlePlugins(plugins),
+    // This is going to make a bundle for each of the groups of plugins...
+    // But for now, this really only works with one group of plugins
+    ...[...seen.keys()].map(mungePlugins).map(bundlePlugins),
     codeForLibrary(rollupPlugins),
   ]);
 
@@ -308,4 +329,8 @@ function importNameForPackageName(packageName) {
 
 function forNow(path) {
   return `./plugins/${path.slice("@topl/stable-plugin-".length)}`;
+}
+
+function mungePlugins(plugins) {
+  return [...plugins.entries()].map(([, { plugin }]) => plugin);
 }

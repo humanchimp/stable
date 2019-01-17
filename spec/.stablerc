@@ -1,4 +1,3 @@
----
 runners:
 - isolate
 - headless chrome

@@ -1,4 +1,3 @@
----
 include: ./**/*.spec.{ts,js}
 plugins:
 - - timing
@@ -12,4 +11,4 @@ custom_runners:
     agent: /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
     arguments:
     - --headless
-    - --remote-debugging-port=
+    - --remote-debugging-port=9222

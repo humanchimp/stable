@@ -9,10 +9,39 @@ const { assign } = Object;
 exports.configCommand = async function configCommand(params) {
   const configs = await getConfigs(params, { loadPlugins: false });
 
-  console.log(
-    highlight(safeDump(configs, { skipInvalid: true }), { language: "yaml" }),
-  );
+  switch (getFormat(params.format)) {
+    case "yaml": {
+      console.log(
+        highlight(safeDump(configs, { skipInvalid: true }), {
+          language: "yaml",
+        }),
+      );
+      break;
+    }
+    case "json": {
+      console.log(
+        highlight(JSON.stringify(configs, null, 2), { language: "json" }),
+      );
+      break;
+    }
+    case "inspect": {
+      console.log(configs);
+      break;
+    }
+  }
 };
+
+function getFormat(format) {
+  switch (format) {
+    case "json":
+    case "yaml":
+      return format;
+    case "inspect":
+    case "tap":
+    default:
+      return "inspect";
+  }
+}
 
 exports.getConfigs = getConfigs;
 exports.configObject = configObject;
