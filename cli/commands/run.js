@@ -1,8 +1,8 @@
-const { fromAsyncIterable } = require("most-async-iterable");
 const { bundleCommand } = require("./bundle");
 const { transformForFormat } = require("../output/helpers");
 const { join } = require("path");
 const { readFile, writeFile } = require("fs-extra");
+const { tmpName } = require('tmp-promise');
 
 exports.runCommand = async function runCommand(params) {
   const {
@@ -12,11 +12,12 @@ exports.runCommand = async function runCommand(params) {
     format,
     quiet,
     runner,
-    outFile = join(process.cwd(), "stable-bundle.js"),
+    outFile: outFileParam,
     coverage,
-    hideSkips,
     verbose,
   } = params;
+  const outFile = outFileParam != null ?  outFileParam : await tmpName();
+
   await bundleCommand({
     ...params,
     bundleFormat: runner === "remote" ? "iife" : "cjs",
