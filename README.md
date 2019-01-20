@@ -27,10 +27,6 @@ bundle              bundle the test suite modules.
 
 Options:
 
--c, --config        the path of the config file relative to the working
-                    directory.
-                      [string]
-                      [default: stable.config.js]
 -s, --stdin         read stdin.
 -f, --filter        a substring match to filter by suite description.
                       [string]
