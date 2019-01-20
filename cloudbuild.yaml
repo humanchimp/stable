@@ -20,4 +20,3 @@ steps:
   args: ['./codecov.sh']
   env:
   - 'CODECOV_TOKEN=35c27442-dc86-4fb0-9897-62a9bf00f19a'
-images: ['gcr.io/$PROJECT_ID/ci-node-chrome:latest']
