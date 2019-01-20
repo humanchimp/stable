@@ -158,19 +158,14 @@ async function main() {
 
   const configs = await configArray(files);
 
-  // We need to find all the possible combinations of plugins and runners for files we
-  // picked up by loading the the .stablercs.
-
-  // Every mismatch of plugins or runners will need its own bundle
+  // Every .stablerc will need its own bundle
   const bundles = new Map /*config, filename*/();
 
   for (const { filename, config } of configs) {
-    if ("runners" in config || "plugins" in config) {
-      if (bundles.has(config)) {
-        bundles.get(config).push(filename);
-      } else {
-        bundles.set(config, [filename]);
-      }
+    if (bundles.has(config)) {
+      bundles.get(config).push(filename);
+    } else {
+      bundles.set(config, [filename]);
     }
   }
 

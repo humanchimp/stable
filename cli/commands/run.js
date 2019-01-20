@@ -47,8 +47,7 @@ exports.runCommand = async function runCommand(params) {
         }
       })
       .map(transform)
-      .observe(console.log)
-      .catch(console.error);
+      .observe(console.log);
 
     if (coverage != null && typeof __coverage__ !== "undefined") {
       await writeFile(
