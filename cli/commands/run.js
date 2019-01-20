@@ -76,15 +76,25 @@ exports.runCommand = async function runCommand(params) {
 };
 
 function implForRunner(runner) {
-  switch (runner) {
+  switch (camelize(runner)) {
     case "eval":
       return require("../runners/eval");
     case "vm":
     case "isolate": // This is cheating for now
       return require("../runners/vm");
     case "remote":
-    case "headless chrome": // This is cheating for now
+      // This will fail because of no `spawnParams` 🤷
       return require("../runners/remote");
+    case "headlessChrome":
+      return require("../runners/headlessChrome");
   }
   throw new Error(`unknown runner type: "${runner}"`);
+}
+
+function camelize(str) {
+  return str
+    .replace(/(?:^\w|[A-Z]|\b\w)/g, function(letter, index) {
+      return index == 0 ? letter.toLowerCase() : letter.toUpperCase();
+    })
+    .replace(/\s+/g, "");
 }

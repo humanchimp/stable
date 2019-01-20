@@ -4,7 +4,11 @@ const { createServer } = require("http");
 const express = require("express");
 const { Server: WebSocketServer } = require("ws");
 
-exports.run = function run(code, { port, verbose }) {
+exports.run = function run(code, { port, verbose, spawn: spawnParams }) {
+  if (spawnParams == null) {
+    throw new TypeError("Missing a required param: spawnParams");
+  }
+
   const server = createServer();
   const app = express();
 
@@ -102,10 +106,7 @@ function serializeReason(reason) {
       if (verbose) {
         console.log(`server listening at ${url}`);
       }
-      browser = spawn(
-        "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-        ["--headless", "--remote-debugging-port=9222", url],
-      );
+      browser = spawn(...spawnParams(url));
     });
   }
 
