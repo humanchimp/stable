@@ -38,7 +38,7 @@ exports.summary = function summary(format, counts) {
 };
 
 function formatReason(reason) {
-  return reason
+  return reason && reason.stack
     ? `
 
 ${reason.stack

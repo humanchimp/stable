@@ -48,8 +48,33 @@ async function streamReportsToMothership(suite) {
       message.userAgent = navigator.userAgent;
     }
 
+    if (message.reason != null) {
+      message.reason = serializeReason(message.reason);
+    }
+
     sock.send(JSON.stringify(message));
   }
+}
+
+function serializeReason(reason) {
+  const seen = new Set();
+  const memo = Object.create(null);
+
+  for (const prop of ["name", "message", "stack", "code"]) {
+    const candidate = reason[prop];
+
+    if (candidate != null) {
+      if (typeof candidate !== 'object') {
+        memo[prop] = candidate;
+      } else if (!seen.has(candidate)) {
+        memo[prop] = candidate;
+        seen.add(candidate);
+      } else {
+        memo[prop] = "[Circular]"; // Just scrub cycles for now
+      }
+    }
+  }
+  return memo;
 }
     </script>
     <script src="./bundle.js"></script>
