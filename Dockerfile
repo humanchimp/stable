@@ -14,13 +14,6 @@ ARG USE_CHROME_STABLE
 ENV CONNECTION_TIMEOUT=60000
 ENV CHROME_PATH=/usr/bin/google-chrome
 
-RUN mkdir -p $application_directory
-
-WORKDIR $application_directory
-
-# Bundle app source
-COPY . .
-
 # Dependencies + NodeJS
 RUN apt-get update && \
 echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | debconf-set-selections && \
@@ -96,8 +89,7 @@ RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 # Add user
 RUN groupadd -r blessuser && useradd -r -g blessuser -G audio,video blessuser \
 && mkdir -p /home/blessuser/Downloads \
-&& chown -R blessuser:blessuser /home/blessuser \
-&& chown -R blessuser:blessuser $application_directory
+&& chown -R blessuser:blessuser /home/blessuser;
 
 # Run everything after as non-privileged user.
 USER blessuser
