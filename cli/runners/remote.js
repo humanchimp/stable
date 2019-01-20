@@ -23,7 +23,7 @@ exports.run = function run(code, { port, verbose, spawn: spawnParams }) {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chai/4.2.0/chai.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sinon.js/7.2.2/sinon.js"></script>
     <script>
-const sock = new WebSocket("ws://localhost:${port}/ws");
+const sock = new WebSocket("ws://0.0.0.0:${port}/ws");
 let ready = false;
 
 sock.addEventListener('open', () => {
@@ -100,7 +100,7 @@ function serializeReason(reason) {
   start();
 
   function start() {
-    const url = `http://localhost:${port}`;
+    const url = `http://0.0.0.0:${port}`;
 
     server.listen(port, () => {
       if (verbose) {
