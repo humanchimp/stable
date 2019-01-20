@@ -51,7 +51,15 @@ ${reason.stack
 
 function tapTransform() {
   let count = 0;
-  return ({ ok, description, reason, skipped, planned, completed, userAgent }) => {
+  return ({
+    ok,
+    description,
+    reason,
+    skipped,
+    planned,
+    completed,
+    userAgent,
+  }) => {
     if (planned != null) {
       if (completed == null) {
         return `1..${planned}`;
@@ -70,8 +78,9 @@ function tapTransform() {
       }${
         userAgent != null
           ? `
-# user agent: ${userAgent}` : ""
-}
+# user agent: ${userAgent}`
+          : ""
+      }
 `;
     }
     return `${ok ? "" : "not "}ok ${++count} ${description}${
