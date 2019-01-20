@@ -1,0 +1,14 @@
+steps:
+# Pull the latest image
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['pull', 'gcr.io/$PROJECT_ID/ci-node-chrome:latest']
+
+# Build a new image if necessary
+- name: 'gcr.io/cloud-builders/docker'
+  args:
+    - build
+    - '-t'
+    - 'gcr.io/$PROJECT_ID/ci-node-chrome:latest'
+    - '--cache-from'
+    - 'gcr.io/$PROJECT_ID/ci-node-chrome:latest'
+    - ./cloud-builders/chrome
