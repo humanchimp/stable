@@ -1,74 +1,73 @@
-const { Suite } = require("../../lib/stable");
-const { fromAsyncIterable } = require("most-async-iterable");
 const { bundleCommand } = require("./bundle");
 const { transformForFormat } = require("../output/helpers");
-const { dir } = require("tmp-promise");
-const { join, relative } = require("path");
-const { readFile, writeFile, copy } = require("fs-extra");
-const { createSourceMapStore } = require("istanbul-lib-source-maps");
-const { createCoverageMap } = require("istanbul-lib-coverage");
-const sorcery = require("sorcery");
+const { join } = require("path");
+const { readFile, writeFile } = require("fs-extra");
+const { tmpName } = require("tmp-promise");
 
 exports.runCommand = async function runCommand(params) {
   const {
+    bundles,
     partition,
     partitions,
-    sort,
     selection,
     format,
     quiet,
     runner,
-    outFile = join(process.cwd(), "stable-bundle.js"),
+    outFile: outFileParam,
     coverage,
-    hideSkips,
     verbose,
+    defaultRunner,
   } = params;
-  await bundleCommand({
-    ...params,
-    bundleFormat: "cjs",
-    outFile,
-    onready: "stableRun",
-    verbose,
-  });
-
-  const code = await readFile(outFile, "utf-8");
-
-  const predicate =
-    partition != null && partitions != null
-      ? selection.partition(counts.total, partition, partitions)
-      : selection.predicate;
-  const { run } = implForRunner(runner);
-  const transform = transformForFormat(format);
-
   let failed = false;
+  for (const [config, files] of bundles.entries()) {
+    const outFile = outFileParam != null ? outFileParam : await tmpName();
 
-  await run(code)
-    .chain(suite =>
-      fromAsyncIterable(suite.run(sort, predicate)).filter(report => {
-        switch (hideSkips) {
-          case true:
-            return !report.skipped;
-          case "focus": {
-            return !report.skipped || !suite.isFocusMode;
+    const runners =
+      runner == null
+        ? config.runners == null || config.runners.length === 0
+          ? [defaultRunner]
+          : config.runners
+        : [runner];
+
+    for (const runner of runners) {
+      await bundleCommand({
+        ...params,
+        config,
+        runner,
+        files,
+        bundleFormat:
+          runner === "remote" || runner === "headless chrome" ? "iife" : "cjs",
+        outFile,
+        onready: "stableRun",
+        verbose,
+      });
+
+      const code = await readFile(outFile, "utf-8");
+
+      const predicate =
+        partition != null && partitions != null
+          ? selection.partition(counts.total, partition, partitions)
+          : selection.predicate;
+      const { run } = implForRunner(runner);
+      const transform = transformForFormat(format);
+
+      await run(code, { ...params, runner, predicate })
+        .tap(report => {
+          if (report.failed > 0) {
+            failed = true;
           }
-        }
-        return true;
-      }),
-    )
-    .tap(report => {
-      if (report.failed > 0) {
-        failed = true;
-      }
-    })
-    .map(transform)
-    .observe(console.log);
+        })
+        .map(transform)
+        .observe(console.log);
 
-  if (coverage != null && typeof __coverage__ !== "undefined") {
-    await writeFile(
-      join(".nyc_output", "out.json"),
-      JSON.stringify(__coverage__),
-      "utf-8",
-    );
+      if (coverage != null && typeof __coverage__ !== "undefined") {
+        await writeFile(
+          join(".nyc_output", "out.json"),
+          JSON.stringify(__coverage__),
+          "utf-8",
+        );
+      }
+    }
   }
 
   if (failed && !quiet) {
@@ -77,11 +76,25 @@ exports.runCommand = async function runCommand(params) {
 };
 
 function implForRunner(runner) {
-  switch (runner) {
+  switch (camelize(runner)) {
     case "eval":
       return require("../runners/eval");
     case "vm":
+    case "isolate": // This is cheating for now
       return require("../runners/vm");
+    case "remote":
+      // This will fail because of no `spawnParams` 🤷
+      return require("../runners/remote");
+    case "headlessChrome":
+      return require("../runners/headlessChrome");
   }
-  throw new Error("unreachable: unknown runner type");
+  throw new Error(`unknown runner type: "${runner}"`);
+}
+
+function camelize(str) {
+  return str
+    .replace(/(?:^\w|[A-Z]|\b\w)/g, function(letter, index) {
+      return index == 0 ? letter.toLowerCase() : letter.toUpperCase();
+    })
+    .replace(/\s+/g, "");
 }

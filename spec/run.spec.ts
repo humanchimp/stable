@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import { spy as createSpy } from "sinon";
-import { describe as createSuite, run, generator } from "../src/lib";
+import { describe as createSuite } from "../src/describe";
+import { run, generator } from "../src/run";
 
 async function* generate(_, sort) {
   const result = [1, 2, 3];

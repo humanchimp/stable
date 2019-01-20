@@ -38,7 +38,7 @@ exports.summary = function summary(format, counts) {
 };
 
 function formatReason(reason) {
-  return reason
+  return reason && reason.stack
     ? `
 
 ${reason.stack
@@ -51,7 +51,15 @@ ${reason.stack
 
 function tapTransform() {
   let count = 0;
-  return ({ ok, description, reason, skipped, planned, completed }) => {
+  return ({
+    ok,
+    description,
+    reason,
+    skipped,
+    planned,
+    completed,
+    userAgent,
+  }) => {
     if (planned != null) {
       if (completed == null) {
         return `1..${planned}`;
@@ -66,6 +74,11 @@ function tapTransform() {
         skipped !== 0
           ? `
 # skipped ${skipped}`
+          : ""
+      }${
+        userAgent != null
+          ? `
+# user agent: ${userAgent}`
           : ""
       }
 `;

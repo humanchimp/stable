@@ -1,14 +1,4 @@
-const { inspect } = require("util");
-
-const {
-  join,
-  dirname,
-  basename,
-  extname,
-  isAbsolute,
-  relative,
-} = require("path");
-const { from } = require("most");
+const { join, dirname, basename, isAbsolute } = require("path");
 const { rollup } = require("rollup");
 const babel = require("@babel/core");
 const { default: generate } = require("@babel/generator");
@@ -19,7 +9,6 @@ const { copy, writeFile, readFile, mkdirp } = require("fs-extra");
 const sorcery = require("sorcery");
 const multiEntry = require("rollup-plugin-multi-entry");
 const babelPluginIstanbul = require("babel-plugin-istanbul");
-const virtual = require("rollup-plugin-virtual");
 
 const names = [
   "describe",
@@ -37,7 +26,6 @@ const names = [
   "afterEach",
   "info",
 ];
-const apiParams = names.join(",");
 
 exports.bundleCommand = bundleCommand;
 exports.generateBundle = generateBundle;
@@ -79,7 +67,8 @@ async function generateBundle({
     );
   }
 
-  const plugins = await Promise.all(config.plugins);
+  const plugins = mungePlugins(config.plugins);
+
   const pluginRollupPlugins = plugins
     .map(plugin => plugin.provides && plugin.provides.plugins)
     .filter(Boolean)
@@ -92,7 +81,7 @@ async function generateBundle({
       verbose,
       plugins: [...pluginRollupPlugins, ...rollupPlugins],
     }),
-    bundlePlugins(config.plugins),
+    bundlePlugins(plugins),
     codeForLibrary(rollupPlugins),
   ]);
 
@@ -323,4 +312,8 @@ function importNameForPackageName(packageName) {
 
 function forNow(path) {
   return `./plugins/${path.slice("@topl/stable-plugin-".length)}`;
+}
+
+function mungePlugins(plugins) {
+  return [...plugins.entries()].map(([, { plugin }]) => plugin);
 }

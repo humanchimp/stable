@@ -4,8 +4,11 @@ import packageJson from "./package.json";
 import { readFile } from "fs-extra";
 
 export async function fixture(options) {
+  options = [].concat(options).pop(); // TODO: handle multiple options hashes
+
   const { include, exclude, module: moduleName = "fixture" } = options;
-  const files = await glob(options.include);
+  const files = await glob(include);
+
   const fixtureData = await Promise.all(
     files.map(async file => {
       return {

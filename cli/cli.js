@@ -1,13 +1,12 @@
 #!/usr/bin/env node
-const commands = new Set(["run", "bundle", "eval"]);
-
+const commands = new Set(["run", "bundle", "config"]);
+const defaultRunner = "vm";
 // <cli flags>
 const {
-  c: configFile = "stable.config.js",
   f: filter,
   g: grep,
-  r: runner = "eval",
-  o: outputFormat = "inspect",
+  r: runner,
+  o: outputFormat = "tap",
   s: readStdin,
   q: quiet,
   v: verbose,
@@ -18,6 +17,7 @@ const {
   seed,
   partitions,
   partition,
+  port = 10001,
   "hide-skips": hideSkips = "focus",
   coverage = process.env.NYC_CWD != null,
   _: [, , ...positionalParams],
@@ -32,6 +32,7 @@ const {
     s: "stdin",
     q: "quiet",
     v: "verbose",
+    p: "port",
   },
 });
 
@@ -64,12 +65,11 @@ run                 run the test suite using a runner. [default]
 
 bundle              bundle the test suite modules.
 
+config              perform the algorithm to generate the config
+                    relative to the given path, else the pwd.
+
 Options:
 
--c, --config        the path of the config file relative to the working
-                    directory.
-                      [string]
-                      [default: stable.config.js]
 -s, --stdin         read stdin.
 -f, --filter        a substring match to filter by suite description.
                       [string]
@@ -109,6 +109,8 @@ Options:
 --hide-skips        hide skipped specs from the stream.
                       [string or boolean]
                       [default: 'focus']
+-p, --port          the port to listen on whenever stable needs an http server.
+                      [default: 10001]
 -v, --verbose       be chattier.
                       [boolean]
                       [default: false]
@@ -121,6 +123,7 @@ Options:
 const glob = require("fast-glob");
 const { shuffle, Selection } = require("../lib/stable.js");
 const { loadConfigFile } = require("./loadConfigFile");
+const { configObject, configArray } = require("./commands/config");
 const seedrandom = require("seedrandom");
 const selection = new Selection({
   filter,
@@ -143,15 +146,38 @@ if (readStdin) {
 
 async function main() {
   const cmd = implForCommand(command);
-  const config = await loadConfigFile(configFile);
+
+  const entry = await configObject(".", { loadPlugins: false });
+  const files = [];
+
+  for (const include of explicitFiles.length > 0
+    ? explicitFiles
+    : entry.include) {
+    files.push(...(await glob(include)));
+  }
+
+  const configs = await configArray(files);
+
+  // Every .stablerc will need its own bundle
+  const bundles = new Map /*config, filename*/();
+
+  for (const { filename, config } of configs) {
+    if (bundles.has(config)) {
+      bundles.get(config).push(filename);
+    } else {
+      bundles.set(config, [filename]);
+    }
+  }
+
   const { plugins: rollupPlugins } = await loadConfigFile(rollupConfigPath);
-  const files =
-    explicitFiles.length > 0
-      ? explicitFiles
-      : await glob(config.glob || "**-test.js");
+
+  if (stdinCode) {
+    throw new Error("reading from stdin is temporarily not supported");
+  }
 
   await cmd({
-    config,
+    configs,
+    bundles,
     files,
     rollupPlugins,
     stdinCode,
@@ -163,7 +189,10 @@ async function main() {
     selection,
     quiet,
     coverage,
+    port,
     hideSkips,
+    verbose,
+    defaultRunner,
   });
 }
 
@@ -173,6 +202,11 @@ function implForCommand(cmd) {
       const { bundleCommand } = require("./commands/bundle");
 
       return bundleCommand;
+    }
+    case "config": {
+      const { configCommand } = require("./commands/config");
+
+      return configCommand;
     }
     case "run":
     default: {
