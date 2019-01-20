@@ -93,7 +93,7 @@ It makes sense to disable `nyc` instrumentation, since `stable` performs code in
 
 ## configuration
 
-Optionally, you can control your configuration with finer grain by adding a `stable.config.js`. The schema of that file will need to be documented preparatory to releasing anything.
+Optionally, you can control your configuration with finer grain using file-relative `.stablerc` files. These files contain YAML dictionaries (or JSON) and are capable of configuring plugins and enabling runners by default. In practice, runners probably need to be overridden in CI because you probabaly want to use separate [containers](./cloud-builders) to run your tests against various browsers.
 
 ## some words for now
 
