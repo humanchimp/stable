@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 const commands = new Set(["run", "bundle", "config"]);
-
+const defaultRunner = "vm";
 // <cli flags>
 const {
   f: filter,
   g: grep,
-  r: runner = "eval",
+  r: runner,
   o: outputFormat = "inspect",
   s: readStdin,
   q: quiet,
@@ -192,6 +192,7 @@ async function main() {
     port,
     hideSkips,
     verbose,
+    defaultRunner,
   });
 }
 
