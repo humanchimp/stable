@@ -90,12 +90,13 @@ async function streamReportsToMothership(suite) {
   }
 
   return fromEvent("connection", wss)
+    .take(1)
     .chain(([ws]) =>
       fromEvent("message", ws).takeUntil(fromEvent("close", ws).tap(stop)),
     )
     .map(message => message.data)
     .map(JSON.parse)
-    .filter(({ __coverage__: coverage }) => {
+    .filter(({ __coverage__: coverage } = {}) => {
       if (coverage != null) {
         global.__coverage__ = coverage;
         return false;

@@ -1,5 +1,3 @@
-const { inspect } = require("util");
-
 const { join, dirname, basename, isAbsolute } = require("path");
 const { rollup } = require("rollup");
 const babel = require("@babel/core");
@@ -28,7 +26,6 @@ const names = [
   "afterEach",
   "info",
 ];
-const apiParams = names.join(",");
 
 exports.bundleCommand = bundleCommand;
 exports.generateBundle = generateBundle;
@@ -56,36 +53,24 @@ async function bundleCommand(params) {
 }
 
 async function generateBundle({
-  configs,
+  config,
   files,
   rollupPlugins,
+  stdinCode,
   coverage: shouldInstrument,
   onready,
   verbose,
 }) {
-  const seen = new Map();
-
-  for (const {
-    filename,
-    config: { plugins },
-  } of configs) {
-    if (!seen.has(plugins)) {
-      seen.set(plugins, [filename]);
-    } else {
-      seen.get(plugins).push(filename);
-    }
+  if (stdinCode) {
+    throw new Error(
+      "reading from stdin is not currently supported by the bundle command",
+    );
   }
 
-  // This is pretty gross, but I basically need to load all the rollup plugins
-  // and mash them all together. I need to think a lot more about bundling and
-  // do something a lot smarter here, but this is an iteration.
-  const pluginRollupPlugins = [...seen.keys()]
-    .map(mungePlugins)
-    .reduce((memo, plugin) => memo.concat(plugin), [])
-    .reduce(
-      (memo, plugin) => memo.concat(plugin.provides && plugin.provides.plugins),
-      [],
-    )
+  const plugins = mungePlugins(config.plugins);
+
+  const pluginRollupPlugins = plugins
+    .map(plugin => plugin.provides && plugin.provides.plugins)
     .filter(Boolean)
     .reduce((memo, thunk) => memo.concat(thunk()), []);
 
@@ -96,9 +81,7 @@ async function generateBundle({
       verbose,
       plugins: [...pluginRollupPlugins, ...rollupPlugins],
     }),
-    // This is going to make a bundle for each of the groups of plugins...
-    // But for now, this really only works with one group of plugins
-    ...[...seen.keys()].map(mungePlugins).map(bundlePlugins),
+    bundlePlugins(plugins),
     codeForLibrary(rollupPlugins),
   ]);
 
