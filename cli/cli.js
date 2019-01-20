@@ -6,7 +6,7 @@ const {
   f: filter,
   g: grep,
   r: runner,
-  o: outputFormat = "inspect",
+  o: outputFormat = "tap",
   s: readStdin,
   q: quiet,
   v: verbose,
