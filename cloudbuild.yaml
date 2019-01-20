@@ -19,7 +19,7 @@ steps:
     - 'gcr.io/$PROJECT_ID/ci-node-chrome:latest'
     - '--cache-from'
     - 'gcr.io/$PROJECT_ID/ci-node-chrome:latest'
-    - .
+    - ./cloud-builders/chrome
 - name: 'gcr.io/$PROJECT_ID/ci-node-chrome'
   entrypoint: node
   args: ['./cli/cli.js', '-r', 'headless chrome']
