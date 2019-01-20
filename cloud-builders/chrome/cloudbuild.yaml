@@ -12,3 +12,4 @@ steps:
     - '--cache-from'
     - 'gcr.io/$PROJECT_ID/ci-node-chrome:latest'
     - ./cloud-builders/chrome
+images: ['gcr.io/$PROJECT_ID/ci-node-chrome:latest']
