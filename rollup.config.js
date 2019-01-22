@@ -1,5 +1,6 @@
 import babel from "rollup-plugin-babel";
 import nodeResolve from "rollup-plugin-node-resolve";
+import commonjs from"rollup-plugin-commonjs";
 import typescript from "rollup-plugin-typescript";
 import typescript3 from "typescript";
 
@@ -39,5 +40,6 @@ export default {
     nodeResolve({
       extensions: [".js", ".ts"],
     }),
+    commonjs({ include: 'node_modules/**' }),
   ],
 };
