@@ -84,6 +84,7 @@ async function configsForFiles(files, { loadPlugins }) {
   ];
 }
 
+// FIXME: configObject and configArray are garbage names.
 async function configArray(files, { loadPlugins } = {}) {
   const [map, configs] = await configsForFiles(files, { loadPlugins });
   const includes = [
@@ -117,8 +118,8 @@ async function configArray(files, { loadPlugins } = {}) {
 async function loadStablercs(rcs, { loadPlugins = true }) {
   const configs = [];
 
-  for await (const stablerc of rcs) {
-    configs.unshift(safeLoad(stablerc));
+  for await (const { filename, yaml } of rcs) {
+    configs.unshift({ filename, yaml, config: safeLoad(yaml) });
   }
   const memo = Object.create(null);
 
@@ -135,7 +136,7 @@ async function loadStablercs(rcs, { loadPlugins = true }) {
       case "runners":
       case "custom_runners":
         memo[key] = configs
-          .reduce((memo, config) => memo.concat(config[key]), [])
+          .reduce((memo, { config }) => memo.concat(config[key]), [])
           .filter(Boolean);
         break;
     }
@@ -157,12 +158,17 @@ async function instantiatePlugins(map) {
   return instances;
 }
 
-function pluginsConfigsReducer(memo, config) {
+function pluginsConfigsReducer(memo, { filename, config }) {
   if (config.plugins == null) {
     return memo;
   }
   for (const [pluginName, pluginConfig] of config.plugins) {
-    memo.set(pluginName, (memo[pluginName] || []).concat(pluginConfig || []));
+    memo.set(
+      pluginName,
+      (memo[pluginName] || []).concat(
+        { ...pluginConfig, stablerc: filename } || [],
+      ),
+    );
   }
   return memo;
 }
@@ -184,8 +190,11 @@ async function configObject(filename, { loadPlugins } = {}) {
 }
 
 async function* stablercs(dir) {
-  for await (const stablerc of stablercsFiles(dir)) {
-    yield readFile(stablerc, "utf-8");
+  for await (const filename of stablercsFiles(dir)) {
+    yield {
+      filename,
+      yaml: await readFile(filename, "utf-8"),
+    };
   }
 }
 

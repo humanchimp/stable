@@ -4,7 +4,7 @@ import typescript from "rollup-plugin-typescript";
 import typescript3 from "typescript";
 
 export default {
-  input: "src/lib.ts",
+  input: "src/framework/lib.ts",
   output: {
     format: "cjs",
     file: "lib/stable.js",

@@ -1,8 +1,8 @@
 import { expect } from "chai";
-import sinon from "sinon";
-import { asyncSpread } from "./util/asyncSpread";
-import { getFixtures } from "./util/getFixtures";
-import * as stable from "../src/lib";
+import * as sinon from "sinon";
+import { asyncSpread } from "../util/asyncSpread";
+import { getFixtures } from "../util/getFixtures";
+import { dsl } from "../../src/framework/dsl";
 
 info("https://github.com/humanchimp/stable/issues/1");
 
@@ -14,7 +14,7 @@ describe("fixtures", () => {
     fixtures,
     ({ fixture, code, data: expectedReports }) => {
       it(`should return an asynchronous iterator over the sequential ${fixture} reports`, async () => {
-        const suite = await stable.dsl({ code, helpers: { expect, sinon } });
+        const suite = await dsl({ code, helpers: { expect, sinon } });
         const reports = await asyncSpread(suite.reports(it => it));
 
         scrubReasons(reports);
@@ -34,7 +34,7 @@ describeEach(
   ],
   ([code, pattern]) => {
     it("should throw an error", async () => {
-      await stable.dsl({ code });
+      await dsl({ code });
     })
       .shouldFail()
       .rescue(reason => {

@@ -1,8 +1,8 @@
 import { expect } from "chai";
-import { flatMap } from "../src/flatMap";
-import { partitionRangeForTotal } from "../src/partititionRangeForTotal";
-import { Selection } from "../src/Selection";
-import { describe as libDescribe } from "../src/describe";
+import { flatMap } from "../../src/framework/flatMap";
+import { partitionRangeForTotal } from "../../src/framework/partititionRangeForTotal";
+import { Selection } from "../../src/framework/Selection";
+import { describe as libDescribe } from "../../src/framework/describe";
 
 const fixtureSuite = [
   "one fish",

@@ -1,7 +1,1 @@
 include: ./**/*.spec.{ts,js}
-plugins:
-- - timing
-  - timeout: 200
-- - rescue
-- - fixture
-  - include: ./spec/fixture/**/*

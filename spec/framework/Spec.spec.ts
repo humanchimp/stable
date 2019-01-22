@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { Spec } from "../src/Spec";
+import { Spec } from "../../src/framework/Spec";
 
 let spec;
 

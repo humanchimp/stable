@@ -1,14 +1,14 @@
 import { expect } from "chai";
 import { spy as createSpy } from "sinon";
-import { asyncSpread } from "./util/asyncSpread";
-import * as stable from "../src/lib";
+import { asyncSpread } from "../util/asyncSpread";
+import { describe as createSuite } from "../../src/framework/describe";
 
 let subject;
 
 describe("group", () => {
   describe("instance methods", () => {
     beforeEach(() => {
-      subject = stable.describe("subject");
+      subject = createSuite("subject");
     });
 
     it("should have an `it` method", () => {
@@ -109,11 +109,10 @@ describe("group", () => {
     describe("when a closure is passed", () => {
       beforeEach(() => {
         spy = createSpy();
-        subject = stable.describe("test", spy);
+        subject = createSuite("test", spy);
       });
 
       it("should execute the closure immediately", () => {
-        expect(stable).not.to.be.null;
         expect(spy.calledOnce).to.be.true;
       });
     });

@@ -1,3 +1,6 @@
-runners:
-- isolate
-- headless chrome
+plugins:
+- - timing
+  - timeout: 200
+- - rescue
+- - fixture
+  - include: ./fixture/**/*

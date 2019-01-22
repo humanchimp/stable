@@ -1,8 +1,8 @@
 import { expect } from "chai";
 import { spy as createSpy } from "sinon";
-import { Suite } from "../src/Suite";
-import { dethunk } from "../src/dethunk";
-import { asyncSpread } from "./util/asyncSpread";
+import { Suite } from "../../src/framework/Suite";
+import { dethunk } from "../../src/framework/dethunk";
+import { asyncSpread } from "../util/asyncSpread";
 
 describe("the dethunk helper", () => {
   it("should call the thunk, injecting all the framework blocks", async () => {

@@ -1,6 +1,6 @@
 import { expect } from "chai";
-import { plugins } from "../src/plugins";
-import { Listeners } from "../src/Listeners";
+import { plugins } from "../../src/framework/plugins";
+import { Listeners } from "../../src/framework/Listeners";
 
 function a() {}
 function b() {}

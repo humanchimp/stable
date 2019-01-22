@@ -214,7 +214,7 @@ dethunk(thunk, plugins).then(${onready})`;
 
 async function codeForLibrary(plugins) {
   const libraryBundle = await rollup({
-    input: join(__dirname, "../../src/lib.ts"),
+    input: join(__dirname, "../../src/framework/lib.ts"),
     plugins: plugins,
   });
 

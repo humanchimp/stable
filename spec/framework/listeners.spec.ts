@@ -1,9 +1,9 @@
-import { Suite } from "../src/interfaces";
+import { Suite } from "../../src/framework/interfaces";
 import { expect } from "chai";
 import { spy } from "sinon";
-import { run } from "../src/run";
-import { dsl } from "../src/dsl";
-import { reports } from "../src/reports";
+import { run } from "../../src/framework/run";
+import { dsl } from "../../src/framework/dsl";
+import { reports } from "../../src/framework/reports";
 
 const code = `
 describe("outer 1", () => {

@@ -1,9 +1,9 @@
 import { expect } from "chai";
 import { spy } from "sinon";
-import { Suite } from "../src/Suite";
-import { Hooks } from "../src/Hooks";
-import { Listeners } from "../src/Listeners";
-import { describe as createSuite } from "../src/describe";
+import { Suite } from "../../src/framework/Suite";
+import { Hooks } from "../../src/framework/Hooks";
+import { Listeners } from "../../src/framework/Listeners";
+import { describe as createSuite } from "../../src/framework/describe";
 
 describe("static factories/explicit casts", () => {
   let suites: Suite[], subject: Suite;

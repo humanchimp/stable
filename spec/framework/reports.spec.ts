@@ -1,11 +1,12 @@
 import { expect } from "chai";
-import * as stable from "../src/lib";
+import { describe as createSuite } from "../../src/framework/describe";
+import { reports } from "../../src/framework/reports";
 
 describe("the reports helper", () => {
   it("should return an asynchronous iterator over the suite reports", async () => {
-    for await (const report of stable.reports([
-      stable.describe("first suite").it("should run"),
-      stable.describe("second suite").it("should run"),
+    for await (const report of reports([
+      createSuite("first suite").it("should run"),
+      createSuite("second suite").it("should run"),
     ])) {
       expect(report.description).to.match(/should run/);
       expect(report.skipped).to.be.true;
@@ -14,8 +15,8 @@ describe("the reports helper", () => {
   });
 
   it("should splat and run a single suite", async () => {
-    for await (const report of stable.reports(
-      stable.describe("first suite").it("should run"),
+    for await (const report of reports(
+      createSuite("first suite").it("should run"),
     )) {
       expect(report.description).to.match(/should run/);
       expect(report.skipped).to.be.true;
@@ -26,24 +27,21 @@ describe("the reports helper", () => {
   it("should be possible to specify the sort", async () => {
     const memo = [];
 
-    for await (const report of stable.reports(
+    for await (const report of reports(
       [
-        stable
-          .describe(null)
+        createSuite(null)
           .it("l")
           .it("m")
           .it("n")
           .it("o")
           .it("p"),
-        stable
-          .describe(null)
+        createSuite(null)
           .it("z")
           .it("y")
           .it("x")
           .it("w")
           .it("v"),
-        stable
-          .describe(null)
+        createSuite(null)
           .it("a")
           .it("b")
           .it("c")

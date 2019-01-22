@@ -2,18 +2,22 @@ import glob from "fast-glob";
 import virtual from "rollup-plugin-virtual";
 import packageJson from "./package.json";
 import { readFile } from "fs-extra";
+import { dirname, join } from "path";
 
 export async function fixture(options) {
   options = [].concat(options).pop(); // TODO: handle multiple options hashes
 
-  const { include, exclude, module: moduleName = "fixture" } = options;
-  const files = await glob(include);
+  const { include, exclude, module: moduleName = "fixture", stablerc } = options;
+
+  const cwd = stablerc == null ? process.cwd() : dirname(stablerc);
+
+  const files = await glob(include, { cwd });
 
   const fixtureData = await Promise.all(
     files.map(async file => {
       return {
         file,
-        contents: await readFile(file, "utf-8"),
+        contents: await readFile(join(cwd, file), "utf-8"),
       };
     }),
   );
