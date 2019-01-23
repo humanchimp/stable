@@ -3,6 +3,7 @@ export enum CliArgKey {
   GREP = "grep",
   RUNNER = "runner",
   OUTPUT_FORMAT = "output-format",
+  WORKING_DIRECTORY = "working-directory",
   READ_STDIN = "read-stdin",
   QUIET = "quiet",
   VERBOSE = "verbose",
@@ -16,6 +17,7 @@ export enum CliArgKey {
   PORT = "port",
   HIDE_SKIPS = "hide-skips",
   COVERAGE = "coverage",
+  REST = "rest",
 }
 
 export enum OptionType {
@@ -23,4 +25,9 @@ export enum OptionType {
   string = "string",
   number = "number",
   stringOrBoolean = "string or boolean",
+}
+
+export enum ConfigOutputFormat {
+  YAML = "yaml",
+  JSON = "json",
 }

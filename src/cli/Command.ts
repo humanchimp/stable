@@ -7,7 +7,7 @@ import {
 import { CliArgKey } from "./enums";
 
 export class Command implements CommandInterface {
-  static toleratedArgs = new Set<CliArgKey>([CliArgKey.HELP]);
+  static toleratedArgs = new Set<CliArgKey>([CliArgKey.HELP, CliArgKey.REST]);
 
   name: string;
 

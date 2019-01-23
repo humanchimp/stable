@@ -24,29 +24,44 @@ export class Menu implements MenuInterface {
     return [...this.commands.values()].find(cmd => cmd.default);
   }
 
-  parseOptions(argv) {
+  parseCommandCandidate(argv) {
+    return argv[2];
+  }
+
+  parseOptions(argv: string[], command: Command) {
     const alias = this.getAliases();
-    const options = minimist(argv, { alias });
+    const flags = minimist(argv, { alias });
     const {
-      _: [, , commandCandidate],
-    } = options;
+      _: [, , , ...rest], // This is gonna be way too naive...
+    } = flags;
     const shorthand = new Set<string>(Object.keys(alias));
 
-    return {
-      commandCandidate,
-      options: Object.keys(options).reduce((memo, option) => {
-        if (!shorthand.has(option)) {
-          memo[option] = options[option];
+    return [...command.args].reduce(
+      (memo, flag) => {
+        if (shorthand.has(flag)) {
+          return memo;
+        }
+        if (flag in flags) {
+          memo[flag] = flags[flag];
+        } else {
+          const option = this.options.get(flag);
+
+          if ("default" in option) {
+            memo[flag] = option.default;
+          }
         }
         return memo;
-      }, {}),
-    };
+      },
+      { rest },
+    );
   }
 
   async selectFromArgv(argv: string[]): Promise<void> {
-    const { commandCandidate, options } = this.parseOptions(argv);
+    const commandCandidate = this.parseCommandCandidate(argv);
     const command = this.findCommand(commandCandidate) || this.defaultCommand();
+    const options = this.parseOptions(argv, command);
 
+    console.log(options);
     // the task belonging to any option will run instead of the command's task, because
     // options are finer-grained than commands. Concretely, `$ stable run -h` is equivalent
     // to running `$ stable help`, and doesn't invoke `$ stable run` machinery at all.

@@ -1,4 +1,4 @@
-import { CliArgKey, OptionType } from "./enums";
+import { CliArgKey, OptionType, ConfigOutputFormat } from "./enums";
 
 export interface CommandParams {
   name: string;
@@ -56,4 +56,11 @@ export interface Task {
 export interface CommandChoice {
   name: string;
   args: CliArgKey[];
+}
+
+export interface PrintConfigTaskParams {
+  "working-directory": string;
+  "output-format": ConfigOutputFormat;
+  rest: string[];
+  verbose: boolean;
 }

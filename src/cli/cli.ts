@@ -44,7 +44,11 @@ export const cli = new Menu({
       name: "config",
       emoji: "⚙️",
       help: `Print the config to stdout after performing the algorithm to load it relative to the given path, else the pwd. Stream the reports to stdout`,
-      args: [CliArgKey.OUTPUT_FORMAT],
+      args: [
+        CliArgKey.OUTPUT_FORMAT,
+        CliArgKey.WORKING_DIRECTORY,
+        CliArgKey.VERBOSE,
+      ],
       task: new PrintConfigTask(),
     }),
     new Command({
@@ -156,6 +160,12 @@ export const cli = new Menu({
       help: "don't send an exit code on failure.",
       type: OptionType.boolean,
       default: false,
+    }),
+    new Option({
+      name: CliArgKey.WORKING_DIRECTORY,
+      help: "a path to use instead of the pwd.",
+      type: OptionType.string,
+      default: process.cwd(),
     }),
     new Option({
       name: CliArgKey.HELP,

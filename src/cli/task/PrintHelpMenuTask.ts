@@ -4,10 +4,10 @@ import { Task, Menu, Command } from "../interfaces";
 export class PrintHelpMenuTask implements Task {
   private static printCommands(commands) {
     const values = [...commands.values()];
+
     return values
       .map(
-        ({ name, emoji, help }) =>
-          `${emoji} ${chalk.cyan(name)}\n\n${help}\n`,
+        ({ name, emoji, help }) => `${emoji} ${chalk.cyan(name)}\n\n${help}\n`,
       )
       .join("\n");
   }
@@ -41,7 +41,7 @@ export class PrintHelpMenuTask implements Task {
       .join("\n");
   }
 
-  run(parsed: any, command: Command, menu: Menu): void {
+  run(options: any, command: Command, menu: Menu): void {
     console.log(`Usage: ${chalk.bold("stable")} ${chalk.green(
       "[command] [glob] [options]",
     )}
