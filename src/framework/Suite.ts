@@ -18,7 +18,7 @@ import { Spec } from "./Spec";
 import { Hooks } from "./Hooks";
 import { Listeners } from "./Listeners";
 import { shuffle } from "./shuffle";
-import { flatMap } from "./flatMap";
+import { flatMap } from "../flatMap";
 import { required } from "./required";
 
 const { assign } = Object;

@@ -1,32 +1,52 @@
-// import * as chalk from "chalk";
+import chalk from "chalk";
 import { Task, Menu, Command } from "../interfaces";
 
 export class PrintHelpMenuTask implements Task {
-  //   static color([help]: TemplateStringsArray) {
-  //     return help
-  //       .replace(/(\[[^\]]+\])/g, (_, type) => chalk.green(type))
-  //       .replace(/(--?[a-z=]+)/g, (_, option) => chalk.blue(option));
-  //   }
   private static printCommands(commands) {
-    return [...commands.entries()]
+    const values = [...commands.values()];
+    return values
       .map(
-        ([command, { help }]) => `\n${command}\t${help}\n`,
+        ({ name, emoji, help }) =>
+          `${emoji} ${chalk.cyan(name)}\n\n${help}\n`,
       )
       .join("\n");
   }
 
+  private static printOption(name, short) {
+    return [short != null && `-${short}`, `--${name}`]
+      .filter(Boolean)
+      .join(", ");
+  }
+
   private static printOptions(options) {
-    return [...options.values()]
-      .map(({ short, name, help }) => `\n${[short != null && `-${short}`, `--${name}`].filter(Boolean).join(", ")}\t${help}\n`)
+    const values = [...options.values()];
+    const definitions = values.map(({ name, short }) =>
+      PrintHelpMenuTask.printOption(name, short),
+    );
+    const max = definitions
+      .map(it => it.length)
+      .reduce((a, b) => Math.max(a, b), 0);
+
+    return values
+      .map(
+        ({ help, type, default: defaultValue }, index) =>
+          `${chalk.blue(definitions[index].padEnd(max))}\t${help} ${chalk.green(
+            `[${type}]`,
+          )}${
+            defaultValue != null
+              ? chalk.green(` [default: ${defaultValue}]`)
+              : ""
+          }\n`,
+      )
       .join("\n");
   }
 
   run(parsed: any, command: Command, menu: Menu): void {
-    console.log(/*PrintHelpMenuTask.color*/ `
-Usage: 🐎 stable [command] [glob]
+    console.log(`Usage: ${chalk.bold("stable")} ${chalk.green(
+      "[command] [glob] [options]",
+    )}
 
 ${PrintHelpMenuTask.printCommands(menu.commands)}
-
 Options:
 
 ${PrintHelpMenuTask.printOptions(menu.options)}

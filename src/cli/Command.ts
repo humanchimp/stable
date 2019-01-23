@@ -7,6 +7,8 @@ import {
 import { CliArgKey } from "./enums";
 
 export class Command implements CommandInterface {
+  static toleratedArgs = new Set<CliArgKey>([CliArgKey.HELP]);
+
   name: string;
 
   args: Set<CliArgKey>;
@@ -17,18 +19,22 @@ export class Command implements CommandInterface {
 
   default: boolean;
 
+  emoji: string;
+
   constructor({
     name,
     args,
     help,
     task,
     default: isDefault = false,
+    emoji,
   }: CommandParams) {
     this.name = name;
     this.args = new Set<CliArgKey>(args);
     this.help = help;
     this.task = task;
     this.default = isDefault;
+    this.emoji = emoji;
   }
 
   run(args: any, menu: Menu) {
@@ -37,9 +43,11 @@ export class Command implements CommandInterface {
   }
 
   validateArgs(args: any): void {
-    const invalidArgs = Object.keys(args)
-      .filter(arg => arg !== "_")
-      .filter(arg => !new Set(this.args.keys()).has(args));
+    const invalidArgs = (Object.keys(args).filter(
+      arg => arg !== "_",
+    ) as CliArgKey[])
+      .filter(arg => !Command.toleratedArgs.has(arg))
+      .filter(arg => !this.args.has(arg));
 
     if (invalidArgs.length > 0) {
       throw new Error(`invalid arguments: ${invalidArgs.join(", ")}`);

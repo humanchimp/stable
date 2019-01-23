@@ -2,6 +2,7 @@ import { CliArgKey, OptionType } from "./enums";
 
 export interface CommandParams {
   name: string;
+  emoji: string;
   args: CliArgKey[];
   task: Task;
   help?: string;
@@ -10,6 +11,7 @@ export interface CommandParams {
 
 export interface Command {
   name: string;
+  emoji: string;
   args: Set<CliArgKey>;
   help: string;
   task: Task;

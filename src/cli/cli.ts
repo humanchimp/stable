@@ -11,7 +11,8 @@ export const cli = new Menu({
   commands: [
     new Command({
       name: "run",
-      help: "run the test suite using a runner.",
+      emoji: "🐎",
+      help: `If files are passed, start there, find .stablercs. If no files passed, start with the .stablerc in the pwd. Run every suite we find with the correct .stablerc.`,
       args: [
         CliArgKey.PARTITION,
         CliArgKey.PARTITIONS,
@@ -26,7 +27,8 @@ export const cli = new Menu({
     }),
     new Command({
       name: "bundle",
-      help: "bundle the test suite modules.",
+      emoji: "📦",
+      help: `Produce a bundle artifact, but don't run any tests.`,
       args: [
         CliArgKey.PARTITION,
         CliArgKey.PARTITIONS,
@@ -40,14 +42,15 @@ export const cli = new Menu({
     }),
     new Command({
       name: "config",
-      help:
-        "perform the algorithm to generate the config relative to the given path, else the pwd.",
+      emoji: "⚙️",
+      help: `Print the config to stdout after performing the algorithm to load it relative to the given path, else the pwd. Stream the reports to stdout`,
       args: [CliArgKey.OUTPUT_FORMAT],
       task: new PrintConfigTask(),
     }),
     new Command({
       name: "help",
-      help: "print this message.",
+      emoji: "🙃",
+      help: `Print this message.`,
       args: [],
       task: new PrintHelpMenuTask(),
     }),

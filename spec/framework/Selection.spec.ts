@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { flatMap } from "../../src/framework/flatMap";
+import { flatMap } from "../../src/flatMap";
 import { partitionRangeForTotal } from "../../src/framework/partititionRangeForTotal";
 import { Selection } from "../../src/framework/Selection";
 import { describe as libDescribe } from "../../src/framework/describe";
