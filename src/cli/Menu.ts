@@ -16,15 +16,15 @@ export class Menu implements MenuInterface {
     this.options = this.makeMap<Option>(options);
   }
 
-  findCommand(command) {
+  findCommand(command: string): Command {
     return this.commands.get(command);
   }
 
-  defaultCommand() {
+  defaultCommand(): Command {
     return [...this.commands.values()].find(cmd => cmd.default);
   }
 
-  parseCommandCandidate(argv) {
+  parseCommandCandidate(argv): string {
     return argv[2];
   }
 
@@ -61,7 +61,6 @@ export class Menu implements MenuInterface {
     const command = this.findCommand(commandCandidate) || this.defaultCommand();
     const options = this.parseOptions(argv, command);
 
-    console.log(options);
     // the task belonging to any option will run instead of the command's task, because
     // options are finer-grained than commands. Concretely, `$ stable run -h` is equivalent
     // to running `$ stable help`, and doesn't invoke `$ stable run` machinery at all.

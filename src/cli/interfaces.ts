@@ -63,4 +63,57 @@ export interface PrintConfigTaskParams {
   "output-format": ConfigOutputFormat;
   rest: string[];
   verbose: boolean;
+  log: LogEffect;
+}
+
+export interface LogEffect {
+  (...rest: any[]): void;
+}
+
+export interface StablercFromFileParams {
+  plugins: boolean;
+}
+
+export interface StablercPlugin {}
+
+export interface StablercDocument {
+  extends?: string[];
+
+  include?: string[];
+
+  exclude?: string[];
+
+  runners?: Runner[];
+
+  plugins?: StablercPlugin[];
+}
+
+export interface Runner {}
+
+export interface StablercChain {
+  filename: string;
+
+  plugins: boolean;
+
+  stablercs: StablercEntry[];
+
+  add(entry: StablercEntry): StablercChain;
+}
+
+export interface StablercEntry {
+  filename: string;
+
+  document: StablercDocument;
+}
+
+export interface StablercParams {
+  filename: string;
+
+  document: StablercDocument;
+}
+
+export interface SpecEntry {
+  entry: string;
+
+  stablerc: string;
 }

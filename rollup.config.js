@@ -1,6 +1,6 @@
 import babel from "rollup-plugin-babel";
 import nodeResolve from "rollup-plugin-node-resolve";
-import commonjs from"rollup-plugin-commonjs";
+import commonjs from "rollup-plugin-commonjs";
 import typescript from "rollup-plugin-typescript";
 import typescript3 from "typescript";
 
@@ -40,6 +40,16 @@ export default {
     nodeResolve({
       extensions: [".js", ".ts"],
     }),
-    commonjs({ include: 'node_modules/**' }),
+    ...process.env.CLI ? [
+      commonjs({
+        include: 'node_modules/**',
+        namedExports: {
+          // left-hand side can be an absolute path, a path
+          // relative to the current directory, or the name
+          // of a module in node_modules
+          'fs-extra': [ 'readFile' ],
+          'js-yaml': [ 'safeLoad', 'safeDump' ]
+        }
+      }) ] : [],
   ],
 };

@@ -21,13 +21,20 @@ export enum CliArgKey {
 }
 
 export enum OptionType {
-  boolean = "boolean",
-  string = "string",
-  number = "number",
-  stringOrBoolean = "string or boolean",
+  BOOLEAN = "boolean",
+  STRING = "string",
+  NUMBER = "number",
+  STRING_OR_BOOLEAN = "string or boolean",
 }
 
 export enum ConfigOutputFormat {
   YAML = "yaml",
   JSON = "json",
+  INSPECT = "inspect",
+}
+
+export enum StablercDetectionType {
+  INCLUDE = "include",
+  EXCLUDE = "exclude",
+  EXTENDS = "extends",
 }
