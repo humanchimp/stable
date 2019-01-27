@@ -1,4 +1,10 @@
-import { CliArgKey, OptionType, ConfigOutputFormat } from "./enums";
+import {
+  CliArgKey,
+  OptionType,
+  ConfigOutputFormat,
+  StablercType,
+} from "./enums";
+import { StablercFile } from "./stablerc/StablercFile";
 
 export interface CommandParams {
   name: string;
@@ -95,18 +101,24 @@ export interface StablercChain {
 
   plugins: boolean;
 
-  stablercs: StablercEntry[];
+  inheritance: StablercEntry[];
+}
 
-  add(entry: StablercEntry): StablercChain;
+export interface StablercChainParams {
+  inheritance: StablercEntry[];
+
+  plugins: boolean;
 }
 
 export interface StablercEntry {
   filename: string;
 
-  document: StablercDocument;
+  file: StablercFile;
+
+  // type: StablercEntry.TYPE;
 }
 
-export interface StablercParams {
+export interface StablercFileParams {
   filename: string;
 
   document: StablercDocument;

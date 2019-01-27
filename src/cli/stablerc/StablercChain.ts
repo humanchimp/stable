@@ -1,12 +1,11 @@
-import { join, dirname } from "path";
-import glob from "fast-glob";
 import {
   StablercFromFileParams,
   StablercChain as StablercChainInterface,
   StablercEntry,
+  StablercChainParams,
 } from "../interfaces";
-import { Stablerc } from "./Stablerc";
-import { nearestStablerc } from "./nearestStablerc";
+import { StablercFile } from "./StablercFile";
+import { isAbsolute, join, dirname } from "path";
 
 export class StablercChain implements StablercChainInterface {
   filename: string;
@@ -15,100 +14,83 @@ export class StablercChain implements StablercChainInterface {
 
   exclude: string[];
 
-  stablercs: StablercEntry[] = [];
+  inheritance: StablercEntry[] = [];
 
   plugins: boolean;
 
-  files: Map<string, Stablerc>;
+  files: Map<string, StablercFile>;
 
-  add(entry: StablercEntry): StablercChain {
-    this.stablercs.push(entry);
-    return this;
+  constructor({ inheritance, plugins = false }: StablercChainParams) {
+    this.inheritance = inheritance;
+    this.plugins = plugins;
   }
 
-  flat(): Stablerc {
-    return new Stablerc({
+  // add(entry: StablercEntry): StablercChain {
+  //   this.stablercs.push(entry);
+  //   return this;
+  // }
+
+  flat(): StablercFile {
+    return new StablercFile({
       filename: this.filename,
-      document: this.stablercs.reduce((memo, { document }) => {
-        for (const key of ["plugins", "includes", "excludes", "runners"]) {
-          if (document[key] != null) {
-            memo[key] = document[key];
-          }
+      document: this.inheritance.reduce((memo, { file: { document } }) => {
+        for (const key of ["plugins", "include", "exclude", "runners"]) {
+          memo[key] = [].concat(memo[key], document[key]).filter(Boolean);
         }
         return memo;
       }, {}),
     });
   }
 
-  static async fromFile(
+  private static *inheritance(
+    filename: string,
+    files: Map<string, StablercFile>,
+  ): IterableIterator<StablercEntry> {
+    const file = files.get(filename);
+
+    yield { filename, file };
+
+    for (const parentFilename of file.document.extends.map(path =>
+      isAbsolute(path) ? path : join(dirname(filename), path),
+    )) {
+      yield* StablercChain.inheritance(parentFilename, files);
+    }
+  }
+
+  static async load(
     filename: string,
     params: StablercFromFileParams,
+    files?: Map<string, StablercFile>,
   ): Promise<StablercChain> {
-    const chain: StablercChain = new StablercChain();
-    const stablercs: Map<string, Stablerc> = new Map();
-    const moar: string[] = [];
+    if (files == null) {
+      files = await StablercFile.loadAll(filename, params);
+    }
 
-    do {
-      if (stablercs.has(filename)) {
-        continue;
-      }
-      const stablerc: Stablerc = await Stablerc.fromFile(filename, {
-        ...params,
-        plugins: false,
-      });
-      const { document } = stablerc;
+    return new StablercChain({
+      inheritance: [...StablercChain.inheritance(filename, files)],
+      plugins: params.plugins,
+    });
+  }
 
-      const [extend, include] = await Promise.all([
-        moarFiles(filename, document.extends),
-        moarFiles(filename, document.include),
-      ]);
+  static async loadAll(
+    filename: string,
+    params: StablercFromFileParams,
+    files?: Map<string, StablercFile>,
+  ): Promise<Map<string, StablercChain>> {
+    if (files == null) {
+      files = await StablercFile.loadAll(filename, params);
+    }
 
+    return new Map(
       await Promise.all(
-        [include, extend].map(source => appendMoar(moar, source)),
-      );
-
-      stablercs.set(filename, stablerc);
-    } while ((filename = moar.pop()));
-
-    console.log(stablercs);
-
-    // for(;;){
-    //   const stablerc: Stablerc = await Stablerc.fromFile(filename, params);
-    //   const { document } = stablerc;
-
-    //   // if (document.include) {
-    //   //   moar.push(...await glob(document.include));
-    //   // }
-
-    //   if (document.extends != null && document.extends.length > 0) {
-    //     const extend = []
-    //       .concat(document.extends)
-    //       .map(f => join(dirname(filename), f));
-
-    //     moar.push(...extend);
-    //     chain.add({
-    //       filename,
-    //       document,
-    //     });
-
-    //   }
-    // }
-
-    return chain;
-  }
-}
-
-async function* moarFiles(relative, patterns) {
-  const cwd = dirname(relative);
-
-  for (const filename of await glob(patterns, { cwd })) {
-    yield await nearestStablerc(join(cwd, filename));
-  }
-}
-
-async function appendMoar(moar, source) {
-  for await (const filename of source) {
-    console.log(filename);
-    moar.push(filename);
+        [...files.entries()].map(
+          async ([filename]) =>
+            [filename, await StablercChain.load(filename, params, files)] as [
+              string,
+              StablercChain
+            ],
+        ),
+      ),
+    );
   }
 }

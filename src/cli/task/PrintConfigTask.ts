@@ -7,9 +7,10 @@ import { Task, PrintConfigTaskParams, LogEffect } from "../interfaces";
 import { uniq } from "../uniq";
 import { stat } from "../stat";
 import { StablercChain } from "../stablerc/StablercChain";
-import { Stablerc } from "../stablerc/Stablerc";
+import { StablercFile } from "../stablerc/StablercFile";
 import { ConfigOutputFormat } from "../enums";
 import { nearestStablerc } from "../stablerc/nearestStablerc";
+import { loadMap } from "../stablerc/loadMap";
 
 class Run {
   entries: string[];
@@ -20,7 +21,7 @@ class Run {
 
   private stablercChains: Promise<StablercChain[]>;
 
-  stablercs: Promise<Stablerc[]>;
+  stablercs: Promise<StablercFile[]>;
 
   verbose: boolean;
 
@@ -69,7 +70,7 @@ class Run {
       this.log(`${chalk.bold("resolved:")} ${this.resolved}`);
       this.log(`${chalk.bold("stablerc files:")} ${await this.stablercFiles}`);
       this.log(`${chalk.bold("stablerc chains:")}`, await this.stablercChains);
-      this.log(`${chalk.bold("stablercs:")}`, this.stablercs);
+      this.log(`${chalk.bold("stablercs:")}`, await this.stablercs);
       this.log(`${chalk.bold("output format:")} ${this.format}`);
     }
     this.log(this.dump(this.stablercs));
@@ -87,15 +88,15 @@ class Run {
     );
   }
 
-  private async computeStablercChains(): Promise<StablercChain[]> {
+  private async computeStablercChains(): Promise<Map<string, StablercChain>[]> {
     return Promise.all(
       (await this.stablercFiles).map(filename =>
-        StablercChain.fromFile(filename, { plugins: true }),
+        loadMap(filename, { plugins: true }),
       ),
     );
   }
 
-  private async computeStablercs(): Promise<Stablerc[]> {
+  private async computeStablercs(): Promise<StablercFile[]> {
     return (await this.stablercChains).map(chain => chain.flat());
   }
 }
