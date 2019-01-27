@@ -93,7 +93,41 @@ It makes sense to disable `nyc` instrumentation, since `stable` performs code in
 
 ## configuration
 
-Optionally, you can control your configuration with finer grain using file-relative `.stablerc` files. These files contain YAML dictionaries (or JSON) and are capable of configuring plugins and enabling runners by default. In practice, runners probably need to be overridden in CI because you probabaly want to use separate [containers](./cloud-builders) to run your tests against various browsers.
+Optionally, you can control your configuration with finer grain using file-relative `.stablerc` files.
+
+`.stablerc` files can inherit from each other using an explicit `extends` directive, enabling local and global configuration.
+
+For instance, say you have some code meant to run in node, and some other code meant to run in both node and in browsers. You could define your configuration like this:
+
+```yaml
+plugins:
+- - timing
+  - timeout: 200
+```
+_Figure 1_: `project/.stablerc` Global configuration.
+
+```yaml
+runners:
+- isolate
+- headless chrome
+- jsdom
+```
+_Figure 2_: `project/spec/lib/.stablerc` The configuration for tests meant to run in both node and browsers.
+
+```yaml
+runners:
+- isolate
+```
+_Figure 3_: `project/spec/server/.stablerc` The configuration for tests meant to run only in node.
+
+```yaml
+runners:
+- headless chrome
+- jsdom
+```
+_Figure 4_: `project/spec/ui/.stablrc` The configuration for tests meant to run only in browsers.
+
+These files contain YAML dictionaries (or JSON) and are capable of configuring plugins and enabling runners by default. In practice, runners probably need to be overridden in CI because you probabaly want to use separate [containers](./cloud-builders) to run your tests against various browsers.
 
 ## some words for now
 
