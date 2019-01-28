@@ -25,11 +25,6 @@ export class StablercChain implements StablercChainInterface {
     this.plugins = plugins;
   }
 
-  // add(entry: StablercEntry): StablercChain {
-  //   this.stablercs.push(entry);
-  //   return this;
-  // }
-
   flat(): StablercFile {
     return new StablercFile({
       filename: this.filename,

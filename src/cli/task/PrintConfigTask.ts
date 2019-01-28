@@ -1,4 +1,4 @@
-import { join, isAbsolute, dirname } from "path";
+import { join, isAbsolute, dirname, relative } from "path";
 import chalk from "chalk";
 import { highlight } from "cli-highlight";
 import { safeDump } from "js-yaml";
@@ -17,11 +17,13 @@ class Run {
 
   resolved: string[];
 
+  private cwd: string;
+
   private stablercFiles: Promise<string[]>;
 
-  private stablercChains: Promise<StablercChain[]>;
+  private stablercChains: Promise<Map<string, StablercChain>[]>;
 
-  stablercs: Promise<StablercFile[]>;
+  private stablercs: Promise<Map<string, StablercFile>[]>;
 
   verbose: boolean;
 
@@ -36,6 +38,7 @@ class Run {
     verbose,
     log = console.log,
   }: PrintConfigTaskParams) {
+    this.cwd = cwd;
     this.entries = entries;
     this.resolved = entries.map(entry =>
       isAbsolute(entry) ? entry : join(cwd, entry),
@@ -51,7 +54,7 @@ class Run {
   dump(document) {
     switch (this.format) {
       case ConfigOutputFormat.YAML:
-        return highlight(safeDump(document, { skipInvalid: true }), {
+        return highlight(safeDump(document), {
           language: "yaml",
         });
       case ConfigOutputFormat.JSON:
@@ -73,11 +76,12 @@ class Run {
       this.log(`${chalk.bold("stablercs:")}`, await this.stablercs);
       this.log(`${chalk.bold("output format:")} ${this.format}`);
     }
-    this.log(this.dump(this.stablercs));
-    // this.log(this.dump(this.resolved.reduce((memo, spec) => ({
-    //   spec,
-    //   stablerc
-    // }), Object.create(null))));
+
+    const stablercs = await this.stablercs;
+
+    for (const stablerc of stablercs) {
+      this.log(this.dump(this.dumpMap(stablerc)));
+    }
   }
 
   private async computeStablercFiles(): Promise<string[]> {
@@ -96,8 +100,23 @@ class Run {
     );
   }
 
-  private async computeStablercs(): Promise<StablercFile[]> {
-    return (await this.stablercChains).map(chain => chain.flat());
+  private async computeStablercs(): Promise<Map<string, StablercFile>[]> {
+    return (await this.stablercChains).map(
+      map =>
+        new Map(
+          [...map.entries()].map(
+            ([filename, chain]) =>
+              [filename, chain.flat()] as [string, StablercFile],
+          ),
+        ),
+    );
+  }
+
+  private dumpMap(spec) {
+    return [...spec.entries()].reduce((memo, [filename, { document }]) => {
+      memo[relative(this.cwd, filename)] = document;
+      return memo;
+    }, Object.create(null));
   }
 }
 
@@ -111,6 +130,7 @@ async function directoriesFor(files) {
     stats.isDirectory() ? filename : dirname(filename),
   );
 }
+
 
 export class PrintConfigTask implements Task {
   async run(params: PrintConfigTaskParams): Promise<void> {

@@ -105,7 +105,7 @@ export interface StablercChain {
 }
 
 export interface StablercChainParams {
-  inheritance: StablercEntry[];
+  inheritance?: StablercEntry[];
 
   plugins: boolean;
 }
