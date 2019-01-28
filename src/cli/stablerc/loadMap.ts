@@ -11,26 +11,17 @@ export async function loadMap(
   const chains = await StablercChain.loadAll(filename, params);
   const relativeIncludes = chains
     .get(filename)
-    .inheritance.reduce(
-      (
-        memo,
-        {
-          filename,
-          file: {
-            document: { include },
-          },
-        }: StablercEntry,
-      ) => {
-        if (include.length > 0) {
-          memo.push({
-            include,
-            cwd: dirname(filename),
-          });
-        }
-        return memo;
-      },
-      [],
-    );
+    .inheritance.filter(
+      ({
+        file: {
+          document: { include },
+        },
+      }) => include.length > 0,
+    )
+    .map(({ filename, file: { document: { include } } }) => ({
+      include,
+      cwd: dirname(filename),
+    }));
   const specFiles = [
     ...new Set([
       ...(await Promise.all(

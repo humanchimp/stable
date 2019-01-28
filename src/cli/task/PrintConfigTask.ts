@@ -131,7 +131,6 @@ async function directoriesFor(files) {
   );
 }
 
-
 export class PrintConfigTask implements Task {
   async run(params: PrintConfigTaskParams): Promise<void> {
     await new Run(params).go();
