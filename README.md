@@ -107,6 +107,7 @@ plugins:
 _Figure 1_: `project/.stablerc` Global configuration.
 
 ```yaml
+extends: ..
 runners:
 - isolate
 - headless chrome
@@ -115,12 +116,14 @@ runners:
 _Figure 2_: `project/spec/lib/.stablerc` The configuration for tests meant to run in both node and browsers.
 
 ```yaml
+extends: ..
 runners:
 - isolate
 ```
 _Figure 3_: `project/spec/server/.stablerc` The configuration for tests meant to run only in node.
 
 ```yaml
+extends: ..
 runners:
 - headless chrome
 - jsdom
