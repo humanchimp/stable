@@ -18,6 +18,7 @@ export enum CliArgKey {
   HIDE_SKIPS = "hide-skips",
   COVERAGE = "coverage",
   REST = "rest",
+  LIST_BY_SPEC = "list-by-spec",
 }
 
 export enum OptionType {

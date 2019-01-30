@@ -47,6 +47,7 @@ export const cli = new Menu({
       args: [
         CliArgKey.OUTPUT_FORMAT,
         CliArgKey.WORKING_DIRECTORY,
+        CliArgKey.LIST_BY_SPEC,
         CliArgKey.VERBOSE,
       ],
       task: new PrintConfigTask(),
@@ -175,5 +176,11 @@ export const cli = new Menu({
       default: false,
       task: new PrintHelpMenuTask(),
     }),
+    new Option({
+      name: CliArgKey.LIST_BY_SPEC,
+      help: "list output by spec rather than stablerc",
+      type: OptionType.BOOLEAN,
+      default: false,
+    })
   ],
 });

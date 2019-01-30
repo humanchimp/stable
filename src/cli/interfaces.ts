@@ -67,6 +67,7 @@ export interface CommandChoice {
 export interface PrintConfigTaskParams {
   "working-directory": string;
   "output-format": ConfigOutputFormat;
+  "list-by-spec": boolean;
   rest: string[];
   verbose: boolean;
   log: LogEffect;

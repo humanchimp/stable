@@ -3,12 +3,18 @@ import glob from "fast-glob";
 import { dirname, join } from "path";
 import { StablercChain } from "./StablercChain";
 import { nearestStablerc } from "./nearestStablerc";
+import { StablercFile } from "./StablercFile";
 
 export async function loadMap(
   filename: string,
   params: StablercChainParams,
-): Promise<Map<string, StablercChain>> {
+): Promise<Map<string, StablercFile>> {
   const chains = await StablercChain.loadAll(filename, params);
+  const flattened = new Map(
+    [...chains.entries()].map(
+      ([filename, chain]) => [filename, chain.flat()] as [string, StablercFile],
+    ),
+  );
   const relativeIncludes = chains
     .get(filename)
     .inheritance.filter(
@@ -19,7 +25,7 @@ export async function loadMap(
       }) => include.length > 0,
     )
     .map(({ filename, file: { document: { include } } }) => ({
-      include,
+      include: (console.log(include), include),
       cwd: dirname(filename),
     }));
   const specFiles = [
@@ -37,13 +43,13 @@ export async function loadMap(
       ),
     ]),
   ];
-  const map: Map<string, StablercChain> = new Map(
+  const map: Map<string, StablercFile> = new Map(
     await Promise.all(
       specFiles.map(
         async specFile =>
-          [specFile, chains.get(await nearestStablerc(specFile))] as [
+          [specFile, flattened.get(await nearestStablerc(specFile))] as [
             string,
-            StablercChain
+            StablercFile
           ],
       ),
     ),

@@ -13,11 +13,13 @@ import { nearestStablerc } from "../stablerc/nearestStablerc";
 import { loadMap } from "../stablerc/loadMap";
 
 class Run {
-  entries: string[];
+  private entries: string[];
 
-  resolved: string[];
+  private resolved: string[];
 
   private cwd: string;
+
+  private bySpec: boolean;
 
   private stablercFiles: Promise<string[]>;
 
@@ -25,26 +27,27 @@ class Run {
 
   private stablercs: Promise<Map<string, StablercFile>[]>;
 
-  verbose: boolean;
+  private verbose: boolean;
 
-  format: string;
+  private format: string;
 
   private log: LogEffect;
 
   constructor({
     "output-format": format,
     "working-directory": cwd,
+    "list-by-spec": bySpec,
     rest: entries,
     verbose,
     log = console.log,
   }: PrintConfigTaskParams) {
     this.cwd = cwd;
     this.entries = entries;
+    this.bySpec = bySpec;
     this.resolved = entries.map(entry =>
       isAbsolute(entry) ? entry : join(cwd, entry),
     );
     this.stablercFiles = this.computeStablercFiles();
-    this.stablercChains = this.computeStablercChains();
     this.stablercs = this.computeStablercs();
     this.verbose = verbose;
     this.format = format;
@@ -92,31 +95,19 @@ class Run {
     );
   }
 
-  private async computeStablercChains(): Promise<Map<string, StablercChain>[]> {
+  private async computeStablercs(): Promise<Map<string, StablercFile>[]> {
     return Promise.all(
       (await this.stablercFiles).map(filename =>
-        loadMap(filename, { plugins: true }),
+        this.bySpec ? loadMap(filename, { plugins: true }) : new Map([[ "hi",  42 ]]),
       ),
     );
   }
 
-  private async computeStablercs(): Promise<Map<string, StablercFile>[]> {
-    return (await this.stablercChains).map(
-      map =>
-        new Map(
-          [...map.entries()].map(
-            ([filename, chain]) =>
-              [filename, chain.flat()] as [string, StablercFile],
-          ),
-        ),
-    );
-  }
-
   private dumpMap(spec) {
-    return [...spec.entries()].reduce((memo, [filename, { document }]) => {
-      memo[relative(this.cwd, filename)] = document;
-      return memo;
-    }, Object.create(null));
+    return [...spec.entries()].map(([filename, { document }]) => ({
+      filename,
+      config: document,
+    }));
   }
 }
 
