@@ -36,7 +36,7 @@ export class Menu implements MenuInterface {
     } = flags;
     const shorthand = new Set<string>(Object.keys(alias));
 
-    return [...command.args].reduce(
+    return [...new Set([...Object.keys(flags), ...command.args])].reduce(
       (memo, flag) => {
         if (shorthand.has(flag)) {
           return memo;

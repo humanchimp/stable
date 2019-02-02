@@ -5,7 +5,7 @@ import { StablercChain } from "./StablercChain";
 import { nearestStablerc } from "./nearestStablerc";
 import { StablercFile } from "./StablercFile";
 
-export async function loadMap(
+export async function loadSpecMap(
   filename: string,
   params: StablercChainParams,
 ): Promise<Map<string, StablercFile>> {
@@ -25,7 +25,7 @@ export async function loadMap(
       }) => include.length > 0,
     )
     .map(({ filename, file: { document: { include } } }) => ({
-      include: (console.log(include), include),
+      include: include,
       cwd: dirname(filename),
     }));
   const specFiles = [
@@ -37,7 +37,7 @@ export async function loadMap(
           files: await glob(include, { cwd }),
         })),
       )).reduce(
-        (memo, { cwd, files }) =>
+        (memo: string[], { cwd, files }) =>
           memo.concat(files.map(file => join(cwd, file))),
         [],
       ),

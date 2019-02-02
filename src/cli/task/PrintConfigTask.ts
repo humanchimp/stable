@@ -1,4 +1,4 @@
-import { join, isAbsolute, dirname, relative } from "path";
+import { join, isAbsolute, dirname } from "path";
 import chalk from "chalk";
 import { highlight } from "cli-highlight";
 import { safeDump } from "js-yaml";
@@ -10,7 +10,8 @@ import { StablercChain } from "../stablerc/StablercChain";
 import { StablercFile } from "../stablerc/StablercFile";
 import { ConfigOutputFormat } from "../enums";
 import { nearestStablerc } from "../stablerc/nearestStablerc";
-import { loadMap } from "../stablerc/loadMap";
+import { loadSpecMap } from "../stablerc/loadSpecMap";
+import { loadStablercMap } from "../stablerc/loadStablercMap";
 
 class Run {
   private entries: string[];
@@ -98,7 +99,9 @@ class Run {
   private async computeStablercs(): Promise<Map<string, StablercFile>[]> {
     return Promise.all(
       (await this.stablercFiles).map(filename =>
-        this.bySpec ? loadMap(filename, { plugins: true }) : new Map([[ "hi",  42 ]]),
+        (this.bySpec ? loadSpecMap : loadStablercMap)(filename, {
+          plugins: true,
+        }),
       ),
     );
   }

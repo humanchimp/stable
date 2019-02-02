@@ -13,8 +13,7 @@ export default {
     sourcemap: "inline",
   },
   external: id =>
-    (id[0] !== "." && !isAbsolute(id)) ||
-    id.slice(-5, id.length) === ".json",
+    (id[0] !== "." && !isAbsolute(id)) || id.slice(-5, id.length) === ".json",
   plugins: [
     typescript({
       typescript: typescript3,

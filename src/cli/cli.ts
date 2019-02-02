@@ -181,6 +181,6 @@ export const cli = new Menu({
       help: "list output by spec rather than stablerc",
       type: OptionType.BOOLEAN,
       default: false,
-    })
+    }),
   ],
 });
