@@ -1,5 +1,4 @@
 import { expect } from "chai";
-import { flatMap } from "../../src/flatMap";
 import { partitionRangeForTotal } from "../../src/framework/partititionRangeForTotal";
 import { Selection } from "../../src/framework/Selection";
 import { describe as libDescribe } from "../../src/framework/describe";
@@ -87,7 +86,7 @@ describe("Selection", () => {
   describe(".partition(total, partition, partitions)", () => {
     const specs = [...fixtureSuite.orderedJobs()];
     const { length: total } = specs;
-    const table = flatMap(Array(total).fill(0), (_, i) =>
+    const table = Array(total).fill(0).flatMap((_, i) =>
       Array(i)
         .fill(0)
         .map((_, ii) => [ii, i]),

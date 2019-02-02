@@ -18,7 +18,6 @@ import { Spec } from "./Spec";
 import { Hooks } from "./Hooks";
 import { Listeners } from "./Listeners";
 import { shuffle } from "./shuffle";
-import { flatMap } from "../flatMap";
 import { required } from "./required";
 
 const { assign } = Object;
@@ -485,11 +484,10 @@ export class Suite implements SuiteInterface {
       return;
     }
     const suites = [...this.andParents()];
-    const afterEach = flatMap(suites, suite => suite.hooks.afterEach);
-    const beforeEach = flatMap(
-      suites.reverse(),
-      suite => suite.hooks.beforeEach,
-    );
+    const afterEach = suites.flatMap(suite => suite.hooks.afterEach);
+    const beforeEach = suites
+      .reverse()
+      .flatMap(suite => suite.hooks.beforeEach);
 
     this.computedHooks = { beforeEach, afterEach };
   }
