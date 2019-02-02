@@ -6,7 +6,6 @@ import { Stats } from "fs";
 import { Task, PrintConfigTaskParams, LogEffect } from "../interfaces";
 import { uniq } from "../uniq";
 import { stat } from "../stat";
-import { StablercChain } from "../stablerc/StablercChain";
 import { StablercFile } from "../stablerc/StablercFile";
 import { ConfigOutputFormat } from "../enums";
 import { nearestStablerc } from "../stablerc/nearestStablerc";
@@ -18,13 +17,9 @@ class Run {
 
   private resolved: string[];
 
-  private cwd: string;
-
   private bySpec: boolean;
 
   private stablercFiles: Promise<string[]>;
-
-  private stablercChains: Promise<Map<string, StablercChain>[]>;
 
   private stablercs: Promise<Map<string, StablercFile>[]>;
 
@@ -42,7 +37,6 @@ class Run {
     verbose,
     log = console.log,
   }: PrintConfigTaskParams) {
-    this.cwd = cwd;
     this.entries = entries;
     this.bySpec = bySpec;
     this.resolved = entries.map(entry =>
@@ -76,7 +70,6 @@ class Run {
       this.log(`${chalk.bold("entries:")} ${this.entries}`);
       this.log(`${chalk.bold("resolved:")} ${this.resolved}`);
       this.log(`${chalk.bold("stablerc files:")} ${await this.stablercFiles}`);
-      this.log(`${chalk.bold("stablerc chains:")}`, await this.stablercChains);
       this.log(`${chalk.bold("stablercs:")}`, await this.stablercs);
       this.log(`${chalk.bold("output format:")} ${this.format}`);
     }
