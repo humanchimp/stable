@@ -86,11 +86,13 @@ describe("Selection", () => {
   describe(".partition(total, partition, partitions)", () => {
     const specs = [...fixtureSuite.orderedJobs()];
     const { length: total } = specs;
-    const table = Array(total).fill(0).flatMap((_, i) =>
-      Array(i)
-        .fill(0)
-        .map((_, ii) => [ii, i]),
-    );
+    const table = Array(total)
+      .fill(0)
+      .flatMap((_, i) =>
+        Array(i)
+          .fill(0)
+          .map((_, ii) => [ii, i]),
+      );
 
     describeEach(
       "reasonable paritioning schemes",

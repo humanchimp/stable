@@ -5,6 +5,7 @@ import {
   Command,
   Option,
 } from "./interfaces";
+import { CliArgs } from "./types";
 
 export class Menu implements MenuInterface {
   commands: Map<string, Command>;
@@ -28,7 +29,7 @@ export class Menu implements MenuInterface {
     return argv[2];
   }
 
-  parseOptions(argv: string[], command: Command) {
+  parseOptions(argv: string[], command: Command): CliArgs {
     const alias = this.getAliases();
     const flags = minimist(argv, { alias });
     const {
@@ -76,7 +77,7 @@ export class Menu implements MenuInterface {
       : command.run(options, this));
   }
 
-  private getAliases() {
+  private getAliases(): {} {
     return [...this.options.values()]
       .filter(option => option.short != null)
       .reduce((memo, { short, name }) => {

@@ -5,6 +5,7 @@ import {
   Menu,
 } from "./interfaces";
 import { CliArgKey } from "./enums";
+import { CliArgs } from "./types";
 
 export class Command implements CommandInterface {
   static toleratedArgs = new Set<CliArgKey>([CliArgKey.HELP, CliArgKey.REST]);
@@ -37,12 +38,12 @@ export class Command implements CommandInterface {
     this.emoji = emoji;
   }
 
-  run(args: any, menu: Menu) {
+  run(args: CliArgs, menu: Menu) {
     this.validateArgs(args);
     this.task.run(args, this, menu);
   }
 
-  validateArgs(args: any): void {
+  validateArgs(args: CliArgs): void {
     const invalidArgs = (Object.keys(args).filter(
       arg => arg !== "_",
     ) as CliArgKey[])
