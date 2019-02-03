@@ -17,16 +17,8 @@ export class Menu implements MenuInterface {
     this.options = this.makeMap<Option>(options);
   }
 
-  findCommand(command: string): Command {
-    return this.commands.get(command);
-  }
-
   defaultCommand(): Command {
     return [...this.commands.values()].find(cmd => cmd.default);
-  }
-
-  parseCommandCandidate(argv): string {
-    return argv[2];
   }
 
   parseOptions(argv: string[], command: Command): CliArgs {
@@ -59,7 +51,7 @@ export class Menu implements MenuInterface {
 
   async selectFromArgv(argv: string[]): Promise<void> {
     const commandCandidate = this.parseCommandCandidate(argv);
-    const command = this.findCommand(commandCandidate) || this.defaultCommand();
+    const command = this.commands.get(commandCandidate) || this.defaultCommand();
     const options = this.parseOptions(argv, command);
 
     // the task belonging to any option will run instead of the command's task, because
@@ -75,6 +67,10 @@ export class Menu implements MenuInterface {
     await (task != null
       ? task.run(options, null, this)
       : command.run(options, this));
+  }
+
+  private parseCommandCandidate(argv): string {
+    return argv[2];
   }
 
   private getAliases(): {} {

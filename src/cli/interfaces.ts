@@ -46,7 +46,6 @@ export interface OptionParams {
 export interface Menu {
   commands: Map<string, Command>;
   options: Map<string, Option>;
-  findCommand(commandName: string): Command;
   selectFromArgv(argv: string[]): Promise<void>;
 }
 

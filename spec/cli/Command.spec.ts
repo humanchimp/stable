@@ -41,7 +41,6 @@ describe("Command", () => {
         menuMock = {
           commands: new Map<string, Command>([[name, subject]]),
           options: args,
-          findCommand: createSpy(),
           selectFromArgv: createSpy(),
         };
       });
@@ -153,7 +152,7 @@ describe("Command", () => {
 
     beforeEach(() => {
       subject = new Command({
-        name: 'no default',
+        name: "no default",
         help: "meta command without explicit default option",
         emoji: "🥫",
         args: [],
