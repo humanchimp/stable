@@ -22,12 +22,18 @@ exports.runCommand = async function runCommand(params) {
   for (const [config, files] of bundles.entries()) {
     const outFile = outFileParam != null ? outFileParam : await tmpName();
 
-    const runners =
-      runner == null
-        ? config.runners == null || config.runners.length === 0
-          ? [defaultRunner]
-          : config.runners
-        : [runner];
+    const runners = (() => {
+      if (config.runners == null || config.runners.length === 0) {
+        return [defaultRunner];
+      }
+      if (runner == null) {
+        return config.runners;
+      }
+      if (config.runners.includes(runner)) {
+        return [runner];
+      }
+      return [];
+    })();
 
     for (const runner of runners) {
       await bundleCommand({
