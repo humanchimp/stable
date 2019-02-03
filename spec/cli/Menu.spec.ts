@@ -1,7 +1,8 @@
 import { expect } from "chai";
+import { spy as createSpy, SinonSpy } from "sinon";
 import { Menu } from "../../src/cli/Menu";
 import { Command, Option } from "../../src/cli/interfaces";
-import { OptionType } from "../../src/cli/enums";
+import { OptionType, CliArgKey } from "../../src/cli/enums";
 
 describe("Menu", () => {
   let subject: Menu;
@@ -76,41 +77,54 @@ describe("Menu", () => {
   });
 
   describe(".parseOptions(argv: string[], command: string", () => {
-    const explicitCommand = mockCommand("command");
+    const options = [
+      {
+        name: CliArgKey.PORT,
+        short: "s",
+        help: "a short option",
+        type: OptionType.NUMBER,
+        default: 0,
+      },
+      {
+        name: CliArgKey.LIST_BY_SPEC,
+        short: "l",
+        help: "an option with a dash",
+        type: OptionType.BOOLEAN,
+        default: false,
+      },
+      {
+        name: CliArgKey.QUIET,
+        short: "b",
+        help: "a boolean flag",
+        type: OptionType.BOOLEAN,
+        default: false,
+      },
+      {
+        name: CliArgKey.GREP,
+        help: "a string option with no short and no default",
+        type: OptionType.STRING,
+      },
+    ];
+    const explicitCommand = {
+      name: "explicit-command",
+      help: "explicit command",
+      emoji: "🗿",
+      args: new Set<CliArgKey>([
+        CliArgKey.PORT,
+        CliArgKey.LIST_BY_SPEC,
+        CliArgKey.QUIET,
+        CliArgKey.GREP,
+      ]),
+      task: { run() {} },
+      default: false,
+      run() {},
+    };
     const defaultCommand = { ...mockCommand("default-command"), default: true };
 
     beforeEach(() => {
       subject = new Menu({
         commands: [explicitCommand, defaultCommand],
-        options: [
-          {
-            name: "short",
-            short: "s",
-            help: "a short option",
-            type: OptionType.NUMBER,
-            default: 0,
-          },
-          {
-            name: "long-option",
-            short: "l",
-            help: "an option with a dash",
-            type: OptionType.BOOLEAN,
-            default: false,
-          },
-          {
-            name: "boolean",
-            short: "b",
-            help: "a boolean flag",
-            type: OptionType.BOOLEAN,
-            default: false,
-          },
-          {
-            name: "string",
-            help: "a string option with no short",
-            type: OptionType.STRING,
-            default: "",
-          },
-        ],
+        options,
       });
     });
 
@@ -118,28 +132,258 @@ describe("Menu", () => {
       "option for an explicit command",
       [
         // These are cherry-picked and overly naive during bootstrapping
-        ["0", "1"],
-        ["0", "1", "command"],
-        ["0", "1", "command", "-s", "12"],
-        ["0", "1", "command", "--short", "0"],
-        ["0", "1", "command", "--l", "false"],
-        ["0", "1", "command", "--long-option", "true"],
-        ["0", "1", "command", "-b"],
-        ["0", "1", "command", "--boolean"],
-        ["0", "1", "command", "--string", "hi"],
+        [
+          ["0", "1"],
+          { rest: [], _: [0, 1], port: 0, "list-by-spec": false, quiet: false },
+        ],
+        [
+          ["0", "1", "command"],
+          {
+            rest: [],
+            _: [0, 1, "command"],
+            port: 0,
+            "list-by-spec": false,
+            quiet: false,
+          },
+        ],
+        [
+          ["0", "1", "command", "-s", "12"],
+          {
+            rest: [],
+            _: [0, 1, "command"],
+            port: 12,
+            "list-by-spec": false,
+            quiet: false,
+          },
+        ],
+        [
+          ["0", "1", "command", "--port", "0"], // CliArgKey.PORT is used for testing
+          {
+            rest: [],
+            _: [0, 1, "command"],
+            port: 0,
+            "list-by-spec": false,
+            quiet: false,
+          },
+        ],
+        [
+          ["0", "1", "command", "--l", "false"],
+          {
+            rest: [],
+            _: [0, 1, "command"],
+            "list-by-spec": false,
+            port: 0,
+            quiet: false,
+          },
+        ],
+        [
+          ["0", "1", "command", "--list-by-spec", "true"], // CliArgKey.LIST_BY_SPEC is used for testing
+          {
+            rest: [],
+            _: [0, 1, "command"],
+            "list-by-spec": true,
+            port: 0,
+            quiet: false,
+          },
+        ],
+        [
+          ["0", "1", "command", "-b"],
+          {
+            rest: [],
+            _: [0, 1, "command"],
+            quiet: false,
+            port: 0,
+            "list-by-spec": false,
+          },
+        ],
+        [
+          ["0", "1", "command", "--quiet"], // CliArgKey.QUIET is used for testing
+          {
+            rest: [],
+            _: [0, 1, "command"],
+            quiet: false,
+            port: 0,
+            "list-by-spec": false,
+          },
+        ],
+        [
+          ["0", "1", "command", "--grep", "hi"], // CliArgKey.GREP is used for testing
+          {
+            rest: [],
+            _: [0, 1, "command"],
+            grep: "hi",
+            port: 0,
+            "list-by-spec": false,
+            quiet: false,
+          },
+        ],
       ],
-      argv => {
+      ([argv, expected]) => {
         it("should parse the options into a hash by long kebab-cased name", () => {
-          console.log(subject.parseOptions(argv, explicitCommand));
+          expect(subject.parseOptions(argv, explicitCommand)).to.eql(expected);
         });
       },
     );
   });
 
   describe(".selectFromArgv(argv: string[])", () => {
-    it(
-      "should perform the matching command asynchronously and return a promise representing its eventual completion",
-    );
+    let commandSpy: SinonSpy, runSpy: SinonSpy;
+
+    describe("with an explicit command", () => {
+      describe("when no matching option has a task", () => {
+        beforeEach(() => {
+          runSpy = createSpy();
+          subject = new Menu({
+            commands: [
+              {
+                name: "command",
+                help: "help for command",
+                emoji: "😇",
+                task: { run() {} },
+                args: new Set<CliArgKey>([CliArgKey.QUIET, CliArgKey.PORT]),
+                default: false,
+                run: runSpy,
+              },
+            ],
+            options: [
+              {
+                name: CliArgKey.QUIET,
+                help: "help for a",
+                type: OptionType.BOOLEAN,
+              },
+              {
+                name: CliArgKey.PORT,
+                help: "help for b",
+                type: OptionType.NUMBER,
+              },
+            ],
+          });
+        });
+
+        it("should perform the task attached to the matching command asynchronously and return a promise representing its eventual completion", async () => {
+          await subject.selectFromArgv(["0", "1", "command", "--quiet"]);
+          expect(runSpy.calledOnce).to.be.true;
+        });
+      });
+
+      describe("when a matching option has a task", () => {
+        let optionSpy: SinonSpy;
+
+        beforeEach(async () => {
+          runSpy = createSpy();
+          optionSpy = createSpy();
+          subject = new Menu({
+            commands: [
+              {
+                name: "command",
+                help: "help for command",
+                emoji: "😇",
+                task: { run() {} },
+                args: new Set<CliArgKey>([CliArgKey.QUIET, CliArgKey.PORT]),
+                default: false,
+                run: runSpy,
+              },
+            ],
+            options: [
+              {
+                name: CliArgKey.QUIET,
+                help: "help for a",
+                type: OptionType.BOOLEAN,
+                task: { run: optionSpy },
+              },
+              {
+                name: CliArgKey.PORT,
+                help: "help for b",
+                type: OptionType.NUMBER,
+              },
+            ],
+          });
+
+          await subject.selectFromArgv(["0", "1", "command", "--quiet"]);
+        });
+
+        it("should perform the task of the matching option asynchronously and return a promise representing its eventual completion", async () => {
+          expect(optionSpy.calledOnce).to.be.true;
+        });
+
+        it("should not perform the task attached to the matching command", () => {
+          expect(runSpy.called).to.be.false;
+        });
+      });
+
+      describe("when multiple matching options have tasks", () => {
+        let optionASpy: SinonSpy, optionBSpy: SinonSpy;
+
+        beforeEach(async () => {
+          runSpy = createSpy();
+          optionASpy = createSpy();
+          optionBSpy = createSpy();
+          subject = new Menu({
+            commands: [
+              {
+                name: "command",
+                help: "help for command",
+                emoji: "😇",
+                task: { run() {} },
+                args: new Set<CliArgKey>([CliArgKey.QUIET, CliArgKey.PORT]),
+                default: false,
+                run: runSpy,
+              },
+            ],
+            options: [
+              {
+                name: CliArgKey.QUIET,
+                help: "help for a",
+                type: OptionType.BOOLEAN,
+                task: { run: optionASpy },
+              },
+              {
+                name: CliArgKey.PORT,
+                help: "help for b",
+                type: OptionType.NUMBER,
+                task: { run: optionBSpy },
+              },
+            ],
+          });
+
+          await subject.selectFromArgv([
+            "0",
+            "1",
+            "command",
+            "--port",
+            "--quiet",
+          ]);
+        });
+
+        it("should perform the task of only the *last* matching option asynchronously and return a promise representing its eventual completion");
+
+        it("should not perform the task attached to the matching command");
+      });
+    });
+
+    describe("when no command is given", () => {
+      describe("when the no matching option has a task", () => {
+        it(
+          "should perform the task attached to the default command asynchronously and return a promise representing its eventual completion",
+        );
+      });
+
+      describe("when a matching option has a task", () => {
+        it(
+          "should perform the task attached to the matching option asynchronously and return a promise representing its eventual completion",
+        );
+
+        it("should not perform the task attached to the default command");
+      });
+
+      describe("when multiple matching options have tasks", () => {
+        it(
+          "should perform the task of only the *last* matching option asynchronously and return a promise representing its eventual completion",
+        );
+
+        it("should not perform the task attached to the default command");
+      });
+    });
   });
 });
 

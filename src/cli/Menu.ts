@@ -4,6 +4,7 @@ import {
   MenuParams,
   Command,
   Option,
+  Named,
 } from "./interfaces";
 import { castValue } from "./castValue";
 import { CliArgs } from "./types";
@@ -34,8 +35,9 @@ export class Menu implements MenuInterface {
       _: [, , , ...rest], // This is gonna be way too naive...
     } = flags;
     const shorthand = new Set<string>(Object.keys(alias));
+    const allFlags = [...new Set([...Object.keys(flags), ...command.args])];
 
-    return [...new Set([...Object.keys(flags), ...command.args])].reduce(
+    return allFlags.reduce(
       (memo, flag) => {
         if (shorthand.has(flag)) {
           return memo;
@@ -45,7 +47,7 @@ export class Menu implements MenuInterface {
         if (flag in flags) {
           memo[flag] =
             option == null ? flags[flag] : castValue(flags[flag], option.type);
-        } else if ("default" in option) {
+        } else if (option.default !== undefined) {
           memo[flag] = option.default;
         }
         return memo;
@@ -67,9 +69,11 @@ export class Menu implements MenuInterface {
 
     for (const { task: t, name } of this.options.values()) {
       if (name in options && t != null) {
+        console.log('name', name);
         task = t;
       }
     }
+
     await (task != null
       ? task.run(options, null, this)
       : command.run(options, this));
@@ -88,7 +92,7 @@ export class Menu implements MenuInterface {
       }, {});
   }
 
-  private makeMap<T>(list): Map<string, T> {
+  private makeMap<T extends Named>(list: T[]): Map<string, T> {
     return new Map(list.map(t => [t.name, t] as [string, T]));
   }
 }

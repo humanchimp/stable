@@ -1,13 +1,11 @@
-import {
-  CliArgKey,
-  OptionType,
-  ConfigOutputFormat,
-  StablercType,
-} from "./enums";
+import { CliArgKey, OptionType, ConfigOutputFormat } from "./enums";
 import { StablercFile } from "./stablerc/StablercFile";
 
-export interface CommandParams {
+export interface Named {
   name: string;
+}
+
+export interface CommandParams extends Named {
   emoji: string;
   args: CliArgKey[];
   task: Task;
@@ -15,8 +13,7 @@ export interface CommandParams {
   default?: boolean;
 }
 
-export interface Command {
-  name: string;
+export interface Command extends Named {
   emoji: string;
   args: Set<CliArgKey>;
   help: string;
@@ -25,17 +22,15 @@ export interface Command {
   run(args: any, menu: Menu);
 }
 
-export interface Option {
-  name: string;
+export interface Option extends Named {
   short?: string;
   help: string;
   type: OptionType;
-  default: any;
+  default?: any;
   task?: Task;
 }
 
-export interface OptionParams {
-  name: string;
+export interface OptionParams extends Named {
   short?: string;
   help: string;
   type: OptionType;
@@ -58,8 +53,7 @@ export interface Task {
   run(args: any, command: Command, menu: Menu): void;
 }
 
-export interface CommandChoice {
-  name: string;
+export interface CommandChoice extends Named {
   args: CliArgKey[];
 }
 
