@@ -5,6 +5,7 @@ import {
   Command,
   Option,
 } from "./interfaces";
+import { castValue } from "./castValue";
 import { CliArgs } from "./types";
 
 export class Menu implements MenuInterface {
@@ -18,7 +19,12 @@ export class Menu implements MenuInterface {
   }
 
   defaultCommand(): Command {
-    return [...this.commands.values()].find(cmd => cmd.default);
+    const command = [...this.commands.values()].find(cmd => cmd.default);
+
+    if (command == null) {
+      throw new TypeError("no default command");
+    }
+    return command;
   }
 
   parseOptions(argv: string[], command: Command): CliArgs {
@@ -34,14 +40,13 @@ export class Menu implements MenuInterface {
         if (shorthand.has(flag)) {
           return memo;
         }
-        if (flag in flags) {
-          memo[flag] = flags[flag];
-        } else {
-          const option = this.options.get(flag);
+        const option = this.options.get(flag);
 
-          if ("default" in option) {
-            memo[flag] = option.default;
-          }
+        if (flag in flags) {
+          memo[flag] =
+            option == null ? flags[flag] : castValue(flags[flag], option.type);
+        } else if ("default" in option) {
+          memo[flag] = option.default;
         }
         return memo;
       },

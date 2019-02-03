@@ -41,16 +41,99 @@ describe("Menu", () => {
 
   describe(".defaultCommand()", () => {
     describe("when there is a default command", () => {
-      it("should return the default command");
+      beforeEach(() => {
+        subject = new Menu({
+          commands: [
+            mockCommand("a"),
+            { ...mockCommand("b"), default: true },
+            mockCommand("c"),
+          ],
+          options: [],
+        });
+      });
+
+      it("should return the default command", () => {
+        expect(subject.defaultCommand().name).to.equal("b");
+      });
     });
 
     describe("when there is no default command", () => {
-      it("????");
+      beforeEach(() => {
+        subject = new Menu({
+          commands: ["a", "b", "c"].map(mockCommand),
+          options: [],
+        });
+      });
+
+      it("should throw an error", () => {
+        subject.defaultCommand();
+      })
+        .shouldFail()
+        .rescue(reason => {
+          expect(reason.message).to.match(/no default command/);
+        });
     });
   });
 
   describe(".parseOptions(argv: string[], command: string", () => {
-    it("should parse the options into a hash by long kebab-cased name");
+    const explicitCommand = mockCommand("command");
+    const defaultCommand = { ...mockCommand("default-command"), default: true };
+
+    beforeEach(() => {
+      subject = new Menu({
+        commands: [explicitCommand, defaultCommand],
+        options: [
+          {
+            name: "short",
+            short: "s",
+            help: "a short option",
+            type: OptionType.NUMBER,
+            default: 0,
+          },
+          {
+            name: "long-option",
+            short: "l",
+            help: "an option with a dash",
+            type: OptionType.BOOLEAN,
+            default: false,
+          },
+          {
+            name: "boolean",
+            short: "b",
+            help: "a boolean flag",
+            type: OptionType.BOOLEAN,
+            default: false,
+          },
+          {
+            name: "string",
+            help: "a string option with no short",
+            type: OptionType.STRING,
+            default: "",
+          },
+        ],
+      });
+    });
+
+    describeEach(
+      "option for an explicit command",
+      [
+        // These are cherry-picked and overly naive during bootstrapping
+        ["0", "1"],
+        ["0", "1", "command"],
+        ["0", "1", "command", "-s", "12"],
+        ["0", "1", "command", "--short", "0"],
+        ["0", "1", "command", "--l", "false"],
+        ["0", "1", "command", "--long-option", "true"],
+        ["0", "1", "command", "-b"],
+        ["0", "1", "command", "--boolean"],
+        ["0", "1", "command", "--string", "hi"],
+      ],
+      argv => {
+        it("should parse the options into a hash by long kebab-cased name", () => {
+          console.log(subject.parseOptions(argv, explicitCommand));
+        });
+      },
+    );
   });
 
   describe(".selectFromArgv(argv: string[])", () => {
