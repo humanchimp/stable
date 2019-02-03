@@ -1,11 +1,12 @@
 import { expect } from "chai";
-import { spy as createSpy } from "sinon";
+import { spy as createSpy, SinonSpy } from "sinon";
 import { Command } from "../../src/cli/Command";
+import { Menu, Task } from "../../src/cli/interfaces";
 import { CliArgKey } from "../../src/cli/enums";
 
 describe("Command", () => {
   describeEach(
-    "options",
+    "parameterization",
     [
       [{ default: true }],
       [{ default: false }],
@@ -15,27 +16,34 @@ describe("Command", () => {
     ([
       {
         name = "Command",
-        args = [CliArgKey.QUIET, CliArgKey.FILTER],
+        args = [CliArgKey.QUIET, CliArgKey.FILTER], // Selected willy-nilly
         help = "A meta command for unit testing.",
-        emoji = "🧶",
-        runSpy = createSpy(),
-        task = {
-          run() {},
-        },
+        emoji = "🧶", // Also willy-nilly
         default: isDefault = false,
       },
     ]) => {
       let subject: Command;
+      let menuMock: Menu;
+      let taskMock: Task;
 
       beforeEach(() => {
+        taskMock = {
+          run: createSpy(),
+        };
         subject = new Command({
           name,
           args,
           help,
           emoji,
-          task,
+          task: taskMock,
           default: isDefault,
         });
+        menuMock = {
+          commands: new Map<string, Command>([[name, subject]]),
+          options: args,
+          findCommand: createSpy(),
+          selectFromArgv: createSpy(),
+        };
       });
 
       describe(".name", () => {
@@ -77,23 +85,65 @@ describe("Command", () => {
       });
 
       describe(".run(args, menu)", () => {
+        const args = { quiet: true };
+
         beforeEach(() => {
-          // subject.run([], {})
+          createSpy(subject, "validateArgs");
+          subject.run(args, menuMock);
         });
 
-        it("should delegate to the run method of the task", () => {
-          // expect(cr)
+        afterEach(() => {
+          (subject.validateArgs as SinonSpy).restore();
+        });
+
+        it("should validate the arguments", () => {
+          const spy: SinonSpy = subject.validateArgs as SinonSpy;
+
+          expect(spy.calledOnce).to.be.true;
+          expect(spy.calledWith(args)).to.be.true;
+        });
+
+        it("should delegate to the task's .run() method", () => {
+          const spy = taskMock.run as SinonSpy;
+
+          expect(spy.calledOnce).to.be.true;
+          expect(spy.calledWith(args)).to.be.true;
         });
       });
 
       describe(".validateArgs(args)", () => {
-        describeEach("valid case", [], ([]) => {
-          it("should return true");
-        });
+        describeEach(
+          "valid case",
+          [
+            [{ quiet: true, filter: "waldo" }],
+            [{ quiet: false }],
+            [{ filter: false }],
+            [{ help: true }], // "help" is tolerated despite not being explicitly listed
+          ],
+          ([args]) => {
+            it("should return void", () => {
+              expect(subject.run(args, menuMock)).to.be.undefined;
+            });
+          },
+        );
 
-        describeEach("invalid case", [], ([]) => {
-          it("should throw an error");
-        });
+        describeEach(
+          "invalid case",
+          [
+            [{ verbose: true }], // "verbose" is not explicitly listed so it's invalid
+            [{ fojomdoin: 12 }], // this isn't a thing at all
+            [{ bobo: false, gaga: 12 }],
+          ],
+          ([args]) => {
+            it("should throw an error", () => {
+              subject.run(args, menuMock);
+            })
+              .shouldFail()
+              .rescue(reason => {
+                expect(reason.message).to.match(/invalid arguments/);
+              });
+          },
+        );
       });
     },
   );
