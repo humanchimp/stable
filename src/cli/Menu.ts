@@ -51,7 +51,8 @@ export class Menu implements MenuInterface {
 
   async selectFromArgv(argv: string[]): Promise<void> {
     const commandCandidate = this.parseCommandCandidate(argv);
-    const command = this.commands.get(commandCandidate) || this.defaultCommand();
+    const command =
+      this.commands.get(commandCandidate) || this.defaultCommand();
     const options = this.parseOptions(argv, command);
 
     // the task belonging to any option will run instead of the command's task, because

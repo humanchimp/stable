@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { spy as createSpy, SinonSpy } from "sinon";
 import { Command } from "../../src/cli/Command";
-import { Menu, Task } from "../../src/cli/interfaces";
+import { Menu, Task, Option } from "../../src/cli/interfaces";
 import { CliArgKey } from "../../src/cli/enums";
 
 describe("Command", () => {
@@ -21,6 +21,14 @@ describe("Command", () => {
         emoji = "🧶", // Also willy-nilly
         default: isDefault = false,
       },
+    ]: [
+      {
+        name: string;
+        args: CliArgKey[];
+        help: string;
+        emoji: string;
+        default: boolean;
+      }
     ]) => {
       let subject: Command;
       let menuMock: Menu;
@@ -40,7 +48,9 @@ describe("Command", () => {
         });
         menuMock = {
           commands: new Map<string, Command>([[name, subject]]),
-          options: args,
+          options: new Map<string, Option>(
+            args.map(name => [name, { name }] as [string, Option]),
+          ),
           selectFromArgv: createSpy(),
         };
       });
