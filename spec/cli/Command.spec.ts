@@ -147,4 +147,24 @@ describe("Command", () => {
       });
     },
   );
+
+  describe("when the default parameter is not provided", () => {
+    let subject: Command;
+
+    beforeEach(() => {
+      subject = new Command({
+        name: 'no default',
+        help: "meta command without explicit default option",
+        emoji: "🥫",
+        args: [],
+        task: {
+          run() {},
+        },
+      });
+    });
+
+    it("should default to false", () => {
+      expect(subject.default).to.be.false;
+    });
+  });
 });
