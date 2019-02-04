@@ -1,7 +1,6 @@
 import { expect } from "chai";
 import { castValue } from "../../src/cli/castValue";
 import { OptionType } from "../../src/cli/enums";
-import { Option } from "../../src/cli/Option";
 
 describe("castValue(value, type)", () => {
   describeEach(
@@ -35,7 +34,6 @@ describe("castValue(value, type)", () => {
       ["1e3", OptionType.NUMBER, 1000],
       ["Infinity", OptionType.NUMBER, Infinity],
       ["-10", OptionType.NUMBER, -10],
-
       // NaN-returning cases tested below...
 
       ["0", OptionType.STRING_OR_BOOLEAN, false],
