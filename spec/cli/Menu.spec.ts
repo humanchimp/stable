@@ -231,7 +231,7 @@ describe("Menu", () => {
 
     describe("with an explicit command", () => {
       describe("when no matching option has a task", () => {
-        beforeEach(() => {
+        beforeEach(async () => {
           runSpy = createSpy();
           subject = new Menu({
             commands: [
@@ -258,10 +258,11 @@ describe("Menu", () => {
               },
             ],
           });
+
+          await subject.selectFromArgv(["0", "1", "command", "--quiet"]);
         });
 
-        it("should perform the task attached to the matching command asynchronously and return a promise representing its eventual completion", async () => {
-          await subject.selectFromArgv(["0", "1", "command", "--quiet"]);
+        it("should perform the task attached to the matching command asynchronously and return a promise representing its eventual completion", () => {
           expect(runSpy.calledOnce).to.be.true;
         });
       });
@@ -355,7 +356,9 @@ describe("Menu", () => {
           ]);
         });
 
-        it("should perform the task of only the *last* matching option asynchronously and return a promise representing its eventual completion");
+        it(
+          "should perform the task of only the *last* matching option asynchronously and return a promise representing its eventual completion",
+        );
 
         it("should not perform the task attached to the matching command");
       });
@@ -363,9 +366,39 @@ describe("Menu", () => {
 
     describe("when no command is given", () => {
       describe("when the no matching option has a task", () => {
-        it(
-          "should perform the task attached to the default command asynchronously and return a promise representing its eventual completion",
-        );
+        beforeEach(async () => {
+          runSpy = createSpy();
+          subject = new Menu({
+            commands: [
+              {
+                name: "command",
+                help: "help for command",
+                emoji: "😇",
+                task: { run() {} },
+                args: new Set<CliArgKey>([CliArgKey.QUIET, CliArgKey.PORT]),
+                default: true,
+                run: runSpy,
+              },
+            ],
+            options: [
+              {
+                name: CliArgKey.QUIET,
+                help: "help for a",
+                type: OptionType.BOOLEAN,
+              },
+              {
+                name: CliArgKey.PORT,
+                help: "help for b",
+                type: OptionType.NUMBER,
+              },
+            ],
+          });
+
+          await subject.selectFromArgv(["0", "1", "--quiet"]);
+        });
+        it("should perform the task attached to the default command asynchronously and return a promise representing its eventual completion", () => {
+          expect(runSpy.calledOnce).to.be.true;
+        });
       });
 
       describe("when a matching option has a task", () => {

@@ -69,7 +69,7 @@ export class Menu implements MenuInterface {
 
     for (const { task: t, name } of this.options.values()) {
       if (name in options && t != null) {
-        console.log('name', name);
+        console.log("name", name);
         task = t;
       }
     }
