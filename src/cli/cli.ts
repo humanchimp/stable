@@ -8,6 +8,7 @@ import { BundleTask } from "./task/BundleTask";
 import { RunTask } from "./task/RunTask";
 
 export const cli = new Menu({
+  debug: true,
   commands: [
     new Command({
       name: "run",
@@ -16,6 +17,8 @@ export const cli = new Menu({
       args: [
         CliArgKey.PARTITION,
         CliArgKey.PARTITIONS,
+        CliArgKey.ORDERED,
+        CliArgKey.SORT,
         CliArgKey.OUTPUT_FORMAT,
         CliArgKey.COVERAGE,
         CliArgKey.HIDE_SKIPS,
@@ -91,6 +94,12 @@ export const cli = new Menu({
       short: "o",
       help: "the format of the output stream.",
       type: OptionType.STRING,
+    }),
+    new Option({
+      name: CliArgKey.LIST_BY_SPEC,
+      help: "list output by spec rather than stablerc",
+      type: OptionType.BOOLEAN,
+      default: false,
     }),
     new Option({
       name: CliArgKey.SORT,
@@ -175,12 +184,6 @@ export const cli = new Menu({
       type: OptionType.BOOLEAN,
       default: false,
       task: new PrintHelpMenuTask(),
-    }),
-    new Option({
-      name: CliArgKey.LIST_BY_SPEC,
-      help: "list output by spec rather than stablerc",
-      type: OptionType.BOOLEAN,
-      default: false,
     }),
   ],
 });

@@ -36,7 +36,7 @@ export class PrintHelpMenuTask implements Task {
             defaultValue != null
               ? chalk.green(` [default: ${defaultValue}]`)
               : ""
-          }\n`,
+          }`,
       )
       .join("\n");
   }

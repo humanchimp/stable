@@ -76,7 +76,7 @@ describe("Menu", () => {
     });
   });
 
-  describe(".parseOptions(argv: string[], command: string", () => {
+  describe(".commandForArgv(argv: string[])", () => {
     const options = [
       {
         name: CliArgKey.PORT,
@@ -118,6 +118,7 @@ describe("Menu", () => {
       task: { run() {} },
       default: false,
       run() {},
+      validateOptions() {},
     };
     const defaultCommand = { ...mockCommand("default-command"), default: true };
 
@@ -133,100 +134,139 @@ describe("Menu", () => {
       [
         // These are cherry-picked and overly naive during bootstrapping
         [
-          ["0", "1"],
-          { rest: [], _: [0, 1], port: 0, "list-by-spec": false, quiet: false },
-        ],
-        [
-          ["0", "1", "command"],
+          ["explicit-command"],
           {
-            rest: [],
-            _: [0, 1, "command"],
             port: 0,
             "list-by-spec": false,
             quiet: false,
+            grep: undefined,
           },
+          [],
         ],
         [
-          ["0", "1", "command", "-s", "12"],
+          ["explicit-command", "-s", "12"],
           {
-            rest: [],
-            _: [0, 1, "command"],
             port: 12,
             "list-by-spec": false,
             quiet: false,
+            grep: undefined,
           },
+          [],
         ],
         [
-          ["0", "1", "command", "--port", "0"], // CliArgKey.PORT is used for testing
+          ["explicit-command", "--port=0"], // CliArgKey.PORT is used for testing
           {
-            rest: [],
-            _: [0, 1, "command"],
             port: 0,
             "list-by-spec": false,
             quiet: false,
+            grep: undefined,
           },
+          [],
         ],
         [
-          ["0", "1", "command", "--l", "false"],
+          ["explicit-command", "-l", "false"],
           {
-            rest: [],
-            _: [0, 1, "command"],
             "list-by-spec": false,
             port: 0,
             quiet: false,
+            grep: undefined,
           },
+          [],
         ],
         [
-          ["0", "1", "command", "--list-by-spec", "true"], // CliArgKey.LIST_BY_SPEC is used for testing
+          ["explicit-command", "--list-by-spec=true"], // CliArgKey.LIST_BY_SPEC is used for testing
           {
-            rest: [],
-            _: [0, 1, "command"],
             "list-by-spec": true,
             port: 0,
             quiet: false,
+            grep: undefined,
           },
+          [],
         ],
         [
-          ["0", "1", "command", "-b"],
+          ["explicit-command", "-b"],
           {
-            rest: [],
-            _: [0, 1, "command"],
-            quiet: false,
+            quiet: true,
             port: 0,
             "list-by-spec": false,
+            grep: undefined,
           },
+          [],
         ],
         [
-          ["0", "1", "command", "--quiet"], // CliArgKey.QUIET is used for testing
+          ["explicit-command", "--quiet"], // CliArgKey.QUIET is used for testing
           {
-            rest: [],
-            _: [0, 1, "command"],
-            quiet: false,
+            quiet: true,
             port: 0,
             "list-by-spec": false,
+            grep: undefined,
           },
+          [],
         ],
         [
-          ["0", "1", "command", "--grep", "hi"], // CliArgKey.GREP is used for testing
+          ["explicit-command", "--grep=hi"], // CliArgKey.GREP is used for testing
           {
-            rest: [],
-            _: [0, 1, "command"],
             grep: "hi",
             port: 0,
             "list-by-spec": false,
             quiet: false,
           },
+          [],
+        ],
+        [
+          ["explicit-command", "--grep", "get hep"], // CliArgKey.GREP is used for testing
+          {
+            grep: "get hep",
+            port: 0,
+            "list-by-spec": false,
+            quiet: false,
+          },
+          [],
+        ],
+        [
+          ["explicit-command", "-b", "-l"], // CliArgKey.GREP is used for testing
+          {
+            grep: undefined,
+            port: 0,
+            "list-by-spec": true,
+            quiet: true,
+          },
+          [],
+        ],
+        [
+          ["explicit-command", "-bl", "--grep", "hi"], // CliArgKey.GREP is used for testing
+          {
+            grep: "hi",
+            port: 0,
+            "list-by-spec": true,
+            quiet: true,
+          },
+          [],
         ],
       ],
-      ([argv, expected]) => {
+      ([argv, expected, expectRest]) => {
+        it("should summon the matching command", () => {
+          const { command } = subject.commandFromArgv(argv);
+
+          expect(command).to.equal(explicitCommand);
+        });
+
         it("should parse the options into a hash by long kebab-cased name", () => {
-          expect(subject.parseOptions(argv, explicitCommand)).to.eql(expected);
+          const { options } = subject.commandFromArgv(argv);
+
+          expect(options).to.eql(expected);
+        });
+
+        it("should collect the rest of the positional arguments in an array", () => {
+          const { rest } = subject.commandFromArgv(argv);
+
+          expect(rest).to.eql(expectRest);
         });
       },
     );
   });
 
-  describe(".selectFromArgv(argv: string[])", () => {
+  describe(".runFromArgv(argv: string[])", () => {
     let commandSpy: SinonSpy, runSpy: SinonSpy;
 
     describe("with an explicit command", () => {
@@ -243,6 +283,7 @@ describe("Menu", () => {
                 args: new Set<CliArgKey>([CliArgKey.QUIET, CliArgKey.PORT]),
                 default: false,
                 run: runSpy,
+                validateOptions() {},
               },
             ],
             options: [
@@ -259,7 +300,7 @@ describe("Menu", () => {
             ],
           });
 
-          await subject.selectFromArgv(["0", "1", "command", "--quiet"]);
+          await subject.runFromArgv(["0", "1", "command", "--quiet"]);
         });
 
         it("should perform the task attached to the matching command asynchronously and return a promise representing its eventual completion", () => {
@@ -283,6 +324,7 @@ describe("Menu", () => {
                 args: new Set<CliArgKey>([CliArgKey.QUIET, CliArgKey.PORT]),
                 default: false,
                 run: runSpy,
+                validateOptions() {},
               },
             ],
             options: [
@@ -300,7 +342,7 @@ describe("Menu", () => {
             ],
           });
 
-          await subject.selectFromArgv(["0", "1", "command", "--quiet"]);
+          await subject.runFromArgv(["0", "1", "command", "--quiet"]);
         });
 
         it("should perform the task of the matching option asynchronously and return a promise representing its eventual completion", async () => {
@@ -329,6 +371,7 @@ describe("Menu", () => {
                 args: new Set<CliArgKey>([CliArgKey.QUIET, CliArgKey.PORT]),
                 default: false,
                 run: runSpy,
+                validateOptions() {},
               },
             ],
             options: [
@@ -347,13 +390,7 @@ describe("Menu", () => {
             ],
           });
 
-          await subject.selectFromArgv([
-            "0",
-            "1",
-            "command",
-            "--port",
-            "--quiet",
-          ]);
+          await subject.runFromArgv(["0", "1", "command", "--port", "--quiet"]);
         });
 
         it(
@@ -378,6 +415,7 @@ describe("Menu", () => {
                 args: new Set<CliArgKey>([CliArgKey.QUIET, CliArgKey.PORT]),
                 default: true,
                 run: runSpy,
+                validateOptions() {},
               },
             ],
             options: [
@@ -394,8 +432,9 @@ describe("Menu", () => {
             ],
           });
 
-          await subject.selectFromArgv(["0", "1", "--quiet"]);
+          await subject.runFromArgv(["0", "1", "--quiet"]);
         });
+
         it("should perform the task attached to the default command asynchronously and return a promise representing its eventual completion", () => {
           expect(runSpy.calledOnce).to.be.true;
         });
@@ -438,5 +477,6 @@ function mockCommand(name): Command {
     task: { run() {} },
     default: false,
     run() {},
+    validateOptions() {},
   };
 }

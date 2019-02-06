@@ -1,12 +1,17 @@
-import minimist from "minimist";
 import {
   Menu as MenuInterface,
   MenuParams,
   Command,
   Option,
+  CommandParse,
   Named,
 } from "./interfaces";
-import { castValue } from "./castValue";
+import { Command as SimpleCommand, toleratedOptions } from "./Command";
+import { kebab } from "./kebab";
+import { OptionType, CliArgKey } from "./enums";
+import { ValidationError } from "./ValidationError";
+import { parseOption } from "./parseOption";
+import { parseOptionValue } from "./parseOptionValue";
 import { CliArgs } from "./types";
 
 export class Menu implements MenuInterface {
@@ -14,9 +19,29 @@ export class Menu implements MenuInterface {
 
   options: Map<string, Option>;
 
-  constructor({ commands, options }: MenuParams) {
+  debug: boolean;
+
+  constructor({ commands, options, debug = false }: MenuParams) {
     this.commands = this.makeMap<Command>(commands);
     this.options = this.makeMap<Option>(options);
+    this.debug = debug;
+
+    if (debug && !this.commands.has("parse-options")) {
+      this.commands.set(
+        "parse-options",
+        new SimpleCommand({
+          name: "parse-options",
+          emoji: "🥢",
+          help: "Parse argv; print result",
+          task: {
+            run(options) {
+              console.log(options);
+            },
+          },
+          args: [...this.options.keys()] as CliArgKey[],
+        }),
+      );
+    }
   }
 
   defaultCommand(): Command {
@@ -28,59 +53,192 @@ export class Menu implements MenuInterface {
     return command;
   }
 
-  parseOptions(argv: string[], command: Command): CliArgs {
-    const alias = this.getAliases();
-    const flags = minimist(argv, { alias });
-    const {
-      _: [, , , ...rest], // This is gonna be way too naive...
-    } = flags;
-    const shorthand = new Set<string>(Object.keys(alias));
-    const allFlags = [...new Set([...Object.keys(flags), ...command.args])];
+  commandFromArgv(argv: string[]): CommandParse {
+    const options = Object.create(null);
+    const invalid = [];
+    const rest = [];
 
-    return allFlags.reduce(
-      (memo, flag) => {
-        if (shorthand.has(flag)) {
-          return memo;
-        }
-        const option = this.options.get(flag);
+    let currentOption: Option;
+    let command: Command;
 
-        if (flag in flags) {
-          memo[flag] =
-            option == null ? flags[flag] : castValue(flags[flag], option.type);
-        } else if (option.default !== undefined) {
-          memo[flag] = option.default;
+    for (const arg of argv) {
+      if (currentOption != null) {
+        if (!arg.startsWith("-")) {
+          options[currentOption.name] = arg
+            .split(",")
+            .map(v => parseOptionValue(currentOption, v));
+          currentOption = undefined;
+          continue;
         }
-        return memo;
-      },
-      { rest },
-    );
+        currentOption = undefined;
+      }
+      if (command == null) {
+        const cmd = this.detectCommand(arg);
+
+        if (cmd != null) {
+          command = cmd;
+          continue;
+        }
+      }
+      if (arg.startsWith("--") || (arg.startsWith("-") && arg.includes("="))) {
+        const option = this.detectOption(arg.split("=")[0]);
+
+        if (option == null) {
+          invalid.push(arg);
+          continue;
+        } else {
+          const { name, splat, hasValue } = parseOption(option, arg);
+
+          if (options[name] == null) {
+            options[name] = [];
+          }
+          if (hasValue) {
+            options[name].push(...splat);
+          } else {
+            currentOption = option;
+          }
+          continue;
+        }
+      }
+      if (arg.startsWith("-") && !arg.startsWith("--")) {
+        const { invalid: i, lastValid } = arg
+          .slice(1)
+          .split("")
+          .reduce(
+            (memo, f) => {
+              const flag = `-${f}`;
+              const option = this.detectOption(flag);
+
+              if (option == null) {
+                memo.lastValid = undefined;
+                memo.invalid.push(flag);
+              } else if (option.type === OptionType.BOOLEAN) {
+                if (memo.dict[option.name] == null) {
+                  memo.dict[option.name] = [];
+                }
+                memo.dict[option.name].push(true);
+              }
+              memo.lastValid = option;
+              return memo;
+            },
+            { invalid: [], dict: options, lastValid: undefined },
+          );
+        invalid.push(...i);
+
+        if (lastValid != null) {
+          currentOption = lastValid;
+        } else {
+          currentOption = undefined;
+        }
+        continue;
+      }
+      rest.push(arg);
+    }
+    if (currentOption != null) {
+      if (options[currentOption.name] == null) {
+        options[currentOption.name] = [];
+      }
+      switch (currentOption.type) {
+        case OptionType.STRING_OR_BOOLEAN:
+        case OptionType.BOOLEAN: {
+          options[currentOption.name].push(true);
+          break;
+        }
+        case OptionType.STRING: {
+          options[currentOption.name].push("");
+          break;
+        }
+        case OptionType.NUMBER: {
+          options[currentOption.name].push(0);
+        }
+      }
+      currentOption = undefined;
+    }
+
+    const isDefault = command == null;
+    const selectedCommand = isDefault ? this.defaultCommand() : command;
+
+    return {
+      command: selectedCommand,
+      isDefault,
+      options: this.flattenOptions(options, selectedCommand),
+      invalid,
+      rest,
+    };
   }
 
-  async selectFromArgv(argv: string[]): Promise<void> {
-    const commandCandidate = this.parseCommandCandidate(argv);
-    const command =
-      this.commands.get(commandCandidate) || this.defaultCommand();
-    const options = this.parseOptions(argv, command);
+  async runFromArgv(argv: string[]): Promise<void> {
+    const parsed = this.commandFromArgv(argv.slice(2));
+    const { command, options, rest, invalid } = parsed;
 
+    if (invalid.length > 0) {
+      throw new ValidationError(
+        `unintelligible arguments: ${invalid.join(", ")}`,
+        parsed,
+      );
+    }
     // the task belonging to any option will run instead of the command's task, because
     // options are finer-grained than commands. Concretely, `$ stable run -h` is equivalent
     // to running `$ stable help`, and doesn't invoke `$ stable run` machinery at all.
     let task;
 
     for (const { task: t, name } of this.options.values()) {
-      if (name in options && t != null) {
-        console.log("name", name);
+      if (options[name] && t != null) {
         task = t;
       }
     }
 
+    const mashup = {
+      // user-defined options
+      ...options,
+
+      // user-defined positional parameters (excluding invalid options)
+      rest,
+    };
+
     await (task != null
-      ? task.run(options, null, this)
-      : command.run(options, this));
+      ? task.run(mashup, null, this)
+      : command.run(mashup, this));
   }
 
-  private parseCommandCandidate(argv): string {
-    return argv[2];
+  private flattenOptions(options: CliArgs, command: Command): CliArgs {
+    const flat: CliArgs = {};
+
+    for (const optionName of [...command.args, ...toleratedOptions]) {
+      const option = this.options.get(optionName);
+      const splat = [].concat(options[optionName] || []);
+      const sample =
+        option && option.sample != null ? option.sample(splat) : splat.pop();
+      const value = sample === undefined ? option && option.default : sample;
+
+      // Only create keys for undefineds for explicit args, not merely tolerated ones
+      if (value !== undefined || command.args.has(optionName)) {
+        flat[optionName] = value;
+      }
+    }
+
+    return flat;
+  }
+
+  private detectCommand(arg: string): Command {
+    return this.commands.get(kebab(arg));
+  }
+
+  private detectOption(arg: string): Option {
+    const [, stripped] = arg.match(/^--?(?:no-)?(.*)/);
+    const normal = kebab(stripped);
+    const candidate =
+      this.options.get(normal) || this.options.get(this.getAliases()[normal]);
+
+    return candidate == null
+      ? undefined
+      : arg.startsWith("--no-")
+      ? [OptionType.BOOLEAN, OptionType.STRING_OR_BOOLEAN].includes(
+          candidate.type,
+        )
+        ? candidate
+        : undefined
+      : candidate;
   }
 
   private getAliases(): {} {
@@ -93,6 +251,6 @@ export class Menu implements MenuInterface {
   }
 
   private makeMap<T extends Named>(list: T[]): Map<string, T> {
-    return new Map(list.map(t => [t.name, t] as [string, T]));
+    return new Map(list.map(t => [kebab(t.name), t] as [string, T]));
   }
 }

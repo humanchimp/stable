@@ -1,5 +1,7 @@
 import { CliArgKey, OptionType, ConfigOutputFormat } from "./enums";
 import { StablercFile } from "./stablerc/StablercFile";
+import { CliArgs } from "./types";
+import { arch } from "os";
 
 export interface Named {
   name: string;
@@ -20,6 +22,19 @@ export interface Command extends Named {
   task: Task;
   default: boolean;
   run(args: any, menu: Menu);
+  validateOptions(options: CliArgs): void;
+}
+
+export interface CommandParse {
+  command: Command;
+  options: CliArgs;
+  invalid: string[];
+  rest: string[];
+  isDefault?: boolean;
+}
+
+export interface OptionSampler {
+  (splat: any[]): any;
 }
 
 export interface Option extends Named {
@@ -28,6 +43,13 @@ export interface Option extends Named {
   type: OptionType;
   default?: any;
   task?: Task;
+  sample?: OptionSampler;
+}
+
+export interface OptionParse extends Named {
+  option: Option;
+  hasValue: boolean;
+  splat: (string | boolean | number)[];
 }
 
 export interface OptionParams extends Named {
@@ -36,17 +58,20 @@ export interface OptionParams extends Named {
   type: OptionType;
   default?: any;
   task?: Task;
+  sample?: OptionSampler;
 }
 
 export interface Menu {
   commands: Map<string, Command>;
   options: Map<string, Option>;
-  selectFromArgv(argv: string[]): Promise<void>;
+  commandFromArgv(argv: string[]): CommandParse;
+  runFromArgv(argv: string[]): Promise<void>;
 }
 
 export interface MenuParams {
   commands: Command[];
   options: Option[];
+  debug?: boolean;
 }
 
 export interface Task {

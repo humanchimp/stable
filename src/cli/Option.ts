@@ -1,4 +1,9 @@
-import { Option as OptionInterface, OptionParams, Task } from "./interfaces";
+import {
+  Option as OptionInterface,
+  OptionParams,
+  Task,
+  OptionSampler,
+} from "./interfaces";
 import { OptionType } from "./enums";
 
 export class Option implements OptionInterface {
@@ -14,6 +19,8 @@ export class Option implements OptionInterface {
 
   task: Task;
 
+  sample: OptionSampler;
+
   constructor({
     name,
     short,
@@ -21,12 +28,14 @@ export class Option implements OptionInterface {
     type,
     default: defaultValue,
     task,
+    sample,
   }: OptionParams) {
     this.name = name;
     this.short = short;
     this.help = help;
     this.type = type;
-    this.default = defaultValue;
     this.task = task;
+    this.sample = sample;
+    this.default = defaultValue;
   }
 }

@@ -30,16 +30,16 @@ class Run {
   private log: LogEffect;
 
   constructor({
-    "output-format": format,
-    "working-directory": cwd,
-    "list-by-spec": bySpec,
+    "output-format": format = ConfigOutputFormat.YAML,
+    "working-directory": cwd = process.cwd(),
+    "list-by-spec": bySpec = false,
     rest: entries,
     verbose,
     log = console.log,
   }: PrintConfigTaskParams) {
-    this.entries = entries;
+    this.entries = entries.length === 0 ? ["."] : entries;
     this.bySpec = bySpec;
-    this.resolved = entries.map(entry =>
+    this.resolved = this.entries.map(entry =>
       isAbsolute(entry) ? entry : join(cwd, entry),
     );
     this.stablercFiles = this.computeStablercFiles();

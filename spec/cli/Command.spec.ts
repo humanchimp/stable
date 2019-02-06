@@ -94,33 +94,33 @@ describe("Command", () => {
       });
 
       describe(".run(args, menu)", () => {
-        const args = { quiet: true };
+        const options = { quiet: [true] };
 
         beforeEach(() => {
-          createSpy(subject, "validateArgs");
-          subject.run(args, menuMock);
+          createSpy(subject, "validateOptions");
+          subject.run(options, menuMock);
         });
 
         afterEach(() => {
-          (subject.validateArgs as SinonSpy).restore();
+          (subject.validateOptions as SinonSpy).restore();
         });
 
         it("should validate the arguments", () => {
-          const spy: SinonSpy = subject.validateArgs as SinonSpy;
+          const spy: SinonSpy = subject.validateOptions as SinonSpy;
 
           expect(spy.calledOnce).to.be.true;
-          expect(spy.calledWith(args)).to.be.true;
+          expect(spy.getCall(0).args[0]).to.eql(options);
         });
 
         it("should delegate to the task's .run() method", () => {
           const spy = taskMock.run as SinonSpy;
 
           expect(spy.calledOnce).to.be.true;
-          expect(spy.calledWith(args)).to.be.true;
+          expect(spy.getCall(0).args[0]).to.eql(options);
         });
       });
 
-      describe(".validateArgs(args)", () => {
+      describe(".validateOptions(args)", () => {
         describeEach(
           "valid case",
           [

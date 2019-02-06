@@ -6,9 +6,15 @@ import {
 } from "./interfaces";
 import { CliArgKey } from "./enums";
 import { CliArgs } from "./types";
+import { ValidationError } from "./ValidationError";
+
+export const toleratedOptions = new Set<CliArgKey>([
+  CliArgKey.HELP,
+  CliArgKey.REST,
+]);
 
 export class Command implements CommandInterface {
-  static toleratedArgs = new Set<CliArgKey>([CliArgKey.HELP, CliArgKey.REST]);
+  static toleratedOptions = toleratedOptions;
 
   name: string;
 
@@ -38,20 +44,26 @@ export class Command implements CommandInterface {
     this.emoji = emoji;
   }
 
-  run(args: CliArgs, menu: Menu) {
-    this.validateArgs(args);
-    this.task.run(args, this, menu);
+  run(options: CliArgs, menu: Menu) {
+    this.validateOptions(options);
+    this.task.run(options, this, menu);
   }
 
-  validateArgs(args: CliArgs): void {
-    const invalidArgs = (Object.keys(args).filter(
-      arg => arg !== "_",
-    ) as CliArgKey[])
-      .filter(arg => !Command.toleratedArgs.has(arg))
-      .filter(arg => !this.args.has(arg));
+  validateOptions(options: CliArgs): void {
+    const invalidArgs = (Object.keys(options) as CliArgKey[])
+      .filter(option => !toleratedOptions.has(option))
+      .filter(option => !this.args.has(option));
 
     if (invalidArgs.length > 0) {
-      throw new Error(`invalid arguments: ${invalidArgs.join(", ")}`);
+      throw new ValidationError(
+        `invalid arguments: ${invalidArgs.join(", ")}`,
+        {
+          command: this,
+          invalid: invalidArgs,
+          options,
+          rest: [],
+        },
+      );
     }
   }
 }
