@@ -51,7 +51,8 @@ describe("Command", () => {
           options: new Map<string, Option>(
             args.map(name => [name, { name }] as [string, Option]),
           ),
-          selectFromArgv: createSpy(),
+          commandFromArgv: createSpy(),
+          runFromArgv: createSpy(),
         };
       });
 

@@ -1,7 +1,6 @@
 import { CliArgKey, OptionType, ConfigOutputFormat } from "./enums";
 import { StablercFile } from "./stablerc/StablercFile";
 import { CliArgs } from "./types";
-import { arch } from "os";
 
 export interface Named {
   name: string;
@@ -49,6 +48,7 @@ export interface Option extends Named {
 export interface OptionParse extends Named {
   option: Option;
   hasValue: boolean;
+  negated: boolean;
   splat: (string | boolean | number)[];
 }
 
@@ -103,13 +103,9 @@ export interface StablercPlugin {}
 
 export interface StablercDocument {
   extends?: string[];
-
   include?: string[];
-
   exclude?: string[];
-
   runners?: Runner[];
-
   plugins?: StablercPlugin[];
 }
 
@@ -117,21 +113,17 @@ export interface Runner {}
 
 export interface StablercChain {
   filename: string;
-
   plugins: boolean;
-
   inheritance: StablercEntry[];
 }
 
 export interface StablercChainParams {
   inheritance?: StablercEntry[];
-
   plugins: boolean;
 }
 
 export interface StablercEntry {
   filename: string;
-
   file: StablercFile;
 
   // type: StablercEntry.TYPE;
@@ -139,12 +131,10 @@ export interface StablercEntry {
 
 export interface StablercFileParams {
   filename: string;
-
   document: StablercDocument;
 }
 
 export interface SpecEntry {
   entry: string;
-
   stablerc: string;
 }

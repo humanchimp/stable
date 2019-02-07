@@ -6,8 +6,8 @@ import {
   CommandParse,
   Named,
 } from "./interfaces";
-import { Command as SimpleCommand, toleratedOptions } from "./Command";
-import { kebab } from "./kebab";
+import { Command as SimpleCommand, toleratedArgs } from "./Command";
+import { kebab } from "./case/kebab";
 import { OptionType, CliArgKey } from "./enums";
 import { ValidationError } from "./ValidationError";
 import { parseOption } from "./parseOption";
@@ -85,7 +85,6 @@ export class Menu implements MenuInterface {
 
         if (option == null) {
           invalid.push(arg);
-          continue;
         } else {
           const { name, splat, hasValue } = parseOption(option, arg);
 
@@ -97,11 +96,11 @@ export class Menu implements MenuInterface {
           } else {
             currentOption = option;
           }
-          continue;
         }
+        continue;
       }
       if (arg.startsWith("-") && !arg.startsWith("--")) {
-        const { invalid: i, lastValid } = arg
+        const { lastValid } = arg
           .slice(1)
           .split("")
           .reduce(
@@ -111,25 +110,20 @@ export class Menu implements MenuInterface {
 
               if (option == null) {
                 memo.lastValid = undefined;
-                memo.invalid.push(flag);
+                invalid.push(flag);
               } else if (option.type === OptionType.BOOLEAN) {
-                if (memo.dict[option.name] == null) {
-                  memo.dict[option.name] = [];
+                if (options[option.name] == null) {
+                  options[option.name] = [];
                 }
-                memo.dict[option.name].push(true);
+                options[option.name].push(true);
               }
               memo.lastValid = option;
               return memo;
             },
-            { invalid: [], dict: options, lastValid: undefined },
+            { lastValid: undefined },
           );
-        invalid.push(...i);
 
-        if (lastValid != null) {
-          currentOption = lastValid;
-        } else {
-          currentOption = undefined;
-        }
+        currentOption = lastValid != null ? lastValid : undefined;
         continue;
       }
       rest.push(arg);
@@ -161,7 +155,7 @@ export class Menu implements MenuInterface {
     return {
       command: selectedCommand,
       isDefault,
-      options: this.flattenOptions(options, selectedCommand),
+      options: this.flatOptions(options, selectedCommand),
       invalid,
       rest,
     };
@@ -201,10 +195,10 @@ export class Menu implements MenuInterface {
       : command.run(mashup, this));
   }
 
-  private flattenOptions(options: CliArgs, command: Command): CliArgs {
+  private flatOptions(options: CliArgs, command: Command): CliArgs {
     const flat: CliArgs = {};
 
-    for (const optionName of [...command.args, ...toleratedOptions]) {
+    for (const optionName of [...command.args, ...toleratedArgs]) {
       const option = this.options.get(optionName);
       const splat = [].concat(options[optionName] || []);
       const sample =
@@ -216,7 +210,6 @@ export class Menu implements MenuInterface {
         flat[optionName] = value;
       }
     }
-
     return flat;
   }
 
@@ -226,9 +219,9 @@ export class Menu implements MenuInterface {
 
   private detectOption(arg: string): Option {
     const [, stripped] = arg.match(/^--?(?:no-)?(.*)/);
-    const normal = kebab(stripped);
     const candidate =
-      this.options.get(normal) || this.options.get(this.getAliases()[normal]);
+      this.options.get(stripped) ||
+      this.options.get(this.getAliases()[stripped]);
 
     return candidate == null
       ? undefined

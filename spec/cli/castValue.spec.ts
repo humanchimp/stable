@@ -4,7 +4,7 @@ import { OptionType } from "../../src/cli/enums";
 
 describe("castValue(value, type)", () => {
   describeEach(
-    "valid casts",
+    "valid cast",
     [
       ["sample", OptionType.STRING, "sample"],
       ["0", OptionType.STRING, "0"],

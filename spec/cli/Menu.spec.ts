@@ -3,6 +3,7 @@ import { spy as createSpy, SinonSpy } from "sinon";
 import { Menu } from "../../src/cli/Menu";
 import { Command, Option } from "../../src/cli/interfaces";
 import { OptionType, CliArgKey } from "../../src/cli/enums";
+import { ValidationError } from "../../src/cli/ValidationError";
 
 describe("Menu", () => {
   let subject: Menu;
@@ -97,12 +98,18 @@ describe("Menu", () => {
         short: "b",
         help: "a boolean flag",
         type: OptionType.BOOLEAN,
-        default: false,
+        default: true,
       },
       {
         name: CliArgKey.GREP,
         help: "a string option with no short and no default",
         type: OptionType.STRING,
+      },
+      {
+        name: CliArgKey.ORDERED,
+        help: "a string or boolean option with a string default",
+        type: OptionType.STRING_OR_BOOLEAN,
+        default: "contrived",
       },
     ];
     const explicitCommand = {
@@ -114,6 +121,7 @@ describe("Menu", () => {
         CliArgKey.LIST_BY_SPEC,
         CliArgKey.QUIET,
         CliArgKey.GREP,
+        CliArgKey.ORDERED,
       ]),
       task: { run() {} },
       default: false,
@@ -130,7 +138,7 @@ describe("Menu", () => {
     });
 
     describeEach(
-      "option for an explicit command",
+      "valid cases with an explicit command",
       [
         // These are cherry-picked and overly naive during bootstrapping
         [
@@ -138,8 +146,9 @@ describe("Menu", () => {
           {
             port: 0,
             "list-by-spec": false,
-            quiet: false,
+            quiet: true,
             grep: undefined,
+            ordered: "contrived",
           },
           [],
         ],
@@ -148,18 +157,20 @@ describe("Menu", () => {
           {
             port: 12,
             "list-by-spec": false,
-            quiet: false,
+            quiet: true,
             grep: undefined,
+            ordered: "contrived",
           },
           [],
         ],
         [
-          ["explicit-command", "--port=0"], // CliArgKey.PORT is used for testing
+          ["explicit-command", "--port=0"],
           {
             port: 0,
             "list-by-spec": false,
-            quiet: false,
+            quiet: true,
             grep: undefined,
+            ordered: "contrived",
           },
           [],
         ],
@@ -168,18 +179,20 @@ describe("Menu", () => {
           {
             "list-by-spec": false,
             port: 0,
-            quiet: false,
+            quiet: true,
             grep: undefined,
+            ordered: "contrived",
           },
           [],
         ],
         [
-          ["explicit-command", "--list-by-spec=true"], // CliArgKey.LIST_BY_SPEC is used for testing
+          ["explicit-command", "--list-by-spec=true"],
           {
             "list-by-spec": true,
             port: 0,
-            quiet: false,
+            quiet: true,
             grep: undefined,
+            ordered: "contrived",
           },
           [],
         ],
@@ -190,56 +203,194 @@ describe("Menu", () => {
             port: 0,
             "list-by-spec": false,
             grep: undefined,
+            ordered: "contrived",
           },
           [],
         ],
         [
-          ["explicit-command", "--quiet"], // CliArgKey.QUIET is used for testing
+          ["explicit-command", "--quiet"],
           {
             quiet: true,
             port: 0,
             "list-by-spec": false,
             grep: undefined,
+            ordered: "contrived",
           },
           [],
         ],
         [
-          ["explicit-command", "--grep=hi"], // CliArgKey.GREP is used for testing
+          ["explicit-command", "--grep=hi"],
           {
             grep: "hi",
             port: 0,
             "list-by-spec": false,
-            quiet: false,
+            quiet: true,
+            ordered: "contrived",
           },
           [],
         ],
         [
-          ["explicit-command", "--grep", "get hep"], // CliArgKey.GREP is used for testing
+          ["explicit-command", "--grep", "get hep"],
           {
             grep: "get hep",
             port: 0,
             "list-by-spec": false,
-            quiet: false,
+            quiet: true,
+            ordered: "contrived",
           },
           [],
         ],
         [
-          ["explicit-command", "-b", "-l"], // CliArgKey.GREP is used for testing
+          ["explicit-command", "-b", "-l"],
           {
             grep: undefined,
             port: 0,
             "list-by-spec": true,
             quiet: true,
+            ordered: "contrived",
           },
           [],
         ],
         [
-          ["explicit-command", "-bl", "--grep", "hi"], // CliArgKey.GREP is used for testing
+          ["explicit-command", "-bl", "--grep", "hi"],
           {
             grep: "hi",
             port: 0,
             "list-by-spec": true,
             quiet: true,
+            ordered: "contrived",
+          },
+          [],
+        ],
+        [
+          ["explicit-command", "--no-list-by-spec"],
+          {
+            grep: undefined,
+            port: 0,
+            "list-by-spec": false,
+            quiet: true,
+            ordered: "contrived",
+          },
+          [],
+        ],
+        [
+          ["explicit-command", "--no-quiet"],
+          {
+            grep: undefined,
+            port: 0,
+            "list-by-spec": false,
+            quiet: false,
+            ordered: "contrived",
+          },
+          [],
+        ],
+        [
+          ["explicit-command", "--quiet", "off"],
+          {
+            grep: undefined,
+            port: 0,
+            "list-by-spec": false,
+            quiet: false,
+            ordered: "contrived",
+          },
+          [],
+        ],
+        [
+          ["explicit-command", "--no-quiet", "on"],
+          {
+            grep: undefined,
+            port: 0,
+            "list-by-spec": false,
+            quiet: false,
+            ordered: "contrived",
+          },
+          ["on"],
+        ],
+        [
+          ["explicit-command", "--no-quiet", "--quiet"],
+          {
+            grep: undefined,
+            port: 0,
+            "list-by-spec": false,
+            quiet: true,
+            ordered: "contrived",
+          },
+          [],
+        ],
+        [
+          ["explicit-command", "--quiet", "--no-quiet"],
+          {
+            grep: undefined,
+            port: 0,
+            "list-by-spec": false,
+            quiet: false,
+            ordered: "contrived",
+          },
+          [],
+        ],
+        [
+          ["explicit-command", "-bls", "10"],
+          {
+            grep: undefined,
+            port: 10,
+            "list-by-spec": true,
+            quiet: true,
+            ordered: "contrived",
+          },
+          [],
+        ],
+        [
+          ["explicit-command", "-ll"],
+          {
+            grep: undefined,
+            port: 0,
+            "list-by-spec": true,
+            quiet: true,
+            ordered: "contrived",
+          },
+          [],
+        ],
+        [
+          ["explicit-command", "--list-by-spec"],
+          {
+            grep: undefined,
+            port: 0,
+            "list-by-spec": true,
+            quiet: true,
+            ordered: "contrived",
+          },
+          [],
+        ],
+        [
+          ["explicit-command", "--grep"],
+          {
+            grep: "",
+            port: 0,
+            "list-by-spec": false,
+            quiet: true,
+            ordered: "contrived",
+          },
+          [],
+        ],
+        [
+          ["explicit-command", "--port=10", "--port"],
+          {
+            grep: undefined,
+            port: 0,
+            "list-by-spec": false,
+            quiet: true,
+            ordered: "contrived",
+          },
+          [],
+        ],
+        [
+          ["explicit-command", "--ordered"],
+          {
+            grep: undefined,
+            port: 0,
+            "list-by-spec": false,
+            quiet: true,
+            ordered: true,
           },
           [],
         ],
@@ -264,10 +415,26 @@ describe("Menu", () => {
         });
       },
     );
+
+    describeEach(
+      "invalid cases with an explicit command and an unintelligible argument",
+      [
+        [["explicit-command", "--rdjodpjsm"], ["--rdjodpjsm"]],
+        [["explicit-command", "-j"], ["-j"]],
+        [["explicit-command", "-jds"], ["-j", "-d"]],
+      ],
+      ([argv, expectedInvalid]) => {
+        it("should collect the invalid parameters", () => {
+          const { invalid } = subject.commandFromArgv(argv);
+
+          expect(invalid).to.eql(expectedInvalid);
+        });
+      },
+    );
   });
 
   describe(".runFromArgv(argv: string[])", () => {
-    let commandSpy: SinonSpy, runSpy: SinonSpy;
+    let runSpy: SinonSpy;
 
     describe("with an explicit command", () => {
       describe("when no matching option has a task", () => {

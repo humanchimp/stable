@@ -8,13 +8,13 @@ import { CliArgKey } from "./enums";
 import { CliArgs } from "./types";
 import { ValidationError } from "./ValidationError";
 
-export const toleratedOptions = new Set<CliArgKey>([
+export const toleratedArgs = new Set<CliArgKey>([
   CliArgKey.HELP,
   CliArgKey.REST,
 ]);
 
 export class Command implements CommandInterface {
-  static toleratedOptions = toleratedOptions;
+  static toleratedArgs = toleratedArgs;
 
   name: string;
 
@@ -51,7 +51,7 @@ export class Command implements CommandInterface {
 
   validateOptions(options: CliArgs): void {
     const invalidArgs = (Object.keys(options) as CliArgKey[])
-      .filter(option => !toleratedOptions.has(option))
+      .filter(option => !toleratedArgs.has(option))
       .filter(option => !this.args.has(option));
 
     if (invalidArgs.length > 0) {
