@@ -19,58 +19,49 @@ Note: this currently doesn't work since the package is not published to npm at t
 ### cli
 
 ```
-Usage: 🐎 stable [command] [glob]
+Usage: stable <run bundle config help parse-options> <file(s)/dir(s)> [options]
 
-run                 run the test suite using a runner. [default]
+🐎 run
 
-bundle              bundle the test suite modules.
+If files are passed, start there, find .stablercs. If no files passed, start with the .stablerc in the pwd. Run every suite we find with the correct .stablerc.
+
+📦 bundle
+
+Produce a bundle artifact, but don't run any tests.
+
+⚙️ config
+
+Print the config to stdout after performing the algorithm to load it relative to the given path, else the pwd. Stream the reports to stdout
+
+🙃 help
+
+Print this message.
+
+🥢 parse-options
+
+Parse argv; print result
 
 Options:
 
--s, --stdin         read stdin.
--f, --filter        a substring match to filter by suite description.
-                      [string]
--g, --grep          a JavaScript regular expression to use for filtering by
-                    suite description.
-                      [string]
--r, --runner        the runner to use
-                      [string]
-                      [default: eval]
-                      [in core: eval, vm]
-                      [planned: remote, isolate]
--o, --format        the format of the output stream.
-                      [string]
-                      [default: tap]
-                      [in core: tap, json, inspect]
---sort              the sort algorithm used when visiting the specs. By
-                    default, specs are shuffled using the Fisher-Yates
-                    algorithm. You can defeat this feature by passing
-                    --sort=ordered.
-                      [string]
-                      [default: shuffle]
-                      [in core: shuffle, ordered]
---ordered           a convenient shorthand for --sort=ordered
---partitions        the total of partitions to divide the specs by.
-                      [number]
---partition         the partition to run and report.
-                      [number]
---seed              for seeding the random number generator used by the built-
-                    in shuffle algorithm.
-                      [string]
---rollup            path to the rollup config for your project.
-                      [string]
-                      [default: rollup.config.js]
---coverage          format of code coverage report.
-                      [string]
-                      [in core: html, lcov, json]
---hide-skips        hide skipped specs from the stream.
-                      [string or boolean]
-                      [default: 'focus']
--v, --verbose       be chattier.
-                      [boolean]
-                      [default: false]
--q, --quiet         don't send an exit code on failure.
--h, --help          print this message.
+--read-stdin       	read stdin. [boolean] [default: false]
+-f, --filter       	a substring match to filter by suite description. [string]
+-g, --grep         	a JavaScript regular expression to use for filtering by suite description. [string]
+-r, --runner       	the runner to use. [string]
+-o, --output-format	the format of the output stream. [string]
+--list-by-spec     	list output by spec rather than stablerc [boolean] [default: false]
+--sort             	the sort algorithm used when visiting the specs. By default, specs are shuffled using the Fisher-Yates algorithm. You can defeat this feature by passing --sort=ordered. [string] [default: shuffle]
+--ordered          	a convenient shorthand for --sort=ordered. [boolean]
+--partitions       	the total of partitions to divide the specs by. [number]
+--partition        	the partition to run and report. [number]
+--seed             	for seeding the random number generator used by the built-in shuffle algorithm. [string]
+--rollup           	path to the rollup config for your project. [string] [default: rollup.config.js]
+--coverage         	unclear what function this serves at this point [string] [default: lcov]
+--hide-skips       	hide skipped specs from the stream. [string or boolean] [default: focus]
+--port             	the port to listen on whenever stable needs an http server. [number] [default: 10001]
+-v, --verbose      	be chattier. [boolean] [default: false]
+-q, --quiet        	don't send an exit code on failure. [boolean] [default: false]
+--working-directory	a path to use instead of the pwd. [string] [default: /Users/thorn/Desktop/stable]
+-h, --help         	print this message. [boolean] [default: false]
 
 ```
 
