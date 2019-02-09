@@ -111,15 +111,19 @@ export interface StablercDocument {
 
 export interface Runner {}
 
+export interface StablercFile {
+  document: StablercDocument;
+  plugins: boolean;
+}
+
 export interface StablercChain {
-  filename: string;
   plugins: boolean;
   inheritance: StablercEntry[];
 }
 
 export interface StablercChainParams {
   inheritance?: StablercEntry[];
-  plugins: boolean;
+  plugins?: boolean;
 }
 
 export interface StablercEntry {

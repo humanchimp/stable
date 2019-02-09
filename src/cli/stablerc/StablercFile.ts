@@ -2,6 +2,7 @@ import {
   StablercDocument,
   StablercFileLoadParams,
   StablercFileParams,
+  StablercFile as StablercFileInterface,
 } from "../interfaces";
 import glob from "fast-glob";
 import { readFile } from "fs-extra";
@@ -9,7 +10,7 @@ import { safeLoad } from "js-yaml";
 import { join, dirname } from "path";
 import { nearestStablerc } from "./nearestStablerc";
 
-export class StablercFile {
+export class StablercFile implements StablercFileInterface {
   static splatDocument = splatDocument;
 
   static load = load;

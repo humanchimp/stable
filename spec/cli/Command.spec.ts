@@ -5,7 +5,7 @@ import { Menu, Task, Option } from "../../src/cli/interfaces";
 import { CliArgKey } from "../../src/cli/enums";
 
 describeEach(
-  "parameterization",
+  "new Command(params: CommandParams)",
   [
     [{ default: true }],
     [{ default: false }],

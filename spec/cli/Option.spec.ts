@@ -3,7 +3,7 @@ import { Option } from "../../src/cli/Option";
 import { OptionType } from "../../src/cli/enums";
 
 describeEach(
-  "parameterization",
+  "new Option(params: OptionParams)",
   [
     [{}],
     [{ type: OptionType.NUMBER, default: 0 }],
