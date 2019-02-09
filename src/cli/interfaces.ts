@@ -95,8 +95,8 @@ export interface LogEffect {
   (...rest: any[]): void;
 }
 
-export interface StablercFromFileParams {
-  plugins: boolean;
+export interface StablercFileLoadParams {
+  plugins?: boolean;
 }
 
 export interface StablercPlugin {}
@@ -125,12 +125,9 @@ export interface StablercChainParams {
 export interface StablercEntry {
   filename: string;
   file: StablercFile;
-
-  // type: StablercEntry.TYPE;
 }
 
 export interface StablercFileParams {
-  filename: string;
   document: StablercDocument;
 }
 

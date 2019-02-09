@@ -1,4 +1,4 @@
-import { StablercChainParams, StablercEntry } from "../interfaces";
+import { StablercChainParams } from "../interfaces";
 import glob from "fast-glob";
 import { dirname, join } from "path";
 import { StablercChain } from "./StablercChain";

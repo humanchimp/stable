@@ -1,85 +1,91 @@
 import {
   StablercDocument,
-  StablercFromFileParams,
+  StablercFileLoadParams,
   StablercFileParams,
 } from "../interfaces";
+import glob from "fast-glob";
 import { readFile } from "fs-extra";
 import { safeLoad } from "js-yaml";
 import { join, dirname } from "path";
-import glob from "fast-glob";
 import { nearestStablerc } from "./nearestStablerc";
 
 export class StablercFile {
-  static splatDocument(document: StablercDocument) {
-    return {
-      extends: splat(document.extends),
-      include: splat(document.include),
-      exclude: splat(document.exclude),
-      plugins: document.plugins,
-      runners: document.runners,
-    };
-    function splat(it) {
-      return it ? [].concat(it) : [];
-    }
-  }
+  static splatDocument = splatDocument;
 
-  filename: string;
+  static load = load;
+
+  static loadAll = loadAll;
 
   document: StablercDocument;
 
   plugins: boolean;
 
   constructor({ document }: StablercFileParams) {
-    this.document = StablercFile.splatDocument(document);
+    this.document = splatDocument(document);
   }
+}
 
-  static async load(
-    filename: string,
-    { plugins: shouldLoadPlugins }: StablercFromFileParams,
-  ): Promise<StablercFile> {
-    const contents = await readFile(filename, "utf-8");
-    const data = safeLoad(contents);
+export function splatDocument(document: StablercDocument) {
+  return {
+    extends: splat(document.extends),
+    include: splat(document.include),
+    exclude: splat(document.exclude),
+    plugins: document.plugins,
+    runners: document.runners,
+  };
+  function splat(it) {
+    return it ? [].concat(it) : [];
+  }
+}
 
-    return new StablercFile({
-      filename,
-      document: {
-        extends: data.extends,
-        include: data.include,
-        exclude: data.exclude,
-        plugins: data.plugins,
-        runners: data.runners,
-      },
+export async function load(
+  filename: string,
+  { plugins: shouldLoadPlugins = false }: StablercFileLoadParams = {},
+): Promise<StablercFile> {
+  const contents = await readFile(filename, "utf-8");
+  const data = safeLoad(contents);
+
+  return new StablercFile({
+    document: {
+      extends: data.extends,
+      include: data.include,
+      exclude: data.exclude,
+      plugins: data.plugins,
+      runners: data.runners,
+    },
+  });
+}
+
+export async function loadAll(
+  filename,
+  params: StablercFileLoadParams = {},
+): Promise<Map<string, StablercFile>> {
+  const stablercs: Map<string, StablercFile> = new Map();
+  const moar: string[] = [];
+
+  do {
+    if (stablercs.has(filename)) {
+      continue;
+    }
+    const stablerc: StablercFile = await load(filename, {
+      ...params,
+      plugins: false,
     });
-  }
+    const { document } = stablerc;
 
-  static async loadAll(filename, params): Promise<Map<string, StablercFile>> {
-    const stablercs: Map<string, StablercFile> = new Map();
-    const moar: string[] = [];
+    const [extend, include] = await Promise.all([
+      moarFiles(filename, document.extends),
+      moarFiles(filename, document.include),
+    ]);
 
-    do {
-      if (stablercs.has(filename)) {
-        continue;
-      }
-      const stablerc: StablercFile = await StablercFile.load(filename, {
-        ...params,
-        plugins: false,
-      });
-      const { document } = stablerc;
+    await Promise.all(
+      [include, extend].map(source => appendMoar(moar, source)),
+    );
 
-      const [extend, include] = await Promise.all([
-        moarFiles(filename, document.extends),
-        moarFiles(filename, document.include),
-      ]);
+    stablercs.set(filename, stablerc);
+  } while ((filename = moar.pop()));
 
-      await Promise.all(
-        [include, extend].map(source => appendMoar(moar, source)),
-      );
-
-      stablercs.set(filename, stablerc);
-    } while ((filename = moar.pop()));
-
-    return stablercs;
-  }
+  return stablercs;
 }
 
 async function* moarFiles(relative, patterns) {

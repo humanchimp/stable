@@ -1,5 +1,5 @@
 import {
-  StablercFromFileParams,
+  StablercFileLoadParams,
   StablercChain as StablercChainInterface,
   StablercEntry,
   StablercChainParams,
@@ -27,7 +27,6 @@ export class StablercChain implements StablercChainInterface {
 
   flat(): StablercFile {
     return new StablercFile({
-      filename: this.filename,
       document: this.inheritance.reduce((memo, { file: { document } }) => {
         for (const key of ["plugins", "include", "exclude", "runners"]) {
           memo[key] = [].concat(memo[key], document[key]).filter(Boolean);
@@ -54,7 +53,7 @@ export class StablercChain implements StablercChainInterface {
 
   static async load(
     filename: string,
-    params: StablercFromFileParams,
+    params: StablercFileLoadParams,
     files?: Map<string, StablercFile>,
   ): Promise<StablercChain> {
     if (files == null) {
@@ -69,7 +68,7 @@ export class StablercChain implements StablercChainInterface {
 
   static async loadAll(
     filename: string,
-    params: StablercFromFileParams,
+    params: StablercFileLoadParams,
     files?: Map<string, StablercFile>,
   ): Promise<Map<string, StablercChain>> {
     if (files == null) {
