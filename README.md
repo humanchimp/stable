@@ -119,7 +119,7 @@ runners:
 - headless chrome
 - jsdom
 ```
-_Figure 4_: `project/spec/ui/.stablrc` The configuration for tests meant to run only in browsers.
+_Figure 4_: `project/spec/ui/.stablerc` The configuration for tests meant to run only in browsers.
 
 These files contain YAML (or JSON) dictionaries and are capable of configuring plugins and enabling runners by default. In practice, runners probably need to be overridden in CI because you probabaly want to use separate [containers](./cloud-builders) to run your tests against various browsers.
 
