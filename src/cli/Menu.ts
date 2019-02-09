@@ -202,7 +202,9 @@ export class Menu implements MenuInterface {
       const option = this.options.get(optionName);
       const splat = [].concat(options[optionName] || []);
       const sample =
-        option && option.sample != null ? option.sample(splat) : splat.pop();
+        option && option.sample != null
+          ? option.sample(splat)
+          : splat[splat.length - 1];
       const value = sample === undefined ? option && option.default : sample;
 
       // Only create keys for undefineds for explicit args, not merely tolerated ones

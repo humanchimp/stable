@@ -43,7 +43,7 @@ export class PrintHelpMenuTask implements Task {
 
   run(options: any, command: Command, menu: Menu): void {
     console.log(`Usage: ${chalk.bold("stable")} ${chalk.green(
-      "[command] [glob] [options]",
+      `<${[...menu.commands.keys()].join(" ")}> <file(s)/dir(s)> [options]`,
     )}
 
 ${PrintHelpMenuTask.printCommands(menu.commands)}

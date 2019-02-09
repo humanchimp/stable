@@ -1,8 +1,8 @@
-// Portions © Joakim Carlstein
-// used under MIT license
+export const KEBAB_REGEX = /[A-Z\u00C0-\u00D6\u00D8-\u00DE]/;
 
-export const KEBAB_REGEX = /[A-Z\u00C0-\u00D6\u00D8-\u00DE]/g;
+export const kebab = (str: string): string =>
+  [...str].reduce((memo, c: string, i) => {
+    const low = c.toLowerCase();
 
-export function kebab(str: string): string {
-  return str.replace(KEBAB_REGEX, match => `-${match.toLowerCase()}`);
-}
+    return `${memo}${KEBAB_REGEX.test(c) ? (i > 0 ? `-${low}` : low) : c}`;
+  }, "");
