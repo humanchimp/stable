@@ -1,6 +1,6 @@
 plugins:
 - - timing
-  - timeout: 200
+  - timeout: 500
 - - rescue
 - - fixture
   - include: ./fixture/**/*

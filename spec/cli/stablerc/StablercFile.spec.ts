@@ -187,7 +187,7 @@ describe("StablercFile.loadAll(filename: string, params: StablercFileLoadParams)
             include: [],
             exclude: [],
             plugins: [
-              ["timing", { timeout: 200 }],
+              ["timing", { timeout: 500 }],
               ["rescue"],
               ["fixture", { include: "./fixture/**/*" }],
             ],
