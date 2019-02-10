@@ -7,6 +7,7 @@ import { Task, PrintConfigTaskParams, LogEffect } from "../interfaces";
 import { uniq } from "../uniq";
 import { stat } from "../stat";
 import { StablercFile } from "../stablerc/StablercFile";
+import { StablercChain } from "../stablerc/StablercChain";
 import { ConfigOutputFormat } from "../enums";
 import { nearestStablerc } from "../stablerc/nearestStablerc";
 import { loadSpecMap } from "../stablerc/loadSpecMap";
@@ -91,11 +92,15 @@ class Run {
 
   private async computeStablercs(): Promise<Map<string, StablercFile>[]> {
     return Promise.all(
-      (await this.stablercFiles).map(filename =>
-        (this.bySpec ? loadSpecMap : loadStablercMap)(filename, {
+      (await this.stablercFiles).map(async filename => {
+        const chains = await StablercChain.loadAll(filename, {
           plugins: true,
-        }),
-      ),
+        });
+
+        return this.bySpec
+          ? await loadSpecMap(chains, filename)
+          : loadStablercMap(chains);
+      }),
     );
   }
 

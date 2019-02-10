@@ -1,20 +1,15 @@
-import { StablercChainParams } from "../interfaces";
 import glob from "fast-glob";
 import { dirname, join } from "path";
 import { StablercChain } from "./StablercChain";
 import { nearestStablerc } from "./nearestStablerc";
 import { StablercFile } from "./StablercFile";
+import { loadStablercMap } from "./loadStablercMap";
 
 export async function loadSpecMap(
+  chains: Map<string, StablercChain>,
   filename: string,
-  params: StablercChainParams,
 ): Promise<Map<string, StablercFile>> {
-  const chains = await StablercChain.loadAll(filename, params);
-  const flattened = new Map(
-    [...chains.entries()].map(
-      ([filename, chain]) => [filename, chain.flat()] as [string, StablercFile],
-    ),
-  );
+  const flattened = loadStablercMap(chains);
   const relativeIncludes = chains
     .get(filename)
     .inheritance.filter(

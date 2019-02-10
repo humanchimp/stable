@@ -20,6 +20,7 @@ async function main() {
 
       if (suggestions.length > 0) {
         const [{ string: suggestion }] = suggestions;
+
         console.log(
           `Invalid: ${firstInvalid}\n\nDid you mean ${chalk.bold(
             `--${suggestion}`,

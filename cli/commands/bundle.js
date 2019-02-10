@@ -205,11 +205,11 @@ function partition(collection, predicate) {
 }
 
 function codeForTestBundle(onready = "run") {
-  return `
-import { dethunk, run } from "./stable";
+  return `import { dethunk, run } from "./stable";
 import { plugins } from "./plugins";
-import { thunk } from "./bundle"
-dethunk(thunk, plugins).then(${onready})`;
+import { thunk } from "./bundle";
+dethunk(thunk, plugins).then(${onready});
+`;
 }
 
 async function codeForLibrary(plugins) {

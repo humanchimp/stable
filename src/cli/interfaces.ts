@@ -119,6 +119,7 @@ export interface StablercFile {
 export interface StablercChain {
   plugins: boolean;
   inheritance: StablercEntry[];
+  flat(): StablercFile;
 }
 
 export interface StablercChainParams {
@@ -138,4 +139,9 @@ export interface StablercFileParams {
 export interface SpecEntry {
   entry: string;
   stablerc: string;
+}
+
+export interface BundleTaskParams {
+  "working-directory": string;
+  rest: string[];
 }
