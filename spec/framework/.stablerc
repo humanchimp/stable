@@ -1,4 +1,5 @@
 extends: ../.stablerc
+include: ./**.spec.ts
 runners:
 - isolate
 - headless chrome

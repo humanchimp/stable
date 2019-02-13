@@ -13,7 +13,7 @@ function loadConfigFile(configPath, commandOptions = {}) {
     ? configPath
     : path.join(process.cwd(), configPath);
 
-  return loadModule(configFile);
+  return loadModule(configFile, commandOptions);
 }
 
 async function loadModule(input) {
@@ -50,7 +50,7 @@ async function loadModule(input) {
   const configFileContent = await require(input);
   const config =
     typeof configFileContent === "function"
-      ? await configFileContent(commandOptions)
+      ? await configFileContent(commandOptions, commandOptions)
       : configFileContent;
 
   require.extensions[".js"] = defaultLoader;

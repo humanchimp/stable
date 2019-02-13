@@ -36,6 +36,8 @@ export const cli = new Menu({
         CliArgKey.PARTITION,
         CliArgKey.PARTITIONS,
         CliArgKey.OUTPUT_FORMAT,
+        CliArgKey.ROLLUP,
+        CliArgKey.ONREADY,
         CliArgKey.COVERAGE,
         CliArgKey.HIDE_SKIPS,
         CliArgKey.VERBOSE,
@@ -138,6 +140,12 @@ export const cli = new Menu({
       help: "path to the rollup config for your project.",
       type: OptionType.STRING,
       default: "rollup.config.js",
+    }),
+    new Option({
+      name: CliArgKey.ONREADY,
+      help: 'the name of a function to call when "ready".',
+      type: OptionType.STRING,
+      default: "run",
     }),
     new Option({
       name: CliArgKey.COVERAGE,

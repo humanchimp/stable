@@ -1,7 +1,7 @@
 import { rollup } from "rollup";
 import { isAbsolute } from "path";
 import { readFile } from "fs-extra";
-import { babel } from "@babel/core";
+import babel from "@babel/core";
 import multiEntry from "rollup-plugin-multi-entry";
 import babelPluginIstanbul from "babel-plugin-istanbul";
 

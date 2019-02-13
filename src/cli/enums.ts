@@ -11,6 +11,7 @@ export enum CliArgKey {
   SORT = "sort",
   HELP = "help",
   ROLLUP = "rollup",
+  ONREADY = "onready",
   SEED = "seed",
   PARTITIONS = "partitions",
   PARTITION = "partition",

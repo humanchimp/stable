@@ -20,7 +20,7 @@ export async function loadSpecMap(
       }) => include.length > 0,
     )
     .map(({ filename, file: { document: { include } } }) => ({
-      include: include,
+      include,
       cwd: dirname(filename),
     }));
   const specFiles = [

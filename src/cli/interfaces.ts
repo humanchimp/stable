@@ -1,6 +1,6 @@
 import { CliArgKey, OptionType, ConfigOutputFormat } from "./enums";
 import { StablercFile } from "./stablerc/StablercFile";
-import { CliArgs } from "./types";
+import { CliArgs, StablercPluginDefinition } from "./types";
 
 export interface Named {
   name: string;
@@ -82,31 +82,25 @@ export interface CommandChoice extends Named {
   args: CliArgKey[];
 }
 
-export interface PrintConfigTaskParams {
-  "working-directory": string;
-  "output-format": ConfigOutputFormat;
-  "list-by-spec": boolean;
-  rest: string[];
-  verbose: boolean;
-  log: LogEffect;
-}
-
-export interface LogEffect {
-  (...rest: any[]): void;
-}
-
 export interface StablercFileLoadParams {
   plugins?: boolean;
 }
 
-export interface StablercPlugin {}
+export interface StablercPlugin {
+  config: any;
+  plugin: {
+    package: any;
+    provides: any;
+    config: any;
+  };
+}
 
 export interface StablercDocument {
   extends?: string[];
   include?: string[];
   exclude?: string[];
   runners?: Runner[];
-  plugins?: StablercPlugin[];
+  plugins?: StablercPluginDefinition[];
 }
 
 export interface Runner {}
@@ -114,6 +108,8 @@ export interface Runner {}
 export interface StablercFile {
   document: StablercDocument;
   plugins: boolean;
+  withPlugins(): StablercFile;
+  loadedPlugins: Promise<Map<string, StablercPlugin>>;
 }
 
 export interface StablercChain {
@@ -134,6 +130,7 @@ export interface StablercEntry {
 
 export interface StablercFileParams {
   document: StablercDocument;
+  plugins: boolean;
 }
 
 export interface SpecEntry {
@@ -141,7 +138,24 @@ export interface SpecEntry {
   stablerc: string;
 }
 
+export interface LogEffect {
+  (...rest: any[]): void;
+}
+
+export interface PrintConfigTaskParams {
+  [CliArgKey.WORKING_DIRECTORY]: string;
+  [CliArgKey.OUTPUT_FORMAT]: ConfigOutputFormat;
+  [CliArgKey.LIST_BY_SPEC]: boolean;
+  [CliArgKey.REST]: string[];
+  [CliArgKey.VERBOSE]: boolean;
+  log: LogEffect;
+}
+
 export interface BundleTaskParams {
-  "working-directory": string;
-  rest: string[];
+  [CliArgKey.WORKING_DIRECTORY]: string;
+  [CliArgKey.REST]: string[];
+  [CliArgKey.ROLLUP]: string;
+  [CliArgKey.ONREADY]: string;
+  [CliArgKey.COVERAGE]: boolean;
+  [CliArgKey.VERBOSE]: boolean;
 }

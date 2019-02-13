@@ -3,14 +3,22 @@ import {
   StablercFileLoadParams,
   StablercFileParams,
   StablercFile as StablercFileInterface,
+  StablercPlugin,
 } from "../interfaces";
 import glob from "fast-glob";
 import { readFile } from "fs-extra";
 import { safeLoad } from "js-yaml";
 import { join, dirname } from "path";
 import { nearestStablerc } from "./nearestStablerc";
+import { stablercsForSpecs } from "./stablercsForSpecs";
+import { instantiatePlugins } from "./instantiatePlugins";
+import { Splat, StablercPluginDefinition } from "../types";
 
 export class StablercFile implements StablercFileInterface {
+  static nearest = nearestStablerc;
+
+  static forSpecs = stablercsForSpecs;
+
   static splatDocument = splatDocument;
 
   static load = load;
@@ -21,12 +29,28 @@ export class StablercFile implements StablercFileInterface {
 
   plugins: boolean;
 
-  constructor({ document }: StablercFileParams) {
-    this.document = splatDocument(document);
+  loadedPlugins: Promise<Map<any, StablercPlugin>>;
+
+  constructor({ document, plugins }: StablercFileParams) {
+    this.document = splatDocument(document, plugins);
+    if (plugins) {
+      this.loadedPlugins = instantiatePlugins(new Map(document.plugins));
+    }
+    this.plugins = plugins;
+  }
+
+  withPlugins() {
+    if (this.plugins) {
+      return this;
+    }
+    return new StablercFile({
+      plugins: true,
+      document: this.document,
+    });
   }
 }
 
-export function splatDocument(document: StablercDocument) {
+export function splatDocument(document: StablercDocument, plugins: boolean) {
   return {
     extends: splat(document.extends),
     include: splat(document.include),
@@ -54,37 +78,46 @@ export async function load(
       plugins: data.plugins,
       runners: data.runners,
     },
+    plugins: shouldLoadPlugins,
   });
 }
 
+export function loadAll(
+  filename: string,
+  params: StablercFileLoadParams,
+): Promise<Map<string, StablercFile>>;
+export function loadAll(
+  filename: string[],
+  params: StablercFileLoadParams,
+): Promise<Map<string, StablercFile>>;
 export async function loadAll(
-  filename,
+  filename: Splat<string>,
   params: StablercFileLoadParams = {},
 ): Promise<Map<string, StablercFile>> {
   const stablercs: Map<string, StablercFile> = new Map();
-  const moar: string[] = [];
+  let [current, ...moar]: string[] = [].concat(filename);
 
   do {
-    if (stablercs.has(filename)) {
+    if (stablercs.has(current)) {
       continue;
     }
-    const stablerc: StablercFile = await load(filename, {
+    const stablerc: StablercFile = await load(current, {
       ...params,
       plugins: false,
     });
     const { document } = stablerc;
 
     const [extend, include] = await Promise.all([
-      moarFiles(filename, document.extends),
-      moarFiles(filename, document.include),
+      moarFiles(current, document.extends),
+      moarFiles(current, document.include),
     ]);
 
     await Promise.all(
       [include, extend].map(source => appendMoar(moar, source)),
     );
 
-    stablercs.set(filename, stablerc);
-  } while ((filename = moar.pop()));
+    stablercs.set(current, stablerc);
+  } while ((current = moar.pop()));
 
   return stablercs;
 }
@@ -97,7 +130,10 @@ async function* moarFiles(relative, patterns) {
   }
 }
 
-async function appendMoar(moar, source) {
+async function appendMoar(
+  moar: string[],
+  source: AsyncIterableIterator<string>,
+) {
   for await (const filename of source) {
     moar.push(filename);
   }

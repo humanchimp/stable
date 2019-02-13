@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { spy as createSpy } from "sinon";
+import { spy as createSpy, SinonSpy } from "sinon";
 import { describe as createSuite } from "../../src/framework/describe";
 import { run, generator } from "../../src/framework/run";
 
@@ -25,8 +25,8 @@ describe("run", () => {
     it("should by default perform console.log", async () => {
       createSpy(console, "log");
       await run(suites, { generate });
-      expect(console.log.callCount).to.equal(3);
-      console.log.restore();
+      expect((console.log as SinonSpy).callCount).to.equal(3);
+      (console.log as SinonSpy).restore();
     });
 
     describe("passing an arbitrary effect", () => {
@@ -89,8 +89,8 @@ describe("run", () => {
       it("should by default perform console.log", async () => {
         createSpy(console, "log");
         await run(suite);
-        expect(console.log.callCount).to.equal(5);
-        console.log.restore();
+        expect((console.log as SinonSpy).callCount).to.equal(5);
+        (console.log as SinonSpy).restore();
       });
 
       info(

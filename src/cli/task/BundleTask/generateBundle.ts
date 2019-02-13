@@ -1,23 +1,32 @@
-import { rollup } from "rollup";
+import { rollup, RollupSingleFileBuild } from "rollup";
 import { join, dirname } from "path";
 import { copy, writeFile, mkdirp } from "fs-extra";
 import { dir } from "tmp-promise";
 import sorcery from "sorcery";
-import { mungePlugins } from "./mungePlugins";
 import { thunkify } from "./thunkify";
 import { bundleFromFiles } from "./bundleFromFiles";
 import { bundlePlugins } from "./bundlePlugins";
 import { codeForLibrary } from "./codeForLibrary";
 import { codeForTestBundle } from "./codeForTestBundle";
+import { StablercFile, BundleTaskParams } from "../../interfaces";
+import { loadModule } from "../../loadModule";
+import { CliArgKey } from "../../enums";
 
 export async function generateBundle(
-  files,
-  { config, rollupPlugins, coverage: shouldInstrument, onready, verbose },
-) {
-  const plugins = mungePlugins(config.plugins);
-
+  files: string[],
+  config: StablercFile,
+  {
+    [CliArgKey.COVERAGE]: shouldInstrument = false,
+    [CliArgKey.VERBOSE]: verbose = false,
+    [CliArgKey.ROLLUP]: rollupConfig = "rollup.config.js",
+    [CliArgKey.WORKING_DIRECTORY]: cwd = process.cwd(),
+    [CliArgKey.ONREADY]: onready = "run",
+  }: BundleTaskParams,
+): Promise<RollupSingleFileBuild> {
+  const { plugins: rollupPlugins } = await loadModule(join(cwd, rollupConfig));
+  const plugins = [...(await config.loadedPlugins).values()];
   const pluginRollupPlugins = plugins
-    .map(plugin => plugin.provides && plugin.provides.plugins)
+    .map(({ plugin }) => plugin.provides && plugin.provides.plugins)
     .filter(Boolean)
     .reduce((memo, thunk) => memo.concat(thunk()), []);
 
@@ -61,7 +70,7 @@ export async function generateBundle(
     await writeFile(libraryPath, libraryBundle.code, "utf-8");
     await writeFile(libraryMapPath, libraryBundle.map, "utf-8");
 
-    await copy(join(__dirname, "../../plugins"), join(tmp.path, "plugins"));
+    await copy(join(cwd, "plugins"), join(tmp.path, "plugins"));
 
     return await rollup({
       input: testBundlePath,

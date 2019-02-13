@@ -5,6 +5,7 @@ import {
   StablercChainParams,
   StablercFile,
 } from "../interfaces";
+import { Splat } from "../types";
 import { StablercFile as SimpleStablercFile } from "./StablercFile";
 import { isAbsolute, join, dirname } from "path";
 
@@ -35,11 +36,11 @@ export class StablercChain implements StablercChainInterface {
 }
 
 export async function loadAll(
-  filename: string,
+  filename: Splat<string>,
   params?: StablercFileLoadParams,
 ): Promise<Map<string, StablercChain>> {
   const files: Map<string, StablercFile> = await SimpleStablercFile.loadAll(
-    filename,
+    [].concat(filename),
     params,
   );
 
