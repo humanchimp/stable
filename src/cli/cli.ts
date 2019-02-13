@@ -17,6 +17,8 @@ export const cli = new Menu({
       args: [
         CliArgKey.PARTITION,
         CliArgKey.PARTITIONS,
+        CliArgKey.FILTER,
+        CliArgKey.GREP,
         CliArgKey.ORDERED,
         CliArgKey.SORT,
         CliArgKey.OUTPUT_FORMAT,

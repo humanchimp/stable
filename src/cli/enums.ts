@@ -42,3 +42,9 @@ export enum StablercDetectionType {
   EXCLUDE = "exclude",
   EXTENDS = "extends",
 }
+
+export enum StreamFormat {
+  TAP = "tap",
+  JSONLINES = "json",
+  INSPECT = "inspect",
+}

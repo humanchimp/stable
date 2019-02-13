@@ -2,6 +2,7 @@ import { CliArgKey, OptionType, ConfigOutputFormat } from "./enums";
 import { StablercFile } from "./stablerc/StablercFile";
 import { CliArgs, StablercPluginDefinition } from "./types";
 import { ModuleFormat } from "rollup";
+import { Stream } from "most";
 
 export interface Named {
   name: string;
@@ -75,8 +76,16 @@ export interface MenuParams {
   debug?: boolean;
 }
 
+export interface TaskRun {
+  (args: any, command: Command, menu: Menu): void;
+}
+
 export interface Task {
-  run(args: any, command: Command, menu: Menu): void;
+  run: TaskRun;
+}
+
+export interface TestRun {
+  (code, options): Stream<any>;
 }
 
 export interface CommandChoice extends Named {
