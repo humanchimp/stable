@@ -148,6 +148,19 @@ export const cli = new Menu({
       default: "run",
     }),
     new Option({
+      name: CliArgKey.BUNDLE_FILE,
+      help:
+        "the name of the file of the output bundle. if we end up with multiple bundles, we'll start numbering them",
+      type: OptionType.STRING,
+      default: "bundle.js",
+    }),
+    new Option({
+      name: CliArgKey.BUNDLE_FORMAT,
+      help: "the format of the outpout bundle",
+      type: OptionType.STRING,
+      default: "iife",
+    }),
+    new Option({
       name: CliArgKey.COVERAGE,
       help: "unclear what function this serves at this point",
       type: OptionType.STRING,

@@ -12,6 +12,8 @@ export enum CliArgKey {
   HELP = "help",
   ROLLUP = "rollup",
   ONREADY = "onready",
+  BUNDLE_FILE = "bundle-file",
+  BUNDLE_FORMAT = "bundle-format",
   SEED = "seed",
   PARTITIONS = "partitions",
   PARTITION = "partition",

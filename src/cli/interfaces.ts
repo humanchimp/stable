@@ -1,6 +1,7 @@
 import { CliArgKey, OptionType, ConfigOutputFormat } from "./enums";
 import { StablercFile } from "./stablerc/StablercFile";
 import { CliArgs, StablercPluginDefinition } from "./types";
+import { ModuleFormat } from "rollup";
 
 export interface Named {
   name: string;
@@ -156,6 +157,8 @@ export interface BundleTaskParams {
   [CliArgKey.REST]: string[];
   [CliArgKey.ROLLUP]: string;
   [CliArgKey.ONREADY]: string;
+  [CliArgKey.BUNDLE_FILE]: string;
+  [CliArgKey.BUNDLE_FORMAT]: ModuleFormat;
   [CliArgKey.COVERAGE]: boolean;
   [CliArgKey.VERBOSE]: boolean;
 }

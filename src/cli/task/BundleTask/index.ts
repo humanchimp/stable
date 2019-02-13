@@ -1,16 +1,22 @@
-import { join, isAbsolute, dirname, relative } from "path";
+import { join, isAbsolute, dirname, relative, basename } from "path";
 import glob from "fast-glob";
 import { Task, BundleTaskParams } from "../../interfaces";
 import { StablercChain } from "../../stablerc/StablercChain";
 import { generateBundle } from "./generateBundle";
 import { stablercsForSpecs } from "../../stablerc/stablercsForSpecs";
+import { CliArgKey } from "../../enums";
+import sorcery from "sorcery";
 
 export class BundleTask implements Task {
   async run(params: BundleTaskParams) {
     const {
-      "working-directory": cwd = process.cwd(),
-      rest: explicitFiles,
+      [CliArgKey.WORKING_DIRECTORY]: cwd = process.cwd(),
+      [CliArgKey.REST]: explicitFiles = [],
+      [CliArgKey.BUNDLE_FILE]: outFile = "static/bundle.js",
+      [CliArgKey.BUNDLE_FORMAT]: bundleFormat = "iife",
+      [CliArgKey.VERBOSE]: verbose = false,
     } = params;
+
     if (explicitFiles.length > 1) {
       throw new Error(
         "bundle command takes as its only positional parameter a .stablerc entrypoint",
@@ -29,12 +35,37 @@ export class BundleTask implements Task {
     }
 
     const configs = await stablercsForSpecs(specfiles, prefix);
+    let count = 0;
 
     for (const { config, files } of configs.values()) {
       const bundle = await generateBundle(files, config, params);
-      console.log(bundle);
+      const filename =
+        count === 0
+          ? outFile
+          : `${join(dirname(outFile), basename(outFile, ".js"))}-${count}.js`;
+
+      await bundle.write({
+        file: filename,
+        format: bundleFormat,
+        sourcemap: "inline",
+        globals: {
+          sinon: "sinon",
+          chai: "chai",
+        },
+        sourcemapPathTransform(path) {
+          return join(__dirname, "../..", basename(path));
+        },
+      });
+
+      const chain = await sorcery.load(outFile);
+
+      await chain.write();
+
+      if (verbose) {
+        console.log(`bundle written: ${filename}`);
+      }
+      count += 1;
     }
-    // console.log(bundle);
   }
 }
 
