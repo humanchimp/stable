@@ -48,7 +48,7 @@
     "ws": "^6.1.2"
   },
   "bin": {
-    "stable": "./cli/cli.js"
+    "stable": "./cli.js"
   },
   "prettier": {
     "proseWrap": "never",
