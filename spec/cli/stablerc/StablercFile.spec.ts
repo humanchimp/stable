@@ -30,6 +30,72 @@ describe("new StablercFile(document: StablercDocument)", () => {
   describe(".plugins", () => {
     it("should contain a boolean reflecting whether or not to load plugins");
   });
+
+  describe(".withPlugins()", () => {
+    let fork: StablercFile;
+
+    describe("when there are no plugins", () => {
+      beforeEach(() => {
+        fork = subject.withPlugins();
+      });
+
+      it("should be a different instance", () => {
+        expect(fork).not.to.equal(subject);
+      });
+
+      it("should be an instanceof StablercFile", () => {
+        expect(fork).to.be.instanceOf(StablercFile);
+      });
+
+      it("should have plugins enabled", () => {
+        expect(fork.plugins).to.be.true;
+        expect(subject.plugins).to.be.false;
+      });
+
+      it("should be an idempotent operation because there is no need to load the plugins again", () => {
+        expect(fork.withPlugins()).to.equal(fork);
+      });
+    });
+
+    describe("when there are plugins", () => {
+      beforeEach(() => {
+        subject = new StablercFile({
+          filename: "",
+          document: {
+            ...subject.document,
+            plugins: [["timing", { timeout: 500 }]],
+          },
+          plugins: false,
+        });
+        fork = subject.withPlugins();
+      });
+
+      it("should be a different instance", () => {
+        expect(fork).not.to.equal(subject);
+      });
+
+      it("should be an instanceof StablercFile", () => {
+        expect(fork).to.be.instanceOf(StablercFile);
+      });
+
+      it("should have plugins enabled", () => {
+        expect(fork.plugins).to.be.true;
+        expect(subject.plugins).to.be.false;
+      });
+
+      it("should be an idempotent operation because there is no need to load the plugins again", () => {
+        expect(fork.withPlugins()).to.equal(fork);
+      });
+
+      it("should load the plugins asynchronously", async () => {
+        const loadedPlugins = await fork.loadedPlugins;
+
+        expect(loadedPlugins).to.be.instanceOf(Map);
+
+        console.log(loadedPlugins.get("timing"));
+      });
+    });
+  });
 });
 
 describe("splatDocument(document: StablercDocument)", () => {

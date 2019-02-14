@@ -12,7 +12,7 @@ import { join, dirname } from "path";
 import { nearestStablerc } from "./nearestStablerc";
 import { stablercsForSpecs } from "./stablercsForSpecs";
 import { instantiatePlugins } from "./instantiatePlugins";
-import { Splat, StablercPluginDefinition } from "../types";
+import { Splat } from "../types";
 
 export class StablercFile implements StablercFileInterface {
   static nearest = nearestStablerc;
@@ -33,9 +33,13 @@ export class StablercFile implements StablercFileInterface {
 
   loadedPlugins: Promise<Map<any, StablercPlugin>>;
 
-  constructor({ filename, document, plugins }: StablercFileParams) {
+  constructor({
+    document,
+    filename = "",
+    plugins = false,
+  }: StablercFileParams) {
     this.filename = filename;
-    this.document = splatDocument(document, plugins);
+    this.document = splatDocument(document);
     if (plugins) {
       this.loadedPlugins = instantiatePlugins(
         this.filename,
@@ -46,14 +50,13 @@ export class StablercFile implements StablercFileInterface {
   }
 
   withPlugins() {
-    if (this.plugins) {
-      return this;
-    }
-    return new StablercFile({
-      filename: this.filename,
-      document: this.document,
-      plugins: true,
-    });
+    return this.plugins
+      ? this
+      : new StablercFile({
+          filename: this.filename,
+          document: this.document,
+          plugins: true,
+        });
   }
 }
 

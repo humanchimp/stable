@@ -8,5 +8,5 @@ export function formatForRunner(runner): ModuleFormat {
     case "headless chrome":
       return "iife";
   }
-  return 'cjs';
+  return "cjs";
 }

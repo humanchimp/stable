@@ -18,6 +18,7 @@ export function run(code, { sort, predicate, hideSkips }) {
         process: process,
         exports: {},
         setTimeout: setTimeout,
+        __dirname: __dirname,
         __coverage__: global["__coverage__"],
       });
     }),

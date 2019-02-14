@@ -146,9 +146,9 @@ export interface StablercEntry {
 }
 
 export interface StablercFileParams {
-  filename: string;
   document: StablercDocument;
-  plugins: boolean;
+  filename?: string;
+  plugins?: boolean;
 }
 
 export interface SpecEntry {
