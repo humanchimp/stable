@@ -79,18 +79,13 @@ describe(".flat(): StablercFile", () => {
   });
 
   it("should flatten the chain to a StablercFile", () => {
-    expect(subject.flat()).to.eql({
-      document: {
-        extends: [],
-        include: [],
-        exclude: [],
-        plugins: [
-          ["timing", { timeout: 500 }],
-          ["rescue"],
-          ["fixture", { include: "./fixture/**/*" }],
-        ],
-        runners: ["isolate"],
-      },
-    });
+    const flat = subject.flat();
+
+    expect(flat.document.include).to.eql(["./**.spec.ts"]);
+    expect(flat.document.plugins).to.eql([
+      ["timing", { timeout: 500 }],
+      ["rescue", undefined],
+      ["fixture", { include: ["spec/fixture/**/*"] }],
+    ]);
   });
 });

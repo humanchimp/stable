@@ -3,6 +3,7 @@ import { importNameForPackageName } from "./importNameForPackageName";
 
 export function bundlePlugins(plugins) {
   const listenerModules = plugins
+    .map(({ plugin }) => plugin)
     .filter(plugin => plugin.provides && plugin.provides.listeners)
     .map(plugin => ({
       exportName: importNameForPackageName(plugin.package.name),

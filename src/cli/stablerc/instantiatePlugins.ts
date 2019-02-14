@@ -3,6 +3,7 @@ import { loadModule } from "../loadModule";
 import { StablercPlugin } from "../interfaces";
 
 export async function instantiatePlugins(
+  filename: string,
   map: Map<string, any>,
 ): Promise<Map<string, StablercPlugin>> {
   const instances = new Map();
@@ -13,7 +14,10 @@ export async function instantiatePlugins(
       join(__dirname, "plugins", pluginName, "index.js"),
     );
 
-    instances.set(pluginName, { config, plugin: await thunk(config) });
+    instances.set(pluginName, {
+      config,
+      plugin: await thunk(config, filename),
+    });
   }
   return instances;
 }

@@ -15,6 +15,7 @@ export const cli = new Menu({
       emoji: "🐎",
       help: `If files are passed, start there, find .stablercs. If no files passed, start with the .stablerc in the pwd. Run every suite we find with the correct .stablerc.`,
       args: [
+        CliArgKey.RUNNER,
         CliArgKey.PARTITION,
         CliArgKey.PARTITIONS,
         CliArgKey.FILTER,
@@ -22,6 +23,7 @@ export const cli = new Menu({
         CliArgKey.ORDERED,
         CliArgKey.SORT,
         CliArgKey.OUTPUT_FORMAT,
+        CliArgKey.PORT,
         CliArgKey.COVERAGE,
         CliArgKey.HIDE_SKIPS,
         CliArgKey.VERBOSE,

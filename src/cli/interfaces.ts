@@ -1,4 +1,9 @@
-import { CliArgKey, OptionType, ConfigOutputFormat } from "./enums";
+import {
+  CliArgKey,
+  OptionType,
+  ConfigOutputFormat,
+  StreamFormat,
+} from "./enums";
 import { StablercFile } from "./stablerc/StablercFile";
 import { CliArgs, StablercPluginDefinition } from "./types";
 import { ModuleFormat } from "rollup";
@@ -94,6 +99,7 @@ export interface CommandChoice extends Named {
 
 export interface StablercFileLoadParams {
   plugins?: boolean;
+  cwd?: string;
 }
 
 export interface StablercPlugin {
@@ -116,6 +122,7 @@ export interface StablercDocument {
 export interface Runner {}
 
 export interface StablercFile {
+  filename: string;
   document: StablercDocument;
   plugins: boolean;
   withPlugins(): StablercFile;
@@ -139,6 +146,7 @@ export interface StablercEntry {
 }
 
 export interface StablercFileParams {
+  filename: string;
   document: StablercDocument;
   plugins: boolean;
 }
@@ -170,4 +178,15 @@ export interface BundleTaskParams {
   [CliArgKey.BUNDLE_FORMAT]: ModuleFormat;
   [CliArgKey.COVERAGE]: boolean;
   [CliArgKey.VERBOSE]: boolean;
+}
+
+export interface RunTaskParams extends BundleTaskParams {
+  [CliArgKey.SORT]: string;
+  [CliArgKey.FILTER]: string;
+  [CliArgKey.GREP]: string;
+  [CliArgKey.PARTITION]: number;
+  [CliArgKey.PARTITIONS]: number;
+  [CliArgKey.QUIET]: boolean;
+  [CliArgKey.RUNNER]: string;
+  [CliArgKey.OUTPUT_FORMAT]: StreamFormat;
 }

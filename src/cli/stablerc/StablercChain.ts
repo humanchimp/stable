@@ -4,6 +4,7 @@ import {
   StablercEntry,
   StablercChainParams,
   StablercFile,
+  StablercDocument,
 } from "../interfaces";
 import { Splat } from "../types";
 import { StablercFile as SimpleStablercFile } from "./StablercFile";
@@ -24,13 +25,36 @@ export class StablercChain implements StablercChainInterface {
   }
 
   flat(): StablercFile {
+    const [{ filename }] = this.inheritance;
+
     return new SimpleStablercFile({
-      document: this.inheritance.reduce((memo, { file: { document } }) => {
-        for (const key of ["plugins", "include", "exclude", "runners"]) {
-          memo[key] = [].concat(memo[key], document[key]).filter(Boolean);
-        }
-        return memo;
-      }, {}),
+      filename,
+      document: this.inheritance.reduce(
+        (memo: StablercDocument, { filename: f, file: { document } }) => {
+          for (const key of ["include", "exclude", "runners", "plugins"]) {
+            memo[key] = [].concat(memo[key], document[key]).filter(Boolean);
+          }
+          memo.plugins = memo.plugins.map(
+            ([pluginName, config]) =>
+              [
+                pluginName,
+                config && {
+                  ...config,
+                  ...(config.include
+                    ? {
+                        include: []
+                          .concat(config.include)
+                          .map(include => join(dirname(f), include)),
+                      }
+                    : {}),
+                },
+              ] as [string, any],
+          );
+          return memo;
+        },
+        {},
+      ),
+      plugins: true,
     });
   }
 }

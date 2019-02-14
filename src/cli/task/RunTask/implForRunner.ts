@@ -16,6 +16,7 @@ export function implForRunner(runner): TestRun {
       // This will fail because of no `spawnParams` 🤷
       return remoteRunner;
     case "headless-chrome":
+    case "headless chrome":
       return headlessChromeRunner;
   }
   throw new Error(`unknown runner type: "${runner}"`);

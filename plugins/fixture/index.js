@@ -4,20 +4,17 @@ import packageJson from "./package.json";
 import { readFile } from "fs-extra";
 import { dirname, join } from "path";
 
-export async function fixture(options) {
-  options = [].concat(options).pop(); // TODO: handle multiple options hashes
+export async function fixture(config, filename) {
+  config = [].concat(config).pop(); // TODO: handle multiple options hashes
 
-  const { include, exclude, module: moduleName = "fixture", stablerc } = options;
-
-  const cwd = stablerc == null ? process.cwd() : dirname(stablerc);
-
+  const { include, exclude, module: moduleName = "fixture" } = config;
+  const cwd = dirname(filename);
   const files = await glob(include, { cwd });
-
   const fixtureData = await Promise.all(
     files.map(async file => {
       return {
         file,
-        contents: await readFile(join(cwd, file), "utf-8"),
+        contents: await readFile(file, "utf-8"),
       };
     }),
   );

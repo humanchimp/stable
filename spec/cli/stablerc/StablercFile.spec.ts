@@ -139,6 +139,7 @@ describe("load('.stablerc'): Promise<StablercFile>", () => {
     const loaded: StablercFile = await load(".stablerc");
 
     expect(loaded).to.eql({
+      filename: ".stablerc",
       document: {
         extends: [],
         include: ["./**/*.spec.{ts,js}"],
@@ -146,6 +147,7 @@ describe("load('.stablerc'): Promise<StablercFile>", () => {
         plugins: undefined,
         runners: undefined,
       },
+      plugins: false,
     });
   });
 });
@@ -158,6 +160,7 @@ describe("StablercFile.loadAll(filename: string, params: StablercFileLoadParams)
       [
         ".stablerc",
         {
+          filename: ".stablerc",
           document: {
             extends: [],
             include: ["./**/*.spec.{ts,js}"],
@@ -165,23 +168,27 @@ describe("StablercFile.loadAll(filename: string, params: StablercFileLoadParams)
             plugins: undefined,
             runners: undefined,
           },
+          plugins: false,
         },
       ],
       [
         "spec/cli/.stablerc",
         {
+          filename: "spec/cli/.stablerc",
           document: {
             extends: ["../.stablerc"],
-            include: [],
+            include: ["./**.spec.ts"],
             exclude: [],
             plugins: undefined,
             runners: ["isolate"],
           },
+          plugins: false,
         },
       ],
       [
         "spec/.stablerc",
         {
+          filename: "spec/.stablerc",
           document: {
             extends: [],
             include: [],
@@ -193,18 +200,21 @@ describe("StablercFile.loadAll(filename: string, params: StablercFileLoadParams)
             ],
             runners: undefined,
           },
+          plugins: false,
         },
       ],
       [
         "spec/framework/.stablerc",
         {
+          filename: "spec/framework/.stablerc",
           document: {
             extends: ["../.stablerc"],
-            include: [],
+            include: ["./**.spec.ts"],
             exclude: [],
             plugins: undefined,
             runners: ["isolate", "headless chrome"],
           },
+          plugins: false,
         },
       ],
     ]);

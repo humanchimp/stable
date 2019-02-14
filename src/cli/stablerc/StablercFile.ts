@@ -25,16 +25,22 @@ export class StablercFile implements StablercFileInterface {
 
   static loadAll = loadAll;
 
+  filename: string;
+
   document: StablercDocument;
 
   plugins: boolean;
 
   loadedPlugins: Promise<Map<any, StablercPlugin>>;
 
-  constructor({ document, plugins }: StablercFileParams) {
+  constructor({ filename, document, plugins }: StablercFileParams) {
+    this.filename = filename;
     this.document = splatDocument(document, plugins);
     if (plugins) {
-      this.loadedPlugins = instantiatePlugins(new Map(document.plugins));
+      this.loadedPlugins = instantiatePlugins(
+        this.filename,
+        new Map(document.plugins),
+      );
     }
     this.plugins = plugins;
   }
@@ -44,13 +50,14 @@ export class StablercFile implements StablercFileInterface {
       return this;
     }
     return new StablercFile({
-      plugins: true,
+      filename: this.filename,
       document: this.document,
+      plugins: true,
     });
   }
 }
 
-export function splatDocument(document: StablercDocument, plugins: boolean) {
+export function splatDocument(document: any) {
   return {
     extends: splat(document.extends),
     include: splat(document.include),
@@ -71,6 +78,7 @@ export async function load(
   const data = safeLoad(contents);
 
   return new StablercFile({
+    filename,
     document: {
       extends: data.extends,
       include: data.include,
@@ -84,11 +92,11 @@ export async function load(
 
 export function loadAll(
   filename: string,
-  params: StablercFileLoadParams,
+  params?: StablercFileLoadParams,
 ): Promise<Map<string, StablercFile>>;
 export function loadAll(
   filename: string[],
-  params: StablercFileLoadParams,
+  params?: StablercFileLoadParams,
 ): Promise<Map<string, StablercFile>>;
 export async function loadAll(
   filename: Splat<string>,

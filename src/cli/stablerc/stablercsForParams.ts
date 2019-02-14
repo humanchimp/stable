@@ -17,10 +17,11 @@ export async function stablercsForParams({
   const entryfile = getEntryfile(cwd, explicitFiles[0]);
   const chain = await StablercChain.load(entryfile, {
     plugins: false,
+    cwd,
   });
   const { document: entry } = chain.flat();
   const specfiles = [];
-  const prefix = relative(cwd, dirname(entryfile));
+  const prefix = join(cwd, relative(cwd, dirname(entryfile)));
 
   for (const include of entry.include) {
     specfiles.push(...(await glob(include, { cwd: dirname(entryfile) })));

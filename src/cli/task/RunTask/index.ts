@@ -1,7 +1,7 @@
 import { join } from "path";
 import { readFile, writeFile } from "fs-extra";
 import { tmpName } from "tmp-promise";
-import { Task } from "../../interfaces";
+import { Task, RunTaskParams } from "../../interfaces";
 import { generateBundle } from "../BundleTask/generateBundle";
 import { implForRunner } from "./implForRunner";
 import { transformForFormat } from "../../output/transformForFormat";
@@ -9,6 +9,7 @@ import { CliArgKey, StreamFormat } from "../../enums";
 import { stablercsForParams } from "../../stablerc/stablercsForParams";
 import { writeBundle } from "../BundleTask/writeBundle";
 import { Selection } from "../../../framework/Selection";
+import { formatForRunner } from "./formatForRunner";
 
 export class RunTask implements Task {
   async run(params) {
@@ -25,13 +26,13 @@ export class RunTask implements Task {
       [CliArgKey.COVERAGE]: coverage,
 
       defaultRunner,
-    } = params;
-    let failed = false;
+    }: RunTaskParams = params;
     const configs = await stablercsForParams(params);
     const selection = new Selection({
       filter,
-      grep,
+      grep: new RegExp(grep),
     });
+    let failed = false;
 
     for (const { config, files } of configs.values()) {
       const outFile = outFileParam != null ? outFileParam : await tmpName();
@@ -58,7 +59,7 @@ export class RunTask implements Task {
 
         await writeBundle(bundle, outFile, {
           ...params,
-          [CliArgKey.BUNDLE_FORMAT]: 'cjs',
+          [CliArgKey.BUNDLE_FORMAT]: formatForRunner(runner),
         });
 
         const code = await readFile(outFile, "utf-8");
@@ -88,8 +89,6 @@ export class RunTask implements Task {
         }
       }
     }
-
-    console.log('never happens');
 
     if (failed && !quiet) {
       process.exit(1); // 👋
