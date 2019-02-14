@@ -91,8 +91,6 @@ describe("new StablercFile(document: StablercDocument)", () => {
         const loadedPlugins = await fork.loadedPlugins;
 
         expect(loadedPlugins).to.be.instanceOf(Map);
-
-        console.log(loadedPlugins.get("timing"));
       });
     });
   });

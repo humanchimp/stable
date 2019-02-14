@@ -32,19 +32,16 @@ export async function loadModule(input) {
     if (filename === input) {
       ((module as any) as _CompileHaver)._compile(code, filename);
     } else {
+      /* istanbul ignore next */
       defaultLoader(module, filename);
     }
   };
 
   delete require.cache[input];
 
-  const configFileContent = await require(input);
-  const config =
-    typeof configFileContent === "function"
-      ? await configFileContent()
-      : configFileContent;
+  const loadedModule = await require(input);
 
   require.extensions[".js"] = defaultLoader;
 
-  return config;
+  return loadedModule;
 }

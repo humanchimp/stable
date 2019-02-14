@@ -6,10 +6,10 @@ import typescript from "rollup-plugin-typescript";
 import typescript3 from "typescript";
 
 export default {
-  input: "src/framework/lib.ts",
+  input: "src/cli/entry.ts",
   output: {
     format: "cjs",
-    file: "lib/stable.js",
+    file: "cli.js",
     sourcemap: "inline",
   },
   external: id =>

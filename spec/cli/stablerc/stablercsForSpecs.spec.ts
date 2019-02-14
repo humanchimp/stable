@@ -2,8 +2,6 @@ import { expect } from "chai";
 import { stablercsForSpecs } from "../../../src/cli/stablerc/stablercsForSpecs";
 import { StablercFile } from "../../../src/cli/stablerc/StablercFile";
 
-console.log(stablercsForSpecs);
-
 describe("stablercsForSpecs", () => {
   let subject: Map<
     string,
