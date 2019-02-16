@@ -1,4 +1,4 @@
-import { StablercFile } from "../interfaces";
+import { StablercFile, StablercMatch } from "../interfaces";
 import { load } from "./StablercChain";
 import { nearestStablerc } from "./nearestStablerc";
 import { dirname, join } from "path";
@@ -6,19 +6,8 @@ import { dirname, join } from "path";
 export async function stablercsForSpecs(
   specfiles: string[],
   prefix: string = "",
-): Promise<
-  Map<
-    string,
-    {
-      config: StablercFile;
-      files: string[];
-    }
-  >
-> {
-  const byStablerc = new Map<
-    string,
-    { config: StablercFile; files: string[] }
-  >();
+): Promise<Map<string, StablercMatch>> {
+  const byStablerc = new Map<string, StablercMatch>();
   const byDir = new Map<string, string>();
 
   for (const rawSpecfile of specfiles) {

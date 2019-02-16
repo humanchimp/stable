@@ -3,7 +3,7 @@ import chalk from "chalk";
 import { highlight } from "cli-highlight";
 import { safeDump } from "js-yaml";
 import { Stats } from "fs";
-import { Task, PrintConfigTaskParams, LogEffect } from "../interfaces";
+import { Task, PrintConfigTaskParams, LogEffect, StablercMatch } from "../interfaces";
 import { uniq } from "../uniq";
 import { stat } from "../stat";
 import { StablercFile } from "../stablerc/StablercFile";

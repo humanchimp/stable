@@ -145,6 +145,11 @@ export interface StablercEntry {
   file: StablercFile;
 }
 
+export interface StablercMatch {
+  config: StablercFile;
+  files: string[];
+}
+
 export interface StablercFileParams {
   document: StablercDocument;
   filename?: string;
@@ -169,9 +174,12 @@ export interface PrintConfigTaskParams {
   log: LogEffect;
 }
 
-export interface BundleTaskParams {
+export interface StablercTaskParams {
   [CliArgKey.WORKING_DIRECTORY]: string;
   [CliArgKey.REST]: string[];
+}
+
+export interface BundleTaskParams extends StablercTaskParams {
   [CliArgKey.ROLLUP]: string;
   [CliArgKey.ONREADY]: string;
   [CliArgKey.BUNDLE_FILE]: string;

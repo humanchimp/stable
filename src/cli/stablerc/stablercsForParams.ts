@@ -1,6 +1,6 @@
 import glob from "fast-glob";
 import { relative, dirname, isAbsolute, join } from "path";
-import { BundleTaskParams } from "../interfaces";
+import { StablercTaskParams, StablercMatch } from "../interfaces";
 import { StablercChain } from "./StablercChain";
 import { stablercsForSpecs } from "./stablercsForSpecs";
 import { CliArgKey } from "../enums";
@@ -9,7 +9,7 @@ import { stat } from "../stat";
 export async function stablercsForParams({
   [CliArgKey.WORKING_DIRECTORY]: cwd = process.cwd(),
   [CliArgKey.REST]: explicitFiles = [],
-}: BundleTaskParams) {
+}: StablercTaskParams): Promise<Map<string, StablercMatch>>  {
   if (explicitFiles.length > 1) {
     throw new Error(
       "bundle command takes as its only positional parameter a .stablerc entrypoint",
