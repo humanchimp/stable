@@ -4,6 +4,7 @@ import { BundleTaskParams } from "../interfaces";
 import { StablercChain } from "./StablercChain";
 import { stablercsForSpecs } from "./stablercsForSpecs";
 import { CliArgKey } from "../enums";
+import { stat } from "../stat";
 
 export async function stablercsForParams({
   [CliArgKey.WORKING_DIRECTORY]: cwd = process.cwd(),
@@ -14,7 +15,10 @@ export async function stablercsForParams({
       "bundle command takes as its only positional parameter a .stablerc entrypoint",
     );
   }
-  const entryfile = getEntryfile(cwd, explicitFiles[0]);
+  const entryfile = await getEntryfile(cwd, explicitFiles[0]);
+
+  console.log(entryfile);
+
   const chain = await StablercChain.load(entryfile, {
     plugins: false,
     cwd,
@@ -29,14 +33,19 @@ export async function stablercsForParams({
   return stablercsForSpecs(specfiles, prefix);
 }
 
-function getEntryfile(cwd: string, entry: string): string {
+async function getEntryfile(cwd: string, entry: string): Promise<string> {
   if (entry === undefined) {
     return defaultEntry(cwd);
   }
   if (!isAbsolute(entry)) {
     entry = join(cwd, entry);
   }
-  return entry.endsWith(".stablerc") ? entry : join(entry, ".stablerc");
+  if (entry.endsWith(".stablerc")) {
+    return entry;
+  }
+  const { isDirectory } = await stat(entry);
+
+  return join(isDirectory ? entry : dirname(entry), ".stablerc");
 }
 
 function defaultEntry(cwd: string): string {

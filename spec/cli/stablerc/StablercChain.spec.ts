@@ -5,6 +5,8 @@ import {
 } from "../../../src/cli/stablerc/StablercChain";
 import { StablercChainParams } from "../../../src/cli/interfaces";
 import { load } from "../../../src/cli/stablerc/StablercChain";
+import { file, dir, FileResult } from "tmp-promise";
+import { write } from "fs-extra";
 
 let subject: StablercChain;
 
@@ -87,5 +89,24 @@ describe(".flat(): StablercFile", () => {
       ["rescue", undefined],
       ["fixture", { include: ["spec/fixture/**/*"] }],
     ]);
+  });
+});
+
+describe("inheritance using absolute paths", () => {
+  subject: StablercChain;
+
+  beforeEach(async () => {
+    const tmpdir = await dir({ dir: __dirname, unsafeCleanup: true });
+
+    const base: FileResult = await file({ postfix: '.stablerc', dir: tmpdir.path });
+    const child: FileResult = await file({ postfix: '.stablerc', dir: tmpdir.path  });
+
+    await write(base.fd, `runners: ['isolate']`, 'utf-8');
+    await write(child.fd, `extends: ${base.path}`, 'utf-8');
+    subject = await StablercChain.load(child.path);
+  });
+
+  it("should work", () => {
+    console.log('subject', subject);
   });
 });

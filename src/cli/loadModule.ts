@@ -32,7 +32,6 @@ export async function loadModule(input) {
     if (filename === input) {
       ((module as any) as _CompileHaver)._compile(code, filename);
     } else {
-      /* istanbul ignore next */
       defaultLoader(module, filename);
     }
   };

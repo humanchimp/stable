@@ -8,7 +8,7 @@ import {
 import glob from "fast-glob";
 import { readFile } from "fs-extra";
 import { safeLoad } from "js-yaml";
-import { join, dirname } from "path";
+import { join, dirname, isAbsolute } from "path";
 import { nearestStablerc } from "./nearestStablerc";
 import { stablercsForSpecs } from "./stablercsForSpecs";
 import { instantiatePlugins } from "./instantiatePlugins";
@@ -137,7 +137,7 @@ async function* moarFiles(relative, patterns) {
   const cwd = dirname(relative);
 
   for (const filename of await glob(patterns, { cwd })) {
-    yield await nearestStablerc(join(cwd, filename));
+    yield await nearestStablerc(isAbsolute(filename) ? filename : join(cwd, filename));
   }
 }
 
