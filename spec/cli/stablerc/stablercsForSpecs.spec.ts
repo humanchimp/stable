@@ -1,15 +1,9 @@
 import { expect } from "chai";
 import { stablercsForSpecs } from "../../../src/cli/stablerc/stablercsForSpecs";
-import { StablercFile } from "../../../src/cli/stablerc/StablercFile";
+import { StablercMatch } from "../../../src/cli/interfaces";
 
 describe("stablercsForSpecs", () => {
-  let subject: Map<
-    string,
-    {
-      config: StablercFile;
-      files: string[];
-    }
-  >;
+  let subject: Map<string, StablercMatch>;
 
   beforeEach(async () => {
     subject = await stablercsForSpecs([
@@ -27,7 +21,7 @@ describe("stablercsForSpecs", () => {
         exclude: [],
         plugins: [
           ["timing", { timeout: 500 }],
-          ["rescue", undefined],
+          ["rescue"],
           ["fixture", { include: ["spec/fixture/**/*"] }],
         ],
         runners: ["isolate", "headless chrome"],

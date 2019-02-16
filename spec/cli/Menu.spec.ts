@@ -97,7 +97,7 @@ describe(".commandForArgv(argv: string[])", () => {
         default: 0,
       },
       {
-        name: CliArgKey.LIST_BY_SPEC,
+        name: CliArgKey.OUTPUT_FORMAT,
         short: "l",
         help: "an option with a dash",
         type: OptionType.BOOLEAN,
@@ -129,7 +129,7 @@ describe(".commandForArgv(argv: string[])", () => {
       emoji: "🗿",
       args: new Set<CliArgKey>([
         CliArgKey.PORT,
-        CliArgKey.LIST_BY_SPEC,
+        CliArgKey.OUTPUT_FORMAT,
         CliArgKey.QUIET,
         CliArgKey.GREP,
         CliArgKey.ORDERED,
@@ -157,7 +157,7 @@ describe(".commandForArgv(argv: string[])", () => {
         ["explicit-command"],
         {
           port: 0,
-          "list-by-spec": false,
+          "output-format": false,
           quiet: true,
           grep: undefined,
           ordered: "contrived",
@@ -168,7 +168,7 @@ describe(".commandForArgv(argv: string[])", () => {
         ["explicit-command", "-s", "12"],
         {
           port: 12,
-          "list-by-spec": false,
+          "output-format": false,
           quiet: true,
           grep: undefined,
           ordered: "contrived",
@@ -179,7 +179,7 @@ describe(".commandForArgv(argv: string[])", () => {
         ["explicit-command", "--port=0"],
         {
           port: 0,
-          "list-by-spec": false,
+          "output-format": false,
           quiet: true,
           grep: undefined,
           ordered: "contrived",
@@ -189,7 +189,7 @@ describe(".commandForArgv(argv: string[])", () => {
       [
         ["explicit-command", "-l", "false"],
         {
-          "list-by-spec": false,
+          "output-format": false,
           port: 0,
           quiet: true,
           grep: undefined,
@@ -198,9 +198,9 @@ describe(".commandForArgv(argv: string[])", () => {
         [],
       ],
       [
-        ["explicit-command", "--list-by-spec=true"],
+        ["explicit-command", "--output-format=true"],
         {
-          "list-by-spec": true,
+          "output-format": true,
           port: 0,
           quiet: true,
           grep: undefined,
@@ -213,7 +213,7 @@ describe(".commandForArgv(argv: string[])", () => {
         {
           quiet: true,
           port: 0,
-          "list-by-spec": false,
+          "output-format": false,
           grep: undefined,
           ordered: "contrived",
         },
@@ -224,7 +224,7 @@ describe(".commandForArgv(argv: string[])", () => {
         {
           quiet: true,
           port: 0,
-          "list-by-spec": false,
+          "output-format": false,
           grep: undefined,
           ordered: "contrived",
         },
@@ -235,7 +235,7 @@ describe(".commandForArgv(argv: string[])", () => {
         {
           grep: "hi",
           port: 0,
-          "list-by-spec": false,
+          "output-format": false,
           quiet: true,
           ordered: "contrived",
         },
@@ -246,7 +246,7 @@ describe(".commandForArgv(argv: string[])", () => {
         {
           grep: "get hep",
           port: 0,
-          "list-by-spec": false,
+          "output-format": false,
           quiet: true,
           ordered: "contrived",
         },
@@ -257,7 +257,7 @@ describe(".commandForArgv(argv: string[])", () => {
         {
           grep: undefined,
           port: 0,
-          "list-by-spec": true,
+          "output-format": true,
           quiet: true,
           ordered: "contrived",
         },
@@ -268,18 +268,18 @@ describe(".commandForArgv(argv: string[])", () => {
         {
           grep: "hi",
           port: 0,
-          "list-by-spec": true,
+          "output-format": true,
           quiet: true,
           ordered: "contrived",
         },
         [],
       ],
       [
-        ["explicit-command", "--no-list-by-spec"],
+        ["explicit-command", "--no-output-format"],
         {
           grep: undefined,
           port: 0,
-          "list-by-spec": false,
+          "output-format": false,
           quiet: true,
           ordered: "contrived",
         },
@@ -290,7 +290,7 @@ describe(".commandForArgv(argv: string[])", () => {
         {
           grep: undefined,
           port: 0,
-          "list-by-spec": false,
+          "output-format": false,
           quiet: false,
           ordered: "contrived",
         },
@@ -301,7 +301,7 @@ describe(".commandForArgv(argv: string[])", () => {
         {
           grep: undefined,
           port: 0,
-          "list-by-spec": false,
+          "output-format": false,
           quiet: false,
           ordered: "contrived",
         },
@@ -312,7 +312,7 @@ describe(".commandForArgv(argv: string[])", () => {
         {
           grep: undefined,
           port: 0,
-          "list-by-spec": false,
+          "output-format": false,
           quiet: false,
           ordered: "contrived",
         },
@@ -323,7 +323,7 @@ describe(".commandForArgv(argv: string[])", () => {
         {
           grep: undefined,
           port: 0,
-          "list-by-spec": false,
+          "output-format": false,
           quiet: true,
           ordered: "contrived",
         },
@@ -334,7 +334,7 @@ describe(".commandForArgv(argv: string[])", () => {
         {
           grep: undefined,
           port: 0,
-          "list-by-spec": false,
+          "output-format": false,
           quiet: false,
           ordered: "contrived",
         },
@@ -345,7 +345,7 @@ describe(".commandForArgv(argv: string[])", () => {
         {
           grep: undefined,
           port: 10,
-          "list-by-spec": true,
+          "output-format": true,
           quiet: true,
           ordered: "contrived",
         },
@@ -356,18 +356,18 @@ describe(".commandForArgv(argv: string[])", () => {
         {
           grep: undefined,
           port: 0,
-          "list-by-spec": true,
+          "output-format": true,
           quiet: true,
           ordered: "contrived",
         },
         [],
       ],
       [
-        ["explicit-command", "--list-by-spec"],
+        ["explicit-command", "--output-format"],
         {
           grep: undefined,
           port: 0,
-          "list-by-spec": true,
+          "output-format": true,
           quiet: true,
           ordered: "contrived",
         },
@@ -378,7 +378,7 @@ describe(".commandForArgv(argv: string[])", () => {
         {
           grep: "",
           port: 0,
-          "list-by-spec": false,
+          "output-format": false,
           quiet: true,
           ordered: "contrived",
         },
@@ -389,7 +389,7 @@ describe(".commandForArgv(argv: string[])", () => {
         {
           grep: undefined,
           port: 0,
-          "list-by-spec": false,
+          "output-format": false,
           quiet: true,
           ordered: "contrived",
         },
@@ -400,7 +400,7 @@ describe(".commandForArgv(argv: string[])", () => {
         {
           grep: undefined,
           port: 0,
-          "list-by-spec": false,
+          "output-format": false,
           quiet: true,
           ordered: true,
         },

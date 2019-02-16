@@ -48,7 +48,7 @@ export class StablercChain implements StablercChainInterface {
                       }
                     : {}),
                 },
-              ] as [string, any],
+              ].filter(Boolean) as [string, any],
           );
           return memo;
         },

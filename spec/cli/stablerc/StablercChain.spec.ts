@@ -5,7 +5,7 @@ import {
 } from "../../../src/cli/stablerc/StablercChain";
 import { StablercChainParams } from "../../../src/cli/interfaces";
 import { load } from "../../../src/cli/stablerc/StablercChain";
-import { file, dir, FileResult } from "tmp-promise";
+import { file, dir, FileResult, DirectoryResult } from "tmp-promise";
 import { write } from "fs-extra";
 
 let subject: StablercChain;
@@ -86,27 +86,37 @@ describe(".flat(): StablercFile", () => {
     expect(flat.document.include).to.eql(["./**.spec.ts"]);
     expect(flat.document.plugins).to.eql([
       ["timing", { timeout: 500 }],
-      ["rescue", undefined],
+      ["rescue"],
       ["fixture", { include: ["spec/fixture/**/*"] }],
     ]);
   });
 });
 
 describe("inheritance using absolute paths", () => {
-  subject: StablercChain;
+  let tmpdir: DirectoryResult, subject: StablercChain;
 
   beforeEach(async () => {
-    const tmpdir = await dir({ dir: __dirname, unsafeCleanup: true });
+    tmpdir = await dir({ dir: __dirname, unsafeCleanup: true });
 
-    const base: FileResult = await file({ postfix: '.stablerc', dir: tmpdir.path });
-    const child: FileResult = await file({ postfix: '.stablerc', dir: tmpdir.path  });
+    const base: FileResult = await file({
+      postfix: ".stablerc",
+      dir: tmpdir.path,
+    });
+    const child: FileResult = await file({
+      postfix: ".stablerc",
+      dir: tmpdir.path,
+    });
 
-    await write(base.fd, `runners: ['isolate']`, 'utf-8');
-    await write(child.fd, `extends: ${base.path}`, 'utf-8');
+    await write(base.fd, `runners: ['isolate']`, "utf-8");
+    await write(child.fd, `extends: ${base.path}`, "utf-8");
     subject = await StablercChain.load(child.path);
   });
 
+  afterEach(async () => {
+    await tmpdir.cleanup();
+  });
+
   it("should work", () => {
-    console.log('subject', subject);
+    console.log("subject", subject);
   });
 });

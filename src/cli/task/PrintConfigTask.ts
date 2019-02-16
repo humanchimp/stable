@@ -3,26 +3,26 @@ import chalk from "chalk";
 import { highlight } from "cli-highlight";
 import { safeDump } from "js-yaml";
 import { Stats } from "fs";
-import { Task, PrintConfigTaskParams, LogEffect, StablercMatch } from "../interfaces";
+import {
+  Task,
+  PrintConfigTaskParams,
+  LogEffect,
+  StablercMatch,
+} from "../interfaces";
 import { uniq } from "../uniq";
-import { stat } from "../stat";
-import { StablercFile } from "../stablerc/StablercFile";
-import { StablercChain } from "../stablerc/StablercChain";
+import { stat } from "fs-extra";
 import { ConfigOutputFormat } from "../enums";
 import { nearestStablerc } from "../stablerc/nearestStablerc";
-import { loadSpecMap } from "../stablerc/loadSpecMap";
-import { loadStablercMap } from "../stablerc/loadStablercMap";
+import { stablercsForParams } from "../stablerc/stablercsForParams";
 
 class Run {
   private entries: string[];
 
   private resolved: string[];
 
-  private bySpec: boolean;
-
   private stablercFiles: Promise<string[]>;
 
-  private stablercs: Promise<Map<string, StablercFile>[]>;
+  private stablercs: Promise<Map<string, StablercMatch>>;
 
   private verbose: boolean;
 
@@ -30,21 +30,20 @@ class Run {
 
   private log: LogEffect;
 
-  constructor({
-    "output-format": format = ConfigOutputFormat.YAML,
-    "working-directory": cwd = process.cwd(),
-    "list-by-spec": bySpec = false,
-    rest: entries,
-    verbose,
-    log = console.log,
-  }: PrintConfigTaskParams) {
+  constructor(params: PrintConfigTaskParams) {
+    const {
+      "output-format": format = ConfigOutputFormat.YAML,
+      "working-directory": cwd = process.cwd(),
+      rest: entries,
+      verbose,
+      log = console.log,
+    } = params;
     this.entries = entries.length === 0 ? ["."] : entries;
-    this.bySpec = bySpec;
     this.resolved = this.entries.map(entry =>
       isAbsolute(entry) ? entry : join(cwd, entry),
     );
     this.stablercFiles = this.computeStablercFiles();
-    this.stablercs = this.computeStablercs();
+    this.stablercs = stablercsForParams(params); //this.computeStablercs();
     this.verbose = verbose;
     this.format = format;
     this.log = log;
@@ -75,11 +74,7 @@ class Run {
       this.log(`${chalk.bold("output format:")} ${this.format}`);
     }
 
-    const stablercs = await this.stablercs;
-
-    for (const stablerc of stablercs) {
-      this.log(this.dump(this.dumpMap(stablerc)));
-    }
+    this.log(this.dump(this.dumpMap(await this.stablercs)));
   }
 
   private async computeStablercFiles(): Promise<string[]> {
@@ -90,25 +85,20 @@ class Run {
     );
   }
 
-  private async computeStablercs(): Promise<Map<string, StablercFile>[]> {
-    return Promise.all(
-      (await this.stablercFiles).map(async filename => {
-        const chains = await StablercChain.loadAll(filename, {
-          plugins: true,
-        });
-
-        return this.bySpec
-          ? await loadSpecMap(chains, filename)
-          : loadStablercMap(chains);
+  private dumpMap(spec) {
+    return [...spec.entries()].map(
+      ([
+        filename,
+        {
+          config: { document: config },
+          files,
+        },
+      ]) => ({
+        filename,
+        config,
+        files,
       }),
     );
-  }
-
-  private dumpMap(spec) {
-    return [...spec.entries()].map(([filename, { document }]) => ({
-      filename,
-      config: document,
-    }));
   }
 }
 

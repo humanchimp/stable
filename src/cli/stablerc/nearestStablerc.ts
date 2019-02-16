@@ -1,4 +1,4 @@
-import { stat } from "../stat";
+import { stat } from "fs-extra";
 import { join, dirname } from "path";
 
 export async function nearestStablerc(

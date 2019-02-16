@@ -137,7 +137,9 @@ async function* moarFiles(relative, patterns) {
   const cwd = dirname(relative);
 
   for (const filename of await glob(patterns, { cwd })) {
-    yield await nearestStablerc(isAbsolute(filename) ? filename : join(cwd, filename));
+    yield await nearestStablerc(
+      isAbsolute(filename) ? filename : join(cwd, filename),
+    );
   }
 }
 
