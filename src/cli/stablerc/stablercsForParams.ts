@@ -8,7 +8,7 @@ import { getEntryfile } from "./getEntryfile";
 
 export async function stablercsForParams({
   [CliArgKey.WORKING_DIRECTORY]: cwd = process.cwd(),
-  [CliArgKey.REST]: explicitFiles = [],
+  [CliArgKey.REST]: explicitFiles,
 }: StablercTaskParams): Promise<Map<string, StablercMatch>> {
   if (explicitFiles.length > 1) {
     throw new Error(

@@ -19,7 +19,7 @@ describe("nearestStablerc(dir: string): Promise<string>", () => {
     let stablerc: string;
 
     beforeEach(async () => {
-      stablerc = join(tmpdir.path, '.stablerc');
+      stablerc = join(tmpdir.path, ".stablerc");
       await ensureFile(stablerc);
     });
 
@@ -33,8 +33,8 @@ describe("nearestStablerc(dir: string): Promise<string>", () => {
 
     beforeEach(async () => {
       tmpdir = await dir({ dir: __dirname, unsafeCleanup: true });
-      stablerc = join(tmpdir.path, '.stablerc');
-      spec = join(tmpdir.path, 'foo.js');
+      stablerc = join(tmpdir.path, ".stablerc");
+      spec = join(tmpdir.path, "foo.js");
       await ensureFile(stablerc);
       await ensureFile(spec);
     });
@@ -51,12 +51,12 @@ describe("nearestStablerc(dir: string): Promise<string>", () => {
       let stablerc: string, spec: string;
 
       beforeEach(async () => {
-        stablerc = join(tmpdir.path, '.stablerc');
+        stablerc = join(tmpdir.path, ".stablerc");
         await ensureFile(stablerc);
 
-        const child = join(tmpdir.path, 'child');
+        const child = join(tmpdir.path, "child");
 
-        spec = join(child, 'foo.js')
+        spec = join(child, "foo.js");
         await mkdirp(child);
         await ensureFile(spec);
       });
@@ -70,12 +70,12 @@ describe("nearestStablerc(dir: string): Promise<string>", () => {
       let stablerc: string, spec: string;
 
       beforeEach(async () => {
-        stablerc = join(tmpdir.path, '.stablerc');
+        stablerc = join(tmpdir.path, ".stablerc");
         await ensureFile(stablerc);
 
-        const child = join(tmpdir.path, 'first/second');
+        const child = join(tmpdir.path, "first/second");
 
-        spec = join(child, 'foo.js')
+        spec = join(child, "foo.js");
         await mkdirp(child);
         await ensureFile(spec);
       });
@@ -90,7 +90,7 @@ describe("nearestStablerc(dir: string): Promise<string>", () => {
         let closerOne: string;
 
         beforeEach(async () => {
-          closerOne = join(tmpdir.path, 'first', '.stablerc');
+          closerOne = join(tmpdir.path, "first", ".stablerc");
           await ensureFile(closerOne);
         });
 
@@ -102,7 +102,7 @@ describe("nearestStablerc(dir: string): Promise<string>", () => {
 
     describe("when no ancestor directory contains a .stablerc", () => {
       it("should return a promise of void", async () => {
-        expect(await nearestStablerc('/dev/null')).to.be.undefined;
+        expect(await nearestStablerc("/dev/null")).to.be.undefined;
       });
     });
   });
