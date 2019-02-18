@@ -87,7 +87,6 @@ describe(".flat(): StablercFile", () => {
     expect(flat.document.plugins).to.eql([
       ["timing", { timeout: 500 }],
       ["rescue"],
-      ["fixture", { include: ["spec/fixture/**/*"] }],
     ]);
   });
 });

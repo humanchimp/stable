@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import { stablercsForSpecs } from "../../../src/cli/stablerc/stablercsForSpecs";
 import { StablercMatch } from "../../../src/cli/interfaces";
+import { join } from "path";
 
 describe("stablercsForSpecs", () => {
   const specs = ["spec/framework/Suite.ts", "spec/framework/Spec.ts"];
@@ -22,6 +23,8 @@ describe("stablercsForSpecs", () => {
       },
     ] = values;
 
+    debugger;
+
     expect(files).to.eql(specs);
     expect(filename).to.equal("spec/framework/.stablerc");
     expect(config).to.eql({
@@ -29,11 +32,14 @@ describe("stablercsForSpecs", () => {
       include: ["./**.spec.ts"],
       exclude: [],
       plugins: [
+        [
+          "fixture",
+          { include: [join(__dirname, "spec/framework/fixture/**/*")] },
+        ],
         ["timing", { timeout: 500 }],
         ["rescue"],
-        ["fixture", { include: ["spec/fixture/**/*"] }],
       ],
       runners: ["isolate", "headless chrome"],
     });
-  });
+  }); //.rescue(reason => { console.log(reason); debugger; });
 });

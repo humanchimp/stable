@@ -3,3 +3,6 @@ include: ./**.spec.ts
 runners:
 - isolate
 - headless chrome
+plugins:
+- - fixture
+  - include: ./fixture/**/*

@@ -2,5 +2,3 @@ plugins:
 - - timing
   - timeout: 500
 - - rescue
-- - fixture
-  - include: ./fixture/**/*

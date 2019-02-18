@@ -44,7 +44,16 @@ export class StablercChain implements StablercChainInterface {
                     ? {
                         include: []
                           .concat(config.include)
-                          .map(include => join(dirname(f), include)),
+                          .map(include =>
+                            isAbsolute(include)
+                              ? include
+                              : join(
+                                  dirname(
+                                    isAbsolute(f) ? f : join(__dirname, f),
+                                  ),
+                                  include,
+                                ),
+                          ),
                       }
                     : {}),
                 },
