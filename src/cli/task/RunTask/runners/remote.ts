@@ -1,6 +1,6 @@
 import { spawn } from "child_process";
 import { createServer } from "http";
-import { of, fromEvent } from "most";
+import { fromEvent } from "most";
 import express from "express";
 import { Server as WebSocketServer } from "ws";
 
@@ -104,7 +104,7 @@ function serializeReason(reason) {
 
     server.listen(port, () => {
       if (verbose) {
-        console.log(`server listening at ${url}`);
+        console.log(`server listening at ${url}`); // eslint-disable-line
       }
       const [proc, args] = spawnParams(url);
 

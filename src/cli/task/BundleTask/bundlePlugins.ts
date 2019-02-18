@@ -14,24 +14,24 @@ export function bundlePlugins(plugins) {
   const listenerBundle = `
 import { plugins as convert } from './stable';
 ${listenerModules
-    .map(
-      ({ exportName, path }) =>
-        `import * as ${exportName}_raw from "${forNow(path)}";`,
-    )
-    .join("\n")}
+  .map(
+    ({ exportName, path }) =>
+      `import * as ${exportName}_raw from "${forNow(path)}";`,
+  )
+  .join("\n")}
 ${listenerModules
-    .map(({ exportName, config }) => {
-      const importName = `${exportName}_raw`;
-      const jsonConfig = JSON.stringify(config);
+  .map(({ exportName, config }) => {
+    const importName = `${exportName}_raw`;
+    const jsonConfig = JSON.stringify(config);
 
-      // Shoehorn-in the config... This is pretty gross
-      return `
+    // Shoehorn-in the config... This is pretty gross
+    return `
 const ${exportName} = {
   pending: ${importName}.pending && ${importName}.pending.bind(null, ${jsonConfig}),
   complete: ${importName}.complete && ${importName}.complete.bind(null, ${jsonConfig})
 };`;
-    })
-    .join("\n")}
+  })
+  .join("\n")}
 const plugins = convert({${listenerModules.map(m => m.exportName).join(",")}})
 export { plugins };
 `;

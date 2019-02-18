@@ -8,7 +8,11 @@ import babelPluginIstanbul from "babel-plugin-istanbul";
 export function bundleFromFiles({ files, plugins, shouldInstrument, verbose }) {
   return rollup({
     input: files,
-    onwarn: verbose ? warning => console.warn(warning.message) : () => {},
+    onwarn: verbose
+      ? warning => {
+          console.warn((warning as any).message); // eslint-disable-line
+        }
+      : () => {},
     external(id) {
       if (["tslib"].includes(id)) {
         return false;

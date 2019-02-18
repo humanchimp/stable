@@ -1,5 +1,5 @@
 import glob from "fast-glob";
-import { relative, dirname, isAbsolute, join } from "path";
+import { relative, dirname, join } from "path";
 import { StablercTaskParams, StablercMatch } from "../interfaces";
 import { StablercChain } from "./StablercChain";
 import { stablercsForSpecs } from "./stablercsForSpecs";

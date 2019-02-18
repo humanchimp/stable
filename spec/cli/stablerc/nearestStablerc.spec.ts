@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { nearestStablerc } from "../../../src/cli/stablerc/nearestStablerc";
-import { dir, DirectoryResult, file, FileResult } from "tmp-promise";
+import { dir, DirectoryResult } from "tmp-promise";
 import { mkdirp, ensureFile } from "fs-extra";
 import { join } from "path";
 

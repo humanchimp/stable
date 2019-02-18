@@ -23,8 +23,6 @@ describe("stablercsForSpecs", () => {
       },
     ] = values;
 
-    debugger;
-
     expect(files).to.eql(specs);
     expect(filename).to.equal("spec/framework/.stablerc");
     expect(config).to.eql({

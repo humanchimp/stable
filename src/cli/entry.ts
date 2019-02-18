@@ -3,6 +3,7 @@ import chalk from "chalk";
 import { cli } from "./cli";
 import { ValidationError } from "./ValidationError";
 
+/* eslint-disable no-console */
 main().catch(console.error);
 
 async function main() {
@@ -32,3 +33,4 @@ async function main() {
     process.exit(reason.code || 1); // 👋
   }
 }
+/* eslint-enable no-console */

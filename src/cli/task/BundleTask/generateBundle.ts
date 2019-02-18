@@ -74,7 +74,11 @@ export async function generateBundle(
 
     return await rollup({
       input: testBundlePath,
-      onwarn: verbose ? warning => console.warn(warning.message) : () => {},
+      onwarn: verbose
+        ? warning => {
+            console.warn((warning as any).message); // eslint-disable-line
+          }
+        : () => {},
       plugins: [thunkify({ files: [bundlePath] })],
     });
   } finally {

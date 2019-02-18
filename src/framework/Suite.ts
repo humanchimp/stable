@@ -521,7 +521,7 @@ async function runTest(test) {
   }
 }
 
-function descriptionForRow(description, table) {
+function descriptionForRow(description /*, table*/) {
   return `${description} [table]`;
 }
 

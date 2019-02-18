@@ -35,7 +35,7 @@ export class Menu implements MenuInterface {
           help: "Parse argv; print result",
           task: {
             run(options) {
-              console.log(options);
+              console.log(options); // eslint-disable-line
             },
           },
           args: [...this.options.keys()] as CliArgKey[],

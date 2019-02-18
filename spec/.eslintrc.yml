@@ -1,0 +1,17 @@
+globals:
+  beforeAll: true
+  afterAll: true
+  beforeEach: true
+  afterEach: true
+  describe: true
+  fdescribe: true
+  xdescribe: true
+  describeEach: true
+  xdescribeEach: true
+  fdescribeEach: true
+  it: true
+  xit: true
+  fit: true
+  info: true
+rules:
+  no-console: warn

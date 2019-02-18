@@ -42,6 +42,7 @@ export class PrintHelpMenuTask implements Task {
   }
 
   run(options: any, command: Command, menu: Menu): void {
+    /* eslint-disable no-console */
     console.log(`Usage: ${chalk.bold("stable")} ${chalk.green(
       `<${[...menu.commands.keys()].join(" ")}> <file(s)/dir(s)> [options]`,
     )}
@@ -51,5 +52,6 @@ Options:
 
 ${PrintHelpMenuTask.printOptions(menu.options)}
 `);
+    /* eslint-enable no-console */
   }
 }
