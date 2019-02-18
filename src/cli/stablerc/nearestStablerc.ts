@@ -10,6 +10,8 @@ export async function nearestStablerc(dir: string): Promise<string> {
 
       await stat(candidate);
       return candidate;
-    } catch (_) {}
+    } catch (_) {
+      // hard pass
+    }
   } while (dir !== "/" && (dir = dirname(dir)));
 }

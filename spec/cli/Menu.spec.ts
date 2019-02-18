@@ -660,6 +660,7 @@ describe(".runFromArgv(argv: string[])", () => {
 
 describe("debug mode", () => {
   it("should append the `parse-options` command for debugging the argv parser itself", async () => {
+    /* eslint-disable no-console */
     subject = new Menu({
       commands: [],
       options: [],
@@ -673,6 +674,7 @@ describe("debug mode", () => {
     command.run([], subject);
     expect((console.log as SinonSpy).calledOnce).to.be.true;
     (console.log as SinonSpy).restore();
+    /* eslint-enable no-console */
   });
 
   it("should not have the `parse-options` command otherwise", () => {

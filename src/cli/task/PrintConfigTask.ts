@@ -36,7 +36,7 @@ class Run {
       "working-directory": cwd = process.cwd(),
       rest: entries,
       verbose,
-      log = console.log,
+      log = console.log, // eslint-disable-line
     } = params;
     this.entries = entries.length === 0 ? ["."] : entries;
     this.resolved = this.entries.map(entry =>

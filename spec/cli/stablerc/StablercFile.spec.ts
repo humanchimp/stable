@@ -220,8 +220,6 @@ describe("StablercFile.loadAll(filename: string, params: StablercFileLoadParams)
   it("should load all the .stablerc files it can find by following includes recusively and then finding the nearest .stablerc", async () => {
     const loaded = await loadAll(".stablerc");
 
-    debugger;
-
     expect([...loaded.entries()]).to.eql([
       [
         ".stablerc",

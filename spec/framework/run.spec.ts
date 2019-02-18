@@ -23,10 +23,12 @@ describe("run", () => {
     });
 
     it("should by default perform console.log", async () => {
+      /* eslint-disable no-console */
       createSpy(console, "log");
       await run(suites, { generate });
       expect((console.log as SinonSpy).callCount).to.equal(3);
       (console.log as SinonSpy).restore();
+      /* eslint-enable no-console */
     });
 
     describe("passing an arbitrary effect", () => {
@@ -79,7 +81,7 @@ describe("run", () => {
 
     describe("when called without options", () => {
       it("should default using to the reports generator", async () => {
-        const spy = createSpy();
+        // const spy = createSpy();
 
         await run(suite);
 
@@ -87,10 +89,12 @@ describe("run", () => {
       });
 
       it("should by default perform console.log", async () => {
+        /* eslint-disable no-console */
         createSpy(console, "log");
         await run(suite);
         expect((console.log as SinonSpy).callCount).to.equal(5);
         (console.log as SinonSpy).restore();
+        /* eslint-enable no-console */
       });
 
       info(

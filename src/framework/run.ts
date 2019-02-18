@@ -17,7 +17,7 @@ export async function run(
   suites: Suite | Suite[],
   {
     generate = generator,
-    perform = console.log,
+    perform = console.log, // eslint-disable-line
     sort = shuffle,
     predicate = Boolean,
   }: RunParams = {},

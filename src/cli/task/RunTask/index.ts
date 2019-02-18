@@ -14,7 +14,7 @@ import { formatForRunner } from "./formatForRunner";
 export class RunTask implements Task {
   async run(params) {
     const {
-      [CliArgKey.SORT]: sort,
+      // [CliArgKey.SORT]: sort,
       [CliArgKey.FILTER]: filter,
       [CliArgKey.GREP]: grep,
       [CliArgKey.PARTITION]: partition,
@@ -78,7 +78,7 @@ export class RunTask implements Task {
             }
           })
           .map(transform)
-          .observe(console.log);
+          .observe(console.log); // eslint-disable-line
 
         if (coverage != null && typeof global["__coverage__"] !== "undefined") {
           await writeFile(

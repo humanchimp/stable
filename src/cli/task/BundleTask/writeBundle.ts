@@ -28,6 +28,6 @@ export async function writeBundle(
 
   await chain.write();
   if (verbose) {
-    console.log(`bundle written: ${filename}`);
+    console.log(`bundle written: ${filename}`); // eslint-disable-line
   }
 }

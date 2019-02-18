@@ -3,9 +3,9 @@ export function formatReason(reason) {
     ? `
 
 ${reason.stack
-        .split("\n")
-        .map(line => `    ${line}`)
-        .join("\n")}
+  .split("\n")
+  .map(line => `    ${line}`)
+  .join("\n")}
 `
     : "";
 }

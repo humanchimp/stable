@@ -7,7 +7,7 @@ export class Listeners implements ListenersInterface {
 
   config: any;
 
-  constructor({ pending = [], complete = [], config = {} } = {}) {
+  constructor({ pending = [], complete = [] } = {}) {
     this.pending = [].concat(pending);
     this.complete = [].concat(complete);
   }
