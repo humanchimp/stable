@@ -1,3 +1,4 @@
-runners:
-- isolate
-- headless chrome
+plugins:
+- - timing
+  - timeout: 500
+- - rescue

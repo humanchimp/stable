@@ -1,0 +1,45 @@
+import { expect } from "chai";
+import { stablercsForSpecs } from "../../../src/cli/stablerc/stablercsForSpecs";
+import { StablercMatch } from "../../../src/cli/interfaces";
+import { join } from "path";
+
+describe("stablercsForSpecs", () => {
+  const specs = ["spec/framework/Suite.ts", "spec/framework/Spec.ts"];
+  let subject: Map<string, StablercMatch>;
+
+  beforeEach(async () => {
+    subject = await stablercsForSpecs(specs);
+  });
+
+  it("should load a map of the .stablercs relative to the specs", () => {
+    const values = [...subject.values()];
+
+    expect(values).to.have.lengthOf(1);
+
+    const [
+      {
+        config: { filename, document: config },
+        files,
+      },
+    ] = values;
+
+    debugger;
+
+    expect(files).to.eql(specs);
+    expect(filename).to.equal("spec/framework/.stablerc");
+    expect(config).to.eql({
+      extends: [],
+      include: ["./**.spec.ts"],
+      exclude: [],
+      plugins: [
+        [
+          "fixture",
+          { include: [join(__dirname, "spec/framework/fixture/**/*")] },
+        ],
+        ["timing", { timeout: 500 }],
+        ["rescue"],
+      ],
+      runners: ["isolate", "headless chrome"],
+    });
+  }); //.rescue(reason => { console.log(reason); debugger; });
+});
