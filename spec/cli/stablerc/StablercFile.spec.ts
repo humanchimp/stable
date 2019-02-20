@@ -206,7 +206,7 @@ describe("load('.stablerc'): Promise<StablercFile>", () => {
       filename: ".stablerc",
       document: {
         extends: [],
-        include: ["./**/*.spec.{ts,js}"],
+        include: ["./spec/**/*.spec.{ts,js}"],
         exclude: [],
         plugins: undefined,
         runners: undefined,
@@ -227,7 +227,7 @@ describe("StablercFile.loadAll(filename: string, params: StablercFileLoadParams)
           filename: ".stablerc",
           document: {
             extends: [],
-            include: ["./**/*.spec.{ts,js}"],
+            include: ["./spec/**/*.spec.{ts,js}"],
             exclude: [],
             plugins: undefined,
             runners: undefined,

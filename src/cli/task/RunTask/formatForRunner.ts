@@ -1,7 +1,7 @@
 import { kebab } from "../../case/kebab";
 import { ModuleFormat } from "rollup";
 
-export function formatForRunner(runner): ModuleFormat {
+export function formatForRunner(runner: string): ModuleFormat {
   switch (kebab(runner)) {
     case "remote":
     case "headless-chrome":

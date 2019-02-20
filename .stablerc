@@ -1,1 +1,1 @@
-include: ./**/*.spec.{ts,js}
+include: ./spec/**/*.spec.{ts,js}
