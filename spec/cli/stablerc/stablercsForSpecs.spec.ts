@@ -27,7 +27,7 @@ describe("stablercsForSpecs", () => {
     expect(filename).to.equal("spec/framework/.stablerc");
     expect(config).to.eql({
       extends: [],
-      include: ["./**.spec.ts"],
+      include: ["./spec/**/*.spec.{ts,js}"],
       exclude: [],
       plugins: [
         [

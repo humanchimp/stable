@@ -83,7 +83,7 @@ describe(".flat(): StablercFile", () => {
   it("should flatten the chain to a StablercFile", () => {
     const flat = subject.flat();
 
-    expect(flat.document.include).to.eql(["./**.spec.ts"]);
+    expect(flat.document.include).to.eql(["./spec/**/*.spec.{ts,js}"]);
     expect(flat.document.plugins).to.eql([
       ["timing", { timeout: 500 }],
       ["rescue"],

@@ -22,10 +22,11 @@ export async function stablercsForParams({
   });
   const { document: entry } = chain.flat();
   const specfiles = [];
-  const prefix = join(cwd, relative(cwd, dirname(entryfile)));
+  const prefix = cwd;//join(cwd, relative(cwd, dirname(entryfile)));
 
   for (const include of entry.include) {
-    specfiles.push(...(await glob(include, { cwd: dirname(entryfile) })));
+    specfiles.push(...(await glob(include, { cwd })));
   }
+  debugger;
   return stablercsForSpecs(specfiles, prefix);
 }

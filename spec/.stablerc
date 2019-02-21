@@ -1,3 +1,4 @@
+extends: ../.stablerc
 plugins:
 - - timing
   - timeout: 500

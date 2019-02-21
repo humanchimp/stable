@@ -220,6 +220,8 @@ describe("StablercFile.loadAll(filename: string, params: StablercFileLoadParams)
   it("should load all the .stablerc files it can find by following includes recusively and then finding the nearest .stablerc", async () => {
     const loaded = await loadAll(".stablerc");
 
+    debugger;
+
     expect([...loaded.entries()]).to.eql([
       [
         ".stablerc",
@@ -241,7 +243,7 @@ describe("StablercFile.loadAll(filename: string, params: StablercFileLoadParams)
           filename: "spec/cli/.stablerc",
           document: {
             extends: ["../.stablerc"],
-            include: ["./**.spec.ts"],
+            include: [],
             exclude: [],
             plugins: undefined,
             runners: ["isolate"],
@@ -254,7 +256,7 @@ describe("StablercFile.loadAll(filename: string, params: StablercFileLoadParams)
         {
           filename: "spec/.stablerc",
           document: {
-            extends: [],
+            extends: ["../.stablerc"],
             include: [],
             exclude: [],
             plugins: [["timing", { timeout: 500 }], ["rescue"]],
@@ -269,7 +271,7 @@ describe("StablercFile.loadAll(filename: string, params: StablercFileLoadParams)
           filename: "spec/framework/.stablerc",
           document: {
             extends: ["../.stablerc"],
-            include: ["./**.spec.ts"],
+            include: [],
             exclude: [],
             plugins: [["fixture", { include: "./fixture/**/*" }]],
             runners: ["isolate", "headless chrome"],
