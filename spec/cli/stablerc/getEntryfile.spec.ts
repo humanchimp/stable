@@ -36,7 +36,7 @@ describe("getEntryfile(cwd: string, entry: string): Promise<string>", () => {
     it("should return the absolute path to the nearest .stablerc file", async () => {
       expect(
         await getEntryfile(__dirname, "spec/cli/stablerc/getEntryfile.spec.ts"),
-      ).to.equal(`${__dirname}/spec/cli/stablerc/.stablerc`);
+      ).to.equal(`${__dirname}/spec/cli/.stablerc`);
     });
   });
 });

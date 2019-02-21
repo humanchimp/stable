@@ -1,6 +1,7 @@
 import { defaultEntry } from "./defaultEntry";
 import { stat } from "fs-extra";
 import { isAbsolute, join, dirname } from "path";
+import { nearestStablerc } from "./nearestStablerc";
 
 export function getEntryfile(cwd: string): Promise<string>;
 export function getEntryfile(cwd: string, entry: string): Promise<string>;
@@ -19,5 +20,8 @@ export async function getEntryfile(
   }
   const stats = await stat(entry);
 
-  return join(stats.isDirectory() ? entry : dirname(entry), ".stablerc");
+  if (stats.isDirectory()) {
+    return nearestStablerc(entry);
+  }
+  return nearestStablerc(dirname(entry));
 }
