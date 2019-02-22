@@ -206,8 +206,8 @@ describe("load('.stablerc'): Promise<StablercFile>", () => {
       filename: ".stablerc",
       document: {
         extends: [],
-        include: ["./spec/**/*.spec.{ts,js}"],
-        exclude: [],
+        include: ["./**/*.spec.{ts,js}"],
+        exclude: ["./node_modules/**"],
         plugins: undefined,
         runners: undefined,
       },
@@ -220,8 +220,6 @@ describe("StablercFile.loadAll(filename: string, params: StablercFileLoadParams)
   it("should load all the .stablerc files it can find by following includes recusively and then finding the nearest .stablerc", async () => {
     const loaded = await loadAll(".stablerc");
 
-    debugger;
-
     expect([...loaded.entries()]).to.eql([
       [
         ".stablerc",
@@ -229,8 +227,8 @@ describe("StablercFile.loadAll(filename: string, params: StablercFileLoadParams)
           filename: ".stablerc",
           document: {
             extends: [],
-            include: ["./spec/**/*.spec.{ts,js}"],
-            exclude: [],
+            include: ["./**/*.spec.{ts,js}"],
+            exclude: ["./node_modules/**"],
             plugins: undefined,
             runners: undefined,
           },

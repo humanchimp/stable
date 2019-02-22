@@ -1,32 +1,37 @@
 import glob from "fast-glob";
-import { relative, dirname, join } from "path";
+import { createFilter } from "rollup-pluginutils";
+import { resolve } from "path";
 import { StablercTaskParams, StablercMatch } from "../interfaces";
 import { StablercChain } from "./StablercChain";
 import { stablercsForSpecs } from "./stablercsForSpecs";
 import { CliArgKey } from "../enums";
 import { getEntryfile } from "./getEntryfile";
+import { directoryIncludeForFile } from "./directoryIncludeForFile";
 
 export async function stablercsForParams({
   [CliArgKey.WORKING_DIRECTORY]: cwd = process.cwd(),
   [CliArgKey.REST]: explicitFiles,
 }: StablercTaskParams): Promise<Map<string, StablercMatch>> {
-  if (explicitFiles.length > 1) {
-    throw new Error(
-      "bundle command takes as its only positional parameter a .stablerc entrypoint",
-    );
-  }
-  const entryfile = await getEntryfile(cwd, explicitFiles[0]);
-  const chain = await StablercChain.load(entryfile, {
-    plugins: false,
-    cwd,
-  });
-  const { document: entry } = chain.flat();
   const specfiles = [];
-  const prefix = cwd;//join(cwd, relative(cwd, dirname(entryfile)));
 
-  for (const include of entry.include) {
-    specfiles.push(...(await glob(include, { cwd })));
+  if (explicitFiles.length === 0) {
+    explicitFiles.push(".");
   }
-  debugger;
-  return stablercsForSpecs(specfiles, prefix);
+  for (const file of explicitFiles.map(file => resolve(cwd, file))) {
+    const entryfile = await getEntryfile(file);
+    const chain = await StablercChain.load(entryfile, {
+      plugins: false,
+      cwd,
+    });
+    const { document: entry } = chain.flat();
+    const [batch, include] = await Promise.all([
+      glob(entry.include, { cwd, absolute: true }),
+      directoryIncludeForFile(file),
+    ]);
+    const filter = createFilter(include, entry.exclude);
+
+    specfiles.push(...batch.filter(filter));
+  }
+
+  return stablercsForSpecs(specfiles);
 }

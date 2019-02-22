@@ -1,25 +1,17 @@
-import { defaultEntry } from "./defaultEntry";
 import { stat } from "fs-extra";
-import { isAbsolute, join, dirname } from "path";
+import { dirname } from "path";
 import { nearestStablerc } from "./nearestStablerc";
+import { isStablerc } from "./isStablerc";
 
-export function getEntryfile(cwd: string): Promise<string>;
-export function getEntryfile(cwd: string, entry: string): Promise<string>;
-export async function getEntryfile(
-  cwd: string,
-  entry?: string,
-): Promise<string> {
-  if (entry === undefined) {
-    return defaultEntry(cwd);
-  }
-  if (!isAbsolute(entry)) {
-    entry = join(cwd, entry);
-  }
-  if (entry.endsWith(".stablerc")) {
+export async function getEntryfile(entry?: string): Promise<string> {
+  const explicit = isStablerc(entry);
+
+  // Calling stat early so that we consistently throw on non-existent directories
+  const stats = await stat(explicit ? dirname(entry) : entry);
+
+  if (explicit) {
     return entry;
   }
-  const stats = await stat(entry);
-
   if (stats.isDirectory()) {
     return nearestStablerc(entry);
   }
