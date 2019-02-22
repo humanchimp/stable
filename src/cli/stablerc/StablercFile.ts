@@ -5,7 +5,7 @@ import {
   StablercFile as StablercFileInterface,
   StablercPlugin,
 } from "../interfaces";
-import glob from "fast-glob";
+import { async as glob } from "fast-glob";
 import { readFile } from "fs-extra";
 import { safeLoad } from "js-yaml";
 import { join, dirname, isAbsolute } from "path";

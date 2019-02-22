@@ -11,6 +11,12 @@ describe("getEntryfile(file: string): Promise<string>", () => {
     expect(await getEntryfile("spec")).to.equal("spec/.stablerc");
   });
 
+  it("should return the .stablerc for a spec", async () => {
+    expect(await getEntryfile("spec/framework/Suite.spec.ts")).to.equal(
+      "spec/framework/.stablerc",
+    );
+  });
+
   it("should throw an error for a non-existent path in the case of a directory", async () => {
     await getEntryfile("jlkjkljk");
   })

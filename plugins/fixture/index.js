@@ -1,13 +1,13 @@
-import glob from "fast-glob";
+import { async as glob } from "fast-glob";
 import virtual from "rollup-plugin-virtual";
 import packageJson from "./package.json";
 import { readFile } from "fs-extra";
-import { dirname, join } from "path";
+import { dirname } from "path";
 
 export async function fixture(config, filename) {
   config = [].concat(config).pop(); // TODO: handle multiple options hashes
 
-  const { include, exclude, module: moduleName = "fixture" } = config;
+  const { include, module: moduleName = "fixture" } = config;
   const cwd = dirname(filename);
   const files = await glob(include, { cwd });
   const fixtureData = await Promise.all(
