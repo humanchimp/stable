@@ -5,7 +5,7 @@ import {
   StablercFile as StablercFileInterface,
   StablercPlugin,
 } from "../interfaces";
-import glob from "fast-glob";
+import { async as glob } from "fast-glob";
 import { readFile } from "fs-extra";
 import { safeLoad } from "js-yaml";
 import { join, dirname, isAbsolute } from "path";
@@ -136,7 +136,7 @@ export async function loadAll(
 async function* moarFiles(relative, patterns) {
   const cwd = dirname(relative);
 
-  for (const filename of await glob(patterns, { cwd })) {
+  for (const filename of await glob<string>(patterns, { cwd })) {
     yield await nearestStablerc(
       isAbsolute(filename) ? filename : join(cwd, filename),
     );

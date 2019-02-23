@@ -1,1 +1,2 @@
-include: ./spec/**/*.spec.{ts,js}
+include: ./**/*.spec.{ts,js}
+exclude: ./node_modules/**

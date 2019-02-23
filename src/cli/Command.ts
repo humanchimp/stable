@@ -44,9 +44,9 @@ export class Command implements CommandInterface {
     this.emoji = emoji;
   }
 
-  run(options: CliArgs, menu: Menu) {
+  async run(options: CliArgs, menu: Menu): Promise<void> {
     this.validateOptions(options);
-    this.task.run(options, this, menu);
+    await this.task.run(options, this, menu);
   }
 
   validateOptions(options: CliArgs): void {

@@ -6,30 +6,37 @@ import { CliArgKey } from "../../../src/cli/enums";
 describe("stablercsForParams(params: StablercTaskParams): Promise<Map<string, StablercMatch>> ", () => {
   let map: Map<string, StablercMatch>;
 
-  beforeEach(async () => {
-    map = await stablercsForParams({
-      [CliArgKey.WORKING_DIRECTORY]: __dirname,
-      [CliArgKey.REST]: ["spec/framework/Spec.spec.ts"],
-    });
-  });
+  describeEach(
+    "params",
+    [
+      [
+        {
+          [CliArgKey.WORKING_DIRECTORY]: __dirname,
+          [CliArgKey.REST]: ["spec/framework/Spec.spec.ts"],
+        },
+      ],
+      [
+        {
+          [CliArgKey.WORKING_DIRECTORY]: __dirname,
+          [CliArgKey.REST]: [],
+        },
+      ],
+      [
+        {
+          [CliArgKey.WORKING_DIRECTORY]: undefined,
+          [CliArgKey.REST]: [],
+        },
+      ],
+    ],
+    ([params]) => {
+      beforeEach(async () => {
+        map = await stablercsForParams(params);
+      });
 
-  it("should work", () => {
-    console.log("map", map);
-    // expect(stablercsForParams).to.exist;
-  });
-});
-
-describe("when passing multiple explicit files", () => {
-  it("throws for now", async () => {
-    await stablercsForParams({
-      [CliArgKey.WORKING_DIRECTORY]: undefined,
-      [CliArgKey.REST]: ["1", "2"],
-    });
-  })
-    .shouldFail()
-    .rescue(reason => {
-      expect(reason.message).to.match(
-        /bundle command takes as its only positional parameter a .stablerc entrypoint/,
-      );
-    });
+      it("should work", () => {
+        console.log("map", map);
+        expect(stablercsForParams).to.exist;
+      });
+    },
+  );
 });

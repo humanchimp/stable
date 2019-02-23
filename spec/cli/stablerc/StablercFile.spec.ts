@@ -206,8 +206,8 @@ describe("load('.stablerc'): Promise<StablercFile>", () => {
       filename: ".stablerc",
       document: {
         extends: [],
-        include: ["./spec/**/*.spec.{ts,js}"],
-        exclude: [],
+        include: ["./**/*.spec.{ts,js}"],
+        exclude: ["./node_modules/**"],
         plugins: undefined,
         runners: undefined,
       },
@@ -227,8 +227,8 @@ describe("StablercFile.loadAll(filename: string, params: StablercFileLoadParams)
           filename: ".stablerc",
           document: {
             extends: [],
-            include: ["./spec/**/*.spec.{ts,js}"],
-            exclude: [],
+            include: ["./**/*.spec.{ts,js}"],
+            exclude: ["./node_modules/**"],
             plugins: undefined,
             runners: undefined,
           },
@@ -241,7 +241,7 @@ describe("StablercFile.loadAll(filename: string, params: StablercFileLoadParams)
           filename: "spec/cli/.stablerc",
           document: {
             extends: ["../.stablerc"],
-            include: ["./**.spec.ts"],
+            include: [],
             exclude: [],
             plugins: undefined,
             runners: ["isolate"],
@@ -254,7 +254,7 @@ describe("StablercFile.loadAll(filename: string, params: StablercFileLoadParams)
         {
           filename: "spec/.stablerc",
           document: {
-            extends: [],
+            extends: ["../.stablerc"],
             include: [],
             exclude: [],
             plugins: [["timing", { timeout: 500 }], ["rescue"]],
@@ -269,7 +269,7 @@ describe("StablercFile.loadAll(filename: string, params: StablercFileLoadParams)
           filename: "spec/framework/.stablerc",
           document: {
             extends: ["../.stablerc"],
-            include: ["./**.spec.ts"],
+            include: [],
             exclude: [],
             plugins: [["fixture", { include: "./fixture/**/*" }]],
             runners: ["isolate", "headless chrome"],

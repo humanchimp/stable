@@ -27,8 +27,8 @@ describe("stablercsForSpecs", () => {
     expect(filename).to.equal("spec/framework/.stablerc");
     expect(config).to.eql({
       extends: [],
-      include: ["./**.spec.ts"],
-      exclude: [],
+      include: ["./**/*.spec.{ts,js}"],
+      exclude: ["./node_modules/**"],
       plugins: [
         [
           "fixture",
@@ -39,5 +39,5 @@ describe("stablercsForSpecs", () => {
       ],
       runners: ["isolate", "headless chrome"],
     });
-  }); //.rescue(reason => { console.log(reason); debugger; });
+  });
 });

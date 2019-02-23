@@ -30,7 +30,7 @@ export class RunTask implements Task {
     const configs = await stablercsForParams(params);
     const selection = new Selection({
       filter,
-      grep: new RegExp(grep),
+      grep: grep && new RegExp(grep),
     });
     let failed = false;
 

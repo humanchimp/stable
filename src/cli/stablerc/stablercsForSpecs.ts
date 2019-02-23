@@ -1,17 +1,15 @@
 import { StablercMatch } from "../interfaces";
 import { load } from "./StablercChain";
 import { nearestStablerc } from "./nearestStablerc";
-import { dirname, join } from "path";
+import { dirname } from "path";
 
 export async function stablercsForSpecs(
   specfiles: string[],
-  prefix: string = "",
 ): Promise<Map<string, StablercMatch>> {
   const byStablerc = new Map<string, StablercMatch>();
   const byDir = new Map<string, string>();
 
-  for (const rawSpecfile of specfiles) {
-    const specfile = join(prefix, rawSpecfile);
+  for (const specfile of specfiles) {
     const dir = dirname(specfile);
     const filename = await (async () => {
       if (byDir.has(dir)) {

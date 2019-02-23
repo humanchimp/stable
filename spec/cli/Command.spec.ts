@@ -130,8 +130,8 @@ describeEach(
           [{ help: true }], // "help" is tolerated despite not being explicitly listed
         ],
         ([args]) => {
-          it("should return void", () => {
-            expect(subject.run(args, menuMock)).to.be.undefined;
+          it("should return a promise", () => {
+            expect(subject.run(args, menuMock)).to.be.instanceOf(Promise);
           });
         },
       );
@@ -144,8 +144,8 @@ describeEach(
           [{ bobo: false, gaga: 12 }],
         ],
         ([args]) => {
-          it("should throw an error", () => {
-            subject.run(args, menuMock);
+          it("should throw an error", async () => {
+            await subject.run(args, menuMock);
           })
             .shouldFail()
             .rescue(reason => {
