@@ -136,7 +136,7 @@ export async function loadAll(
 async function* moarFiles(relative, patterns) {
   const cwd = dirname(relative);
 
-  for (const filename of await glob(patterns, { cwd })) {
+  for (const filename of await glob<string>(patterns, { cwd })) {
     yield await nearestStablerc(
       isAbsolute(filename) ? filename : join(cwd, filename),
     );

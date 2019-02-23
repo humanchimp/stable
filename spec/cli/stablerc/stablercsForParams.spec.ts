@@ -35,7 +35,7 @@ describe("stablercsForParams(params: StablercTaskParams): Promise<Map<string, St
 
       it("should work", () => {
         console.log("map", map);
-        // expect(stablercsForParams).to.exist;
+        expect(stablercsForParams).to.exist;
       });
     },
   );
