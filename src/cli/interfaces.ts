@@ -186,6 +186,7 @@ export interface BundleTaskParams extends StablercTaskParams {
   [CliArgKey.BUNDLE_FORMAT]: ModuleFormat;
   [CliArgKey.COVERAGE]: boolean;
   [CliArgKey.VERBOSE]: boolean;
+  [CliArgKey.RUNNER]: string;
 }
 
 export interface RunTaskParams extends BundleTaskParams {
