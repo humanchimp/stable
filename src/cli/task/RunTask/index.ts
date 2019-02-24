@@ -54,6 +54,7 @@ export class RunTask implements Task {
       for (const runner of runners) {
         const bundle = await generateBundle(files, config, {
           ...params,
+          runner,
           [CliArgKey.ONREADY]: "stableRun",
         });
 

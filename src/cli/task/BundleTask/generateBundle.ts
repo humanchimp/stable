@@ -8,6 +8,8 @@ import { bundleFromFiles } from "./bundleFromFiles";
 import { bundlePlugins } from "./bundlePlugins";
 import { codeForLibrary } from "./codeForLibrary";
 import { codeForTestBundle } from "./codeForTestBundle";
+import { codeForRunner } from "./codeForRunner";
+import { bundlerAliasForRunner } from "../../bundlerAliasForRunner";
 import { StablercFile, BundleTaskParams } from "../../interfaces";
 import { loadModule } from "../../loadModule";
 import { CliArgKey } from "../../enums";
@@ -21,6 +23,7 @@ export async function generateBundle(
     [CliArgKey.ROLLUP]: rollupConfig = "rollup.config.js",
     [CliArgKey.WORKING_DIRECTORY]: cwd = process.cwd(),
     [CliArgKey.ONREADY]: onready = "run",
+    [CliArgKey.RUNNER]: runner = "isolate",
   }: BundleTaskParams,
 ): Promise<RollupSingleFileBuild> {
   const { plugins: rollupPlugins } = await loadModule(join(cwd, rollupConfig));
@@ -30,16 +33,19 @@ export async function generateBundle(
     .filter(Boolean)
     .reduce((memo, thunk) => memo.concat(thunk()), []);
 
-  const [bundle, pluginBundle, libraryBundle] = await Promise.all([
-    bundleFromFiles({
-      files,
-      shouldInstrument,
-      verbose,
-      plugins: [...pluginRollupPlugins, ...rollupPlugins],
-    }),
-    bundlePlugins(plugins),
-    codeForLibrary(rollupPlugins),
-  ]);
+  const [bundle, pluginBundle, libraryBundle, runnerBundle] = await Promise.all(
+    [
+      bundleFromFiles({
+        files,
+        shouldInstrument,
+        verbose,
+        plugins: [...pluginRollupPlugins, ...rollupPlugins],
+      }),
+      bundlePlugins(plugins),
+      codeForLibrary(rollupPlugins),
+      codeForRunner(runner, rollupPlugins),
+    ],
+  );
 
   const tmp = await dir({ unsafeCleanup: true });
 
@@ -59,7 +65,9 @@ export async function generateBundle(
 
     await chain.write({ inline: true });
 
-    const testBundle = codeForTestBundle(onready);
+    const testBundle = codeForTestBundle(
+      bundlerAliasForRunner(runner) ? undefined : onready,
+    );
     const testBundlePath = join(tmp.path, "index.js");
 
     await writeFile(testBundlePath, testBundle, "utf-8");
@@ -69,6 +77,12 @@ export async function generateBundle(
 
     await writeFile(libraryPath, libraryBundle.code, "utf-8");
     await writeFile(libraryMapPath, libraryBundle.map, "utf-8");
+
+    const runnerPath = join(tmp.path, "run.js");
+    const runnerMapPath = `${libraryPath}.map`;
+
+    await writeFile(runnerPath, runnerBundle.code, "utf-8");
+    await writeFile(runnerMapPath, runnerBundle.map, "utf-8");
 
     await copy(join(cwd, "plugins"), join(tmp.path, "plugins"));
 
