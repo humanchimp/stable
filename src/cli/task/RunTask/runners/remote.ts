@@ -2,7 +2,11 @@ import { spawn } from "child_process";
 import { createServer } from "http";
 import { fromEvent } from "most";
 import express from "express";
-import { Server as WebSocketServer } from "ws";
+import { Server as WebSocketServer, WebSocket } from "ws";
+
+interface WebSocketMessage {
+  data: string;
+}
 
 export function run(code, { port, verbose, spawn: spawnParams }) {
   if (spawnParams == null) {
@@ -58,18 +62,32 @@ export function run(code, { port, verbose, spawn: spawnParams }) {
     server.close();
   }
 
-  return fromEvent("connection", wss)
+  return fromEvent<[WebSocket]>("connection", wss)
     .take(1)
-    .chain(([ws]) =>
-      fromEvent("message", ws).takeUntil(fromEvent("close", ws).tap(stop)),
+    .chain(([ws]: [WebSocket]) =>
+      fromEvent<WebSocketMessage>("message", ws).takeUntil(
+        fromEvent("close", ws).tap(stop),
+      ),
     )
-    .map(({ data }: { data: string }) => data)
+    .map(({ data }: WebSocketMessage) => data)
     .map(JSON.parse)
-    .filter(({ __coverage__: coverage } = {}) => {
-      if (coverage != null) {
-        global["__coverage__"] = coverage;
+    .filter(payload => {
+      if ("console" in payload) {
+        const {
+          console: { method, args },
+        }: { console: { method: string; args: any[] } } = payload;
+        console[method](...args); // eslint-disable-line
         return false;
       }
+      if ("message" in payload) {
+        const { __coverage__: coverage } = payload.message;
+
+        if (coverage != null) {
+          global["__coverage__"] = coverage;
+          return false;
+        }
+      }
       return true;
-    });
+    })
+    .map(it => it.message);
 }

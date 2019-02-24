@@ -3,8 +3,16 @@ import { of } from "most";
 import { fromAsyncIterable } from "most-async-iterable";
 import { Script } from "vm";
 import { skipped } from "../skipped";
+import { implForSort } from "../implForSort";
+import { Selection } from "../../../../framework/lib";
 
-export function run(code, { sort, predicate, hideSkips }) {
+export function run(code, { sort, filter, grep }) {
+  const selection = new Selection({
+    filter,
+    grep: grep && new RegExp(grep),
+  });
+  let hideSkips: boolean | string = "focus";
+
   return of(
     new Promise(resolve => {
       global["__coverage__"] || (global["__coverage__"] = {});
@@ -25,7 +33,9 @@ export function run(code, { sort, predicate, hideSkips }) {
   )
     .await()
     .chain((suite: Suite) =>
-      fromAsyncIterable(suite.run(sort, predicate)).filter(report => {
+      fromAsyncIterable(
+        suite.run(implForSort(sort), selection.predicate),
+      ).filter(report => {
         switch (hideSkips) {
           case true:
             return !skipped(report);

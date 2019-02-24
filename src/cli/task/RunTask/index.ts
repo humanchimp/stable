@@ -8,17 +8,11 @@ import { transformForFormat } from "../../output/transformForFormat";
 import { CliArgKey, StreamFormat } from "../../enums";
 import { stablercsForParams } from "../../stablerc/stablercsForParams";
 import { writeBundle } from "../BundleTask/writeBundle";
-import { Selection } from "../../../framework/Selection";
 import { formatForRunner } from "./formatForRunner";
 
 export class RunTask implements Task {
   async run(params) {
     const {
-      // [CliArgKey.SORT]: sort,
-      [CliArgKey.FILTER]: filter,
-      [CliArgKey.GREP]: grep,
-      [CliArgKey.PARTITION]: partition,
-      [CliArgKey.PARTITIONS]: partitions,
       [CliArgKey.QUIET]: quiet,
       [CliArgKey.RUNNER]: runner,
       [CliArgKey.OUTPUT_FORMAT]: format = StreamFormat.TAP,
@@ -28,10 +22,6 @@ export class RunTask implements Task {
       defaultRunner,
     }: RunTaskParams = params;
     const configs = await stablercsForParams(params);
-    const selection = new Selection({
-      filter,
-      grep: grep && new RegExp(grep),
-    });
     let failed = false;
 
     for (const { config, files } of configs.values()) {
@@ -64,15 +54,10 @@ export class RunTask implements Task {
         });
 
         const code = await readFile(outFile, "utf-8");
-
-        const predicate =
-          partition != null && partitions != null
-            ? selection.partition(counts.total, partition, partitions)
-            : selection.predicate;
         const run = implForRunner(runner);
         const transform = transformForFormat(format);
 
-        await run(code, { ...params, runner, predicate, sort: it => it })
+        await run(code, { ...params, runner })
           .tap(report => {
             if (report.failed > 0) {
               failed = true;

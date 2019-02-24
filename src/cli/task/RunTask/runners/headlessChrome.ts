@@ -3,10 +3,18 @@ import { run as runRemote } from "./remote";
 export function run(code, params) {
   return runRemote(code, {
     ...params,
-    spawn: url => [
-      chromePathForPlatform(),
-      ["--headless", "--remote-debugging-port=9222", url],
-    ],
+    spawn: u => {
+      const url = new URL(u);
+
+      url.search = `${new URLSearchParams(Object.entries(params).filter(
+        ([, value]) => value != null,
+      ) as [string, string][])}`;
+
+      return [
+        chromePathForPlatform(),
+        ["--headless", "--remote-debugging-port=9222", `${url}`],
+      ];
+    },
   });
 }
 
