@@ -105,6 +105,7 @@ export interface Report extends SpecParams {
 export interface Plan {
   total: number;
   planned: number;
+  userAgent?: string;
 }
 
 export interface Summary {
@@ -113,6 +114,7 @@ export interface Summary {
   completed: number;
   ok: number;
   skipped: number;
+  userAgent?: string;
 }
 
 export interface SuiteParams {
