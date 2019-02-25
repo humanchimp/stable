@@ -2,6 +2,7 @@ extends: ../.stablerc
 runners:
 - isolate
 - headless chrome
+- jsdom
 plugins:
 - - fixture
   - include: ./fixture/**/*

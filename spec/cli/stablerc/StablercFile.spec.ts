@@ -272,7 +272,7 @@ describe("StablercFile.loadAll(filename: string, params: StablercFileLoadParams)
             include: [],
             exclude: [],
             plugins: [["fixture", { include: "./fixture/**/*" }]],
-            runners: ["isolate", "headless chrome"],
+            runners: ["isolate", "headless chrome", "jsdom"],
           },
           plugins: false,
         },

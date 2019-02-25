@@ -4,6 +4,7 @@ import { run as evalRunner } from "./runners/eval";
 import { run as vmRunner } from "./runners/vm";
 import { run as remoteRunner } from "./runners/remote";
 import { run as headlessChromeRunner } from "./runners/headlessChrome";
+import { run as jsdomRunner } from "./runners/jsdom";
 
 export function implForRunner(runner): TestRun {
   switch (kebab(runner)) {
@@ -18,6 +19,8 @@ export function implForRunner(runner): TestRun {
     case "headless-chrome":
     case "headless chrome":
       return headlessChromeRunner;
+    case "jsdom":
+      return jsdomRunner;
   }
   throw new Error(`unknown runner type: "${runner}"`);
 }

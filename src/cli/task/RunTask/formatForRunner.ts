@@ -6,6 +6,7 @@ export function formatForRunner(runner: string): ModuleFormat {
     case "remote":
     case "headless-chrome":
     case "headless chrome":
+    case "jsdom":
       return "iife";
   }
   return "cjs";
