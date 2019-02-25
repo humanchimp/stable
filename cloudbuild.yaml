@@ -6,6 +6,9 @@ steps:
   args: ['install']
 - name: node:11
   entrypoint: yarn
+  args: ['lint']
+- name: node:11
+  entrypoint: yarn
   args: ['build']
 - name: node:11
   entrypoint: yarn
