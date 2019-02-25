@@ -37,7 +37,7 @@ describe("stablercsForSpecs", () => {
         ["timing", { timeout: 500 }],
         ["rescue"],
       ],
-      runners: ["isolate", "headless chrome"],
+      runners: ["isolate", "headless chrome", "jsdom"],
     });
   });
 });
