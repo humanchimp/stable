@@ -198,12 +198,12 @@ describe("splatDocument(document: StablercDocument)", () => {
   });
 });
 
-describe("load('.stablerc'): Promise<StablercFile>", () => {
+describe("load('.stablerc.yml'): Promise<StablercFile>", () => {
   it("should load the stablerc file from the file system", async () => {
-    const loaded: StablercFile = await load(".stablerc");
+    const loaded: StablercFile = await load(".stablerc.yml");
 
     expect(loaded).to.eql({
-      filename: ".stablerc",
+      filename: ".stablerc.yml",
       document: {
         extends: [],
         include: ["./**/*.spec.{ts,js}"],
@@ -217,14 +217,14 @@ describe("load('.stablerc'): Promise<StablercFile>", () => {
 });
 
 describe("StablercFile.loadAll(filename: string, params: StablercFileLoadParams): Promise<StablercFile[]>", () => {
-  it("should load all the .stablerc files it can find by following includes recusively and then finding the nearest .stablerc", async () => {
-    const loaded = await loadAll(".stablerc");
+  it("should load all the .yml files it can find by following includes recusively and then finding the nearest .stablerc", async () => {
+    const loaded = await loadAll(".stablerc.yml");
 
     expect([...loaded.entries()]).to.eql([
       [
-        ".stablerc",
+        ".stablerc.yml",
         {
-          filename: ".stablerc",
+          filename: ".stablerc.yml",
           document: {
             extends: [],
             include: ["./**/*.spec.{ts,js}"],
@@ -236,11 +236,11 @@ describe("StablercFile.loadAll(filename: string, params: StablercFileLoadParams)
         },
       ],
       [
-        "spec/cli/.stablerc",
+        "spec/cli/.stablerc.yml",
         {
-          filename: "spec/cli/.stablerc",
+          filename: "spec/cli/.stablerc.yml",
           document: {
-            extends: ["../.stablerc"],
+            extends: ["../.stablerc.yml"],
             include: [],
             exclude: [],
             plugins: undefined,
@@ -250,11 +250,11 @@ describe("StablercFile.loadAll(filename: string, params: StablercFileLoadParams)
         },
       ],
       [
-        "spec/.stablerc",
+        "spec/.stablerc.yml",
         {
-          filename: "spec/.stablerc",
+          filename: "spec/.stablerc.yml",
           document: {
-            extends: ["../.stablerc"],
+            extends: ["../.stablerc.yml"],
             include: [],
             exclude: [],
             plugins: [["timing", { timeout: 500 }], ["rescue"]],
@@ -264,11 +264,11 @@ describe("StablercFile.loadAll(filename: string, params: StablercFileLoadParams)
         },
       ],
       [
-        "spec/framework/.stablerc",
+        "spec/framework/.stablerc.yml",
         {
-          filename: "spec/framework/.stablerc",
+          filename: "spec/framework/.stablerc.yml",
           document: {
-            extends: ["../.stablerc"],
+            extends: ["../.stablerc.yml"],
             include: [],
             exclude: [],
             plugins: [["fixture", { include: "./fixture/**/*" }]],

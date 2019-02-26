@@ -1,0 +1,3 @@
+extends: ../.stablerc.yml
+runners:
+- isolate

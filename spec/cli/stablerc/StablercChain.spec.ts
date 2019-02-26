@@ -47,7 +47,7 @@ describeEach(
 
 describe("load(filename: string)", () => {
   beforeEach(async () => {
-    subject = await load(".stablerc");
+    subject = await load(".stablerc.yml");
   });
 
   it("should load the inheritance chain", () => {
@@ -67,7 +67,7 @@ describe("loadAll(filename: string)", () => {
   let map: Map<string, StablercChain>;
 
   beforeEach(async () => {
-    map = await loadAll(".stablerc");
+    map = await loadAll(".stablerc.yml");
   });
 
   it("should work", () => {
@@ -77,7 +77,7 @@ describe("loadAll(filename: string)", () => {
 
 describe(".flat(): StablercFile", () => {
   beforeEach(async () => {
-    subject = await load("spec/cli/.stablerc");
+    subject = await load("spec/cli/.stablerc.yml");
   });
 
   it("should flatten the chain to a StablercFile", () => {
@@ -98,11 +98,11 @@ describe("inheritance using absolute paths", () => {
     tmpdir = await dir({ dir: __dirname, unsafeCleanup: true });
 
     const base: FileResult = await file({
-      postfix: ".stablerc",
+      postfix: ".stablerc.yml",
       dir: tmpdir.path,
     });
     const child: FileResult = await file({
-      postfix: ".stablerc",
+      postfix: ".stablerc.yml",
       dir: tmpdir.path,
     });
 

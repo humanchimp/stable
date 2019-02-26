@@ -1,4 +1,4 @@
-extends: ../.stablerc
+extends: ../.stablerc.yml
 runners:
 - isolate
 - headless chrome
