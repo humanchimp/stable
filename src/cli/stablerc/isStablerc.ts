@@ -1,3 +1,5 @@
+import { extensions } from "./extensions";
+
 export function isStablerc(entry: string): boolean {
-  return entry.endsWith(".stablerc");
+  return extensions.some(extension => entry.endsWith(`.stablerc${extension}`));
 }

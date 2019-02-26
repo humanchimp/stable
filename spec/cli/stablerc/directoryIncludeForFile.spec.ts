@@ -12,13 +12,13 @@ it("should narrow the scope in the case of directories", async () => {
 });
 
 it("should just include the path in the case of other files", async () => {
-  expect(await directoryIncludeForFile("spec/.stablerc")).to.equal(
+  expect(await directoryIncludeForFile("spec/.stablerc.yml")).to.equal(
     join(process.cwd(), "spec/**"),
   );
-  expect(await directoryIncludeForFile(".stablerc")).to.equal(
+  expect(await directoryIncludeForFile(".stablerc.yml")).to.equal(
     join(process.cwd(), "**"),
   );
-  expect(await directoryIncludeForFile("spec/framework/.stablerc")).to.equal(
-    join(process.cwd(), "spec/framework/**"),
-  );
+  expect(
+    await directoryIncludeForFile("spec/framework/.stablerc.yml"),
+  ).to.equal(join(process.cwd(), "spec/framework/**"));
 });

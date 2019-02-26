@@ -1,16 +1,20 @@
 import { stat } from "fs-extra";
-import { join, dirname } from "path";
+import { dirname, join } from "path";
 import { isStablerc } from "./isStablerc";
+import { extensions } from "./extensions";
 
 export async function nearestStablerc(dir: string): Promise<string> {
   do {
-    try {
-      const candidate = isStablerc(dir) ? dir : join(dir, ".stablerc");
-
-      await stat(candidate);
-      return candidate;
-    } catch (_) {
-      // hard pass
+    for (const candidate of [
+      ...(isStablerc(dir) ? [dir] : []),
+      ...extensions.map(extension => join(dir, `.stablerc${extension}`)),
+    ]) {
+      try {
+        await stat(candidate);
+        return candidate;
+      } catch (_) {
+        // hard pass
+      }
     }
   } while (dir !== "/" && (dir = dirname(dir)));
 }
