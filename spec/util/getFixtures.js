@@ -1,5 +1,4 @@
 import fixtures from "fixture";
-
 import { partition } from "./partition";
 
 export function getFixtures() {

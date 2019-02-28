@@ -42,6 +42,10 @@ export class Suite implements SuiteInterface {
     return this.from(suites);
   }
 
+  static reducer(a: Suite, b: Suite): Suite {
+    return a.concat(b);
+  }
+
   description: string;
 
   skipped: boolean;
@@ -292,6 +296,10 @@ export class Suite implements SuiteInterface {
       segments.unshift(node.description);
     }
     return [...segments, description].filter(Boolean).join(" ");
+  }
+
+  concat(...suites: Suite[]): Suite {
+    return Suite.of(this, ...suites);
   }
 
   async *run(
