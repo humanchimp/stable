@@ -5,6 +5,7 @@ import { Suite } from "../../src/framework/Suite";
 import { Hooks } from "../../src/framework/Hooks";
 import { Listeners } from "../../src/framework/Listeners";
 import { describe as createSuite } from "../../src/framework/describe";
+import { specNamesForSuite } from "../util/specNamesForSuite";
 
 describe("static factories/explicit casts", () => {
   let suites: Suite[], subject: Suite;
@@ -60,6 +61,22 @@ describe("static factories/explicit casts", () => {
     it("should be called with the splatted rest param", () => {
       expect(Suite.from.getCall(0).args[0]).to.eql(suites);
     });
+  });
+});
+
+describe("Suite.reducer", () => {
+  let subject: Suite;
+
+  beforeEach(() => {
+    subject = [
+      new Suite(null).it("a"),
+      new Suite(null).it("b"),
+      new Suite(null).it("c"),
+    ].reduce(Suite.reducer);
+  });
+
+  it("should return a reducer that can be used to reduce an array of Suites to single Suite", async () => {
+    expect(await specNamesForSuite(subject)).to.eql(["a", "b", "c"]);
   });
 });
 
@@ -949,6 +966,47 @@ describe("new Suite(description)", () => {
         });
       },
     );
+  });
+
+  describe(".concat(...suites: Suite: []): Suite", () => {
+    const a = new Suite(null).it("i").it("ii");
+    const b = new Suite(null).it("iii").it("iv");
+    const c = new Suite(null).it("v").it("vi");
+    let d: Suite;
+
+    beforeEach(() => {
+      d = a.concat(b, c);
+    });
+
+    it("should return an instance of Suite", () => {
+      expect(d).to.be.instanceOf(Suite);
+    });
+
+    it("should return a new instance", () => {
+      expect(d).not.to.equal(a);
+      expect(d).not.to.equal(b);
+      expect(d).not.to.equal(c);
+    });
+
+    it("should compose the original suite with any suites passed by parameter", async () => {
+      expect(await specNamesForSuite(d)).to.eql([
+        "i",
+        "ii",
+        "iii",
+        "iv",
+        "v",
+        "vi",
+      ]);
+    });
+
+    it("should not mutate the instance suite itself", async () => {
+      expect(await specNamesForSuite(a)).to.eql(["i", "ii"]);
+    });
+
+    it("should not mutate the suites passed by parameter", async () => {
+      expect(await specNamesForSuite(b)).to.eql(["iii", "iv"]);
+      expect(await specNamesForSuite(c)).to.eql(["v", "vi"]);
+    });
   });
 
   describe("async iterator methods", () => {
