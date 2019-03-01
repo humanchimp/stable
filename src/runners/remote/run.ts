@@ -1,5 +1,5 @@
 import { Sock } from "./Sock";
-import { Suite } from "../../framework/interfaces";
+import { Suite } from "../../interfaces";
 import { Selection } from "../../framework/Selection";
 import { serializeReason } from "../../serializeReason";
 import { parseSelectionParams } from "./parseSelectionParams";

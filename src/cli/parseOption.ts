@@ -1,4 +1,4 @@
-import { Option, OptionParse } from "./interfaces";
+import { Option, OptionParse } from "../interfaces";
 import { OptionType } from "./enums";
 import { parseOptionValue } from "./parseOptionValue";
 

@@ -3,7 +3,7 @@ import {
   CommandParams,
   Task,
   Menu,
-} from "./interfaces";
+} from "../interfaces";
 import { CliArgKey } from "./enums";
 import { CliArgs } from "./types";
 import { ValidationError } from "./ValidationError";

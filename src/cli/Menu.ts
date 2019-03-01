@@ -5,7 +5,7 @@ import {
   Option,
   CommandParse,
   Named,
-} from "./interfaces";
+} from "../interfaces";
 import { Command as SimpleCommand, toleratedArgs } from "./Command";
 import { kebab } from "./case/kebab";
 import { OptionType, CliArgKey } from "./enums";

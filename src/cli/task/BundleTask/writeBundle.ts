@@ -1,6 +1,6 @@
 import { join, basename } from "path";
 import sorcery from "sorcery";
-import { BundleTaskParams } from "../../interfaces";
+import { BundleTaskParams } from "../../../interfaces";
 import { CliArgKey } from "../../enums";
 
 export async function writeBundle(

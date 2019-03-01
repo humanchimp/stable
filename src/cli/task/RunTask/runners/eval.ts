@@ -1,4 +1,4 @@
-import { Suite } from "../../../../framework/interfaces";
+import { Suite } from "../../../../interfaces";
 import { of, Stream } from "most";
 import { fromAsyncIterable } from "most-async-iterable";
 import { skipped } from "../skipped";

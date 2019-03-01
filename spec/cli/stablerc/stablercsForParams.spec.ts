@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { stablercsForParams } from "../../../src/cli/stablerc/stablercsForParams";
-import { StablercMatch } from "../../../src/cli/interfaces";
+import { StablercMatch } from "../../../src/interfaces";
 import { CliArgKey } from "../../../src/cli/enums";
 
 describe("stablercsForParams(params: StablercTaskParams): Promise<Map<string, StablercMatch>> ", () => {

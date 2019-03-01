@@ -2,7 +2,7 @@ import { join } from "path";
 import { async as glob } from "fast-glob";
 import { createFilter } from "rollup-pluginutils";
 import { loadModule } from "../loadModule";
-import { StablercPlugin } from "../interfaces";
+import { StablercPlugin } from "../../interfaces";
 
 export async function instantiatePlugins(
   filename: string,

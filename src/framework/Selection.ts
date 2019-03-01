@@ -3,7 +3,7 @@ import {
   SelectionParams,
   JobPredicate,
   Job,
-} from "./interfaces";
+} from "../interfaces";
 import { partitionRangeForTotal } from "./partititionRangeForTotal";
 
 const { assign } = Object;

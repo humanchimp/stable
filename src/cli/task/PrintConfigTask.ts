@@ -8,7 +8,7 @@ import {
   PrintConfigTaskParams,
   LogEffect,
   StablercMatch,
-} from "../interfaces";
+} from "../../interfaces";
 import { uniq } from "../uniq";
 import { stat } from "fs-extra";
 import { ConfigOutputFormat } from "../enums";

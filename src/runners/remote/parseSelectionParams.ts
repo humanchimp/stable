@@ -1,4 +1,4 @@
-import { SelectionParams } from "../../framework/interfaces";
+import { SelectionParams } from "../../interfaces";
 
 export function parseSelectionParams(
   searchParams: URLSearchParams,

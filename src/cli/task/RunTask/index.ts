@@ -1,7 +1,7 @@
 import { join } from "path";
 import { readFile, writeFile } from "fs-extra";
 import { tmpName } from "tmp-promise";
-import { Task, RunTaskParams } from "../../interfaces";
+import { Task, RunTaskParams } from "../../../interfaces";
 import { generateBundle } from "../BundleTask/generateBundle";
 import { implForRunner } from "./implForRunner";
 import { transformForFormat } from "../../output/transformForFormat";

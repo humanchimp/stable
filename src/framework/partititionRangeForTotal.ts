@@ -1,4 +1,4 @@
-import { Range } from "./interfaces";
+import { Range } from "../interfaces";
 
 export function partitionRangeForTotal(
   total: number,

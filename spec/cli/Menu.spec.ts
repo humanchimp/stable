@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { spy as createSpy, SinonSpy } from "sinon";
 import { Menu } from "../../src/cli/Menu";
-import { Command, Option } from "../../src/cli/interfaces";
+import { Command, Option } from "../../src/interfaces";
 import { OptionType, CliArgKey } from "../../src/cli/enums";
 import { ValidationError } from "../../src/cli/ValidationError";
 

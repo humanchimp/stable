@@ -1,4 +1,4 @@
-import { Report, Sorter, JobPredicate } from "./interfaces";
+import { Report, Sorter, JobPredicate } from "../interfaces";
 import { Suite } from "./Suite";
 import { shuffle } from "./shuffle";
 

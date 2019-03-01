@@ -10,7 +10,7 @@ import { codeForLibrary } from "./codeForLibrary";
 import { codeForTestBundle } from "./codeForTestBundle";
 import { codeForRunner } from "./codeForRunner";
 import { bundlerAliasForRunner } from "../../bundlerAliasForRunner";
-import { StablercFile, BundleTaskParams } from "../../interfaces";
+import { StablercFile, BundleTaskParams } from "../../../interfaces";
 import { loadModule } from "../../loadModule";
 import { CliArgKey } from "../../enums";
 

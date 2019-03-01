@@ -1,4 +1,4 @@
-import { Hooks as HooksInterface, Effect, Hook } from "./interfaces";
+import { Hooks as HooksInterface, Effect, Hook } from "../interfaces";
 
 export class Hooks implements HooksInterface {
   beforeAll: Effect[] = [];

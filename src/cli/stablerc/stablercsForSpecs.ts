@@ -1,4 +1,4 @@
-import { StablercMatch } from "../interfaces";
+import { StablercMatch } from "../../interfaces";
 import { load } from "./StablercChain";
 import { nearestStablerc } from "./nearestStablerc";
 import { dirname } from "path";

@@ -2,7 +2,7 @@ import { async as glob } from "fast-glob";
 import { stat } from "fs-extra";
 import { createFilter } from "rollup-pluginutils";
 import { resolve } from "path";
-import { StablercTaskParams, StablercMatch } from "../interfaces";
+import { StablercTaskParams, StablercMatch } from "../../interfaces";
 import { StablercChain } from "./StablercChain";
 import { stablercsForSpecs } from "./stablercsForSpecs";
 import { CliArgKey } from "../enums";

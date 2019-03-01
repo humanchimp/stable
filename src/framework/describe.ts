@@ -1,4 +1,4 @@
-import { SuiteClosure, SuiteParams } from "./interfaces";
+import { SuiteClosure, SuiteParams } from "../interfaces";
 import { Suite } from "./Suite";
 
 export function describe(

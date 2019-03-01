@@ -4,7 +4,7 @@ import {
   StablercFileParams,
   StablercFile as StablercFileInterface,
   StablercPlugin,
-} from "../interfaces";
+} from "../../interfaces";
 import { async as glob } from "fast-glob";
 import { readFile } from "fs-extra";
 import { safeLoad } from "js-yaml";

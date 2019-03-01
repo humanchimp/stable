@@ -1,4 +1,4 @@
-import { DslParams, Suite } from "./interfaces";
+import { DslParams, Suite } from "../interfaces";
 import { blocks as names } from "./names";
 import { dethunk } from "./dethunk";
 

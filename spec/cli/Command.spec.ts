@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { spy as createSpy, SinonSpy } from "sinon";
 import { Command } from "../../src/cli/Command";
-import { Menu, Task, Option } from "../../src/cli/interfaces";
+import { Menu, Task, Option } from "../../src/interfaces";
 import { CliArgKey } from "../../src/cli/enums";
 
 describeEach(

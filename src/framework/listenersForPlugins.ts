@@ -1,4 +1,4 @@
-import { Listener } from "./interfaces";
+import { Listener } from "../interfaces";
 import { Listeners } from "./Listeners";
 
 interface Plugin {

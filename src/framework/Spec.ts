@@ -4,7 +4,7 @@ import {
   ErrorHandler,
   Effect,
   SpecParams,
-} from "./interfaces";
+} from "../interfaces";
 
 export class Spec implements SpecInterface {
   description: string;

@@ -1,4 +1,4 @@
-import { Command, CommandParse } from "./interfaces";
+import { Command, CommandParse } from "../interfaces";
 import { CliArgs } from "./types";
 
 export class ValidationError extends Error {

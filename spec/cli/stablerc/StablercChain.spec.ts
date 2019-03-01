@@ -3,7 +3,7 @@ import {
   StablercChain,
   loadAll,
 } from "../../../src/cli/stablerc/StablercChain";
-import { StablercChainParams } from "../../../src/cli/interfaces";
+import { StablercChainParams } from "../../../src/interfaces";
 import { load } from "../../../src/cli/stablerc/StablercChain";
 import { file, dir, FileResult, DirectoryResult } from "tmp-promise";
 import { write } from "fs-extra";

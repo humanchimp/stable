@@ -8,7 +8,7 @@ import {
   DslItBlock,
   DslInfoBlock,
   DslHookBlock,
-} from "./interfaces";
+} from "../interfaces";
 
 export async function dethunk(
   thunk: DslThunk,
