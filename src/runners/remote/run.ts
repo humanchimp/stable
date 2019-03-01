@@ -1,19 +1,9 @@
-import { sock } from "./sock";
+import { Sock } from "./Sock";
 import { Suite } from "../../framework/interfaces";
 import { Selection } from "../../framework/Selection";
 import { serializeReason } from "../../serializeReason";
 import { parseSelectionParams } from "./parseSelectionParams";
 import { implForSort } from "../../cli/task/RunTask/implForSort";
-
-let ready = false;
-
-sock.addEventListener(
-  "open",
-  () => {
-    ready = true;
-  },
-  { once: true },
-);
 
 declare var __coverage__: any;
 
@@ -22,31 +12,28 @@ declare var __coverage__: any;
 // }
 
 export async function run(suite: Suite): Promise<void> {
-  if (ready) {
-    const { searchParams } = new URL(location.href);
-    const selection = new Selection(parseSelectionParams(searchParams));
+  const sock = new Sock(`ws://0.0.0.0:10001/ws`);
 
-    for await (const message of suite.run(
-      implForSort(searchParams.get("sort")),
-      selection.predicate,
-    )) {
-      if (message.planned != null) {
-        // Append the user agent to the plan and summary
-        message.userAgent = navigator.userAgent;
-      }
-      if ("reason" in message && message.reason != null) {
-        message.reason = serializeReason(message.reason);
-      }
-      sock.send(JSON.stringify({ message }));
+  await sock.opened;
+
+  const { searchParams } = new URL(location.href);
+  const selection = new Selection(parseSelectionParams(searchParams));
+
+  for await (const message of suite.run(
+    implForSort(searchParams.get("sort")),
+    selection.predicate,
+  )) {
+    if ("planned" in message && message.planned != null) {
+      // Append the user agent to the plan and summary
+      message.userAgent = navigator.userAgent;
     }
-    if (typeof __coverage__ !== "undefined") {
-      await sock.send(JSON.stringify({ message: { __coverage__ } }));
+    if ("reason" in message && message.reason != null) {
+      message.reason = serializeReason(message.reason);
     }
-    sock.close(1000);
-  } else {
-    sock.addEventListener("open", () => {
-      ready = true;
-      run(suite);
-    });
+    sock.message(message);
   }
+  if (typeof __coverage__ !== "undefined") {
+    sock.message({ __coverage__ });
+  }
+  await sock.close(1000);
 }
