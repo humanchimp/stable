@@ -1,4 +1,4 @@
-import { Suite } from "../../src/framework/interfaces";
+import { Suite } from "../../src/interfaces";
 import { expect } from "chai";
 import { spy } from "sinon";
 import { run } from "../../src/framework/run";

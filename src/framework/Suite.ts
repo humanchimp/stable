@@ -13,7 +13,7 @@ import {
   TableClosure,
   JobPredicate,
   Sorter,
-} from "./interfaces";
+} from "../interfaces";
 import { Spec } from "./Spec";
 import { Hooks } from "./Hooks";
 import { Listeners } from "./Listeners";

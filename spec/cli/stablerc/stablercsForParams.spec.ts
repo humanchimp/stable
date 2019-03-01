@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { stablercsForParams } from "../../../src/cli/stablerc/stablercsForParams";
-import { StablercMatch } from "../../../src/cli/interfaces";
-import { CliArgKey } from "../../../src/cli/enums";
+import { StablercMatch } from "../../../src/interfaces";
+import { CliArgKey } from "../../../src/enums";
 
 describe("stablercsForParams(params: StablercTaskParams): Promise<Map<string, StablercMatch>> ", () => {
   let map: Map<string, StablercMatch>;

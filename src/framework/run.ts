@@ -5,7 +5,7 @@ import {
   Report,
   Summary,
   JobPredicate,
-} from "./interfaces";
+} from "../interfaces";
 import { Suite } from "./Suite";
 import { shuffle } from "./shuffle";
 

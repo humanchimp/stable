@@ -1,11 +1,5 @@
 /// <reference lib="dom" />
-import { Plan, Report, Summary } from "../../framework/interfaces";
-
-interface CoverageMessage {
-  __coverage__: any;
-}
-
-type Message = Plan | Report | Summary | CoverageMessage;
+import { Message } from "../../types";
 
 export class Sock extends WebSocket {
   opened: Promise<Event>;

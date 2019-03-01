@@ -5,14 +5,14 @@ import {
   Option,
   CommandParse,
   Named,
-} from "./interfaces";
+} from "../interfaces";
 import { Command as SimpleCommand, toleratedArgs } from "./Command";
 import { kebab } from "./case/kebab";
-import { OptionType, CliArgKey } from "./enums";
+import { OptionType, CliArgKey } from "../enums";
 import { ValidationError } from "./ValidationError";
 import { parseOption } from "./parseOption";
 import { parseOptionValue } from "./parseOptionValue";
-import { CliArgs } from "./types";
+import { CliArgs } from "../types";
 
 export class Menu implements MenuInterface {
   commands: Map<string, Command>;

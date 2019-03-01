@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { Option } from "../../src/cli/Option";
-import { OptionType } from "../../src/cli/enums";
+import { OptionType } from "../../src/enums";
 
 describeEach(
   "new Option(params: OptionParams)",

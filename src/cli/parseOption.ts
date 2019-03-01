@@ -1,5 +1,5 @@
-import { Option, OptionParse } from "./interfaces";
-import { OptionType } from "./enums";
+import { Option, OptionParse } from "../interfaces";
+import { OptionType } from "../enums";
 import { parseOptionValue } from "./parseOptionValue";
 
 export function parseOption(option: Option, arg: string): OptionParse {

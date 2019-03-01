@@ -4,7 +4,7 @@ import { fromAsyncIterable } from "most-async-iterable";
 import { implForSort } from "../implForSort";
 import { Selection } from "../../../../framework/lib";
 import { skipped } from "../skipped";
-import { Suite } from "../../../../framework/interfaces";
+import { Suite } from "../../../../interfaces";
 
 export function run(code, { sort, filter, grep }): Stream<any> {
   const selection = new Selection({

@@ -1,4 +1,4 @@
-import { TestRun } from "../../interfaces";
+import { TestRun } from "../../../interfaces";
 import { kebab } from "../../case/kebab";
 import { run as evalRunner } from "./runners/eval";
 import { run as vmRunner } from "./runners/vm";

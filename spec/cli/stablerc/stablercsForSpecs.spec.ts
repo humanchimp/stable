@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { stablercsForSpecs } from "../../../src/cli/stablerc/stablercsForSpecs";
-import { StablercMatch } from "../../../src/cli/interfaces";
+import { StablercMatch } from "../../../src/interfaces";
 import { join } from "path";
 
 describe("stablercsForSpecs", () => {

@@ -3,8 +3,8 @@ import {
   OptionParams,
   Task,
   OptionSampler,
-} from "./interfaces";
-import { OptionType } from "./enums";
+} from "../interfaces";
+import { OptionType } from "../enums";
 
 export class Option implements OptionInterface {
   name: string;

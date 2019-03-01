@@ -3,9 +3,9 @@ import {
   CommandParams,
   Task,
   Menu,
-} from "./interfaces";
-import { CliArgKey } from "./enums";
-import { CliArgs } from "./types";
+} from "../interfaces";
+import { CliArgKey } from "../enums";
+import { CliArgs } from "../types";
 import { ValidationError } from "./ValidationError";
 
 export const toleratedArgs = new Set<CliArgKey>([

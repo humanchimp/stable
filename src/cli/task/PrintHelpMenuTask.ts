@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import { Task, Menu, Command } from "../interfaces";
+import { Task, Menu, Command } from "../../interfaces";
 
 export class PrintHelpMenuTask implements Task {
   private static printCommands(commands) {

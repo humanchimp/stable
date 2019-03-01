@@ -1,4 +1,4 @@
-import { Listeners as ListenersInterface, Listener } from "./interfaces";
+import { Listeners as ListenersInterface, Listener } from "../interfaces";
 
 export class Listeners implements ListenersInterface {
   pending: Listener[];

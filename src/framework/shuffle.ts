@@ -1,5 +1,5 @@
 import { shuffleRng } from "./shuffleRng";
-import { Sorter } from "./interfaces";
+import { Sorter } from "../interfaces";
 
 interface Shuffle extends Sorter {
   rng: (rng: () => number) => Sorter;
