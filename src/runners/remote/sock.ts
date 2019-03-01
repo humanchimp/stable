@@ -1,11 +1,5 @@
 /// <reference lib="dom" />
-import { Plan, Report, Summary } from "../../interfaces";
-
-interface CoverageMessage {
-  __coverage__: any;
-}
-
-type Message = Plan | Report | Summary | CoverageMessage;
+import { Message } from "../../types";
 
 export class Sock extends WebSocket {
   opened: Promise<Event>;
@@ -13,7 +7,7 @@ export class Sock extends WebSocket {
   constructor(url: string) {
     super(url);
     this.opened = new Promise(resolve => {
-      this.addEventListener('open', resolve, { once: true });
+      this.addEventListener("open", resolve, { once: true });
     });
   }
 
@@ -24,8 +18,7 @@ export class Sock extends WebSocket {
   close(code: any): Promise<Event> {
     return new Promise(resolve => {
       super.close(code);
-      this.addEventListener('close', resolve, { once: true });
+      this.addEventListener("close", resolve, { once: true });
     });
   }
 }
-

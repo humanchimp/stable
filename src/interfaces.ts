@@ -128,6 +128,10 @@ export interface Summary {
   userAgent?: string;
 }
 
+export interface CoverageMessage {
+  __coverage__: any;
+}
+
 export interface SuiteParams {
   parent?: Suite;
   skipped?: boolean;
