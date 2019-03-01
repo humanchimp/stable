@@ -3,9 +3,9 @@ import {
   OptionType,
   ConfigOutputFormat,
   StreamFormat,
-} from "./cli/enums";
+} from "./enums";
 import { StablercFile } from "./cli/stablerc/StablercFile";
-import { CliArgs, StablercPluginDefinition } from "./cli/types";
+import { CliArgs, StablercPluginDefinition } from "./types";
 import { ModuleFormat } from "rollup";
 import { Stream } from "most";
 

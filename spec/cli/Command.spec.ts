@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { spy as createSpy, SinonSpy } from "sinon";
 import { Command } from "../../src/cli/Command";
 import { Menu, Task, Option } from "../../src/interfaces";
-import { CliArgKey } from "../../src/cli/enums";
+import { CliArgKey } from "../../src/enums";
 
 describeEach(
   "new Command(params: CommandParams)",

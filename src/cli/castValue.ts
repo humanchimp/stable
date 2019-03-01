@@ -1,4 +1,4 @@
-import { OptionType } from "./enums";
+import { OptionType } from "../enums";
 
 export function castValue(value, type): boolean | string | number {
   switch (type) {

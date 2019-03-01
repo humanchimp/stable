@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { spy as createSpy, SinonSpy } from "sinon";
 import { Menu } from "../../src/cli/Menu";
 import { Command, Option } from "../../src/interfaces";
-import { OptionType, CliArgKey } from "../../src/cli/enums";
+import { OptionType, CliArgKey } from "../../src/enums";
 import { ValidationError } from "../../src/cli/ValidationError";
 
 let subject: Menu;

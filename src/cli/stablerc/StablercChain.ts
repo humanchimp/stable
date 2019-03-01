@@ -6,7 +6,7 @@ import {
   StablercFile,
   StablercDocument,
 } from "../../interfaces";
-import { Splat } from "../types";
+import { Splat } from "../../types";
 import { StablercFile as SimpleStablercFile } from "./StablercFile";
 import { isAbsolute, join, dirname } from "path";
 

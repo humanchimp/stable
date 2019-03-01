@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { castValue } from "../../src/cli/castValue";
-import { OptionType } from "../../src/cli/enums";
+import { OptionType } from "../../src/enums";
 
 describe("castValue(value, type)", () => {
   describeEach(

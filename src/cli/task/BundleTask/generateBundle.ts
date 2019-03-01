@@ -12,7 +12,7 @@ import { codeForRunner } from "./codeForRunner";
 import { bundlerAliasForRunner } from "../../bundlerAliasForRunner";
 import { StablercFile, BundleTaskParams } from "../../../interfaces";
 import { loadModule } from "../../loadModule";
-import { CliArgKey } from "../../enums";
+import { CliArgKey } from "../../../enums";
 
 export async function generateBundle(
   files: string[],

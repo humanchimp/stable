@@ -5,7 +5,7 @@ import { resolve } from "path";
 import { StablercTaskParams, StablercMatch } from "../../interfaces";
 import { StablercChain } from "./StablercChain";
 import { stablercsForSpecs } from "./stablercsForSpecs";
-import { CliArgKey } from "../enums";
+import { CliArgKey } from "../../enums";
 import { getEntryfile } from "./getEntryfile";
 import { directoryIncludeForFile } from "./directoryIncludeForFile";
 import { isStablerc } from "./isStablerc";

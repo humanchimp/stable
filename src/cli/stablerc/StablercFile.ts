@@ -12,7 +12,7 @@ import { join, dirname, isAbsolute } from "path";
 import { nearestStablerc } from "./nearestStablerc";
 import { stablercsForSpecs } from "./stablercsForSpecs";
 import { instantiatePlugins } from "./instantiatePlugins";
-import { Splat } from "../types";
+import { Splat } from "../../types";
 
 export class StablercFile implements StablercFileInterface {
   static nearest = nearestStablerc;

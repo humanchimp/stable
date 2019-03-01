@@ -1,4 +1,4 @@
-import { CliArgKey, OptionType } from "./enums";
+import { CliArgKey, OptionType } from "../enums";
 import { Menu } from "./Menu";
 import { Command } from "./Command";
 import { Option } from "./Option";

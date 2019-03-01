@@ -3,7 +3,7 @@ import { Task, BundleTaskParams } from "../../../interfaces";
 import { generateBundle } from "./generateBundle";
 import { writeBundle } from "./writeBundle";
 import { stablercsForParams } from "../../stablerc/stablercsForParams";
-import { CliArgKey } from "../../enums";
+import { CliArgKey } from "../../../enums";
 
 export class BundleTask implements Task {
   async run(params: BundleTaskParams) {

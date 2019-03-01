@@ -11,7 +11,7 @@ import {
 } from "../../interfaces";
 import { uniq } from "../uniq";
 import { stat } from "fs-extra";
-import { ConfigOutputFormat } from "../enums";
+import { ConfigOutputFormat } from "../../enums";
 import { nearestStablerc } from "../stablerc/nearestStablerc";
 import { stablercsForParams } from "../stablerc/stablercsForParams";
 
