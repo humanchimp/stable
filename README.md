@@ -16,6 +16,9 @@ Note: this currently doesn't work since the package is not published to npm at t
 
 ## usage
 
+    Now I don't know, but I been told 
+    If the horse don't pull you got to carry the load. 
+
 ### cli
 
 ```
