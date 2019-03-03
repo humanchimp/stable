@@ -11,13 +11,11 @@ export class BundleTask implements Task {
   async run(params: BundleTaskParams) {
     const { [CliArgKey.BUNDLE_FILE]: outFile = "static/bundle.js" } = params;
     const configs = await stablercsForParams(params);
-    const bundles = Bundle.fromConfigs(configs);
+    const bundles = Bundle.fromConfigs(configs, params);
 
     for (const [runner, bundle] of bundles) {
-      const b = await bundle.rollup({
-        ...params,
-        runner,
-      });
+      const b = await bundle.rollup();
+
       const outFileForRunner = `${join(
         dirname(outFile),
         basename(outFile, ".js"),
