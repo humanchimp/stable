@@ -18,34 +18,12 @@ export class RunTask implements Task {
       [CliArgKey.OUTPUT_FORMAT]: format = StreamFormat.TAP,
       [CliArgKey.BUNDLE_FILE]: outFileParam,
       [CliArgKey.COVERAGE]: coverage,
-    }: // defaultRunner,
-    RunTaskParams = params;
-    const configs = await stablercsForParams(params);
+    }: RunTaskParams = params;
+    const bundles = Bundle.fromConfigs(await stablercsForParams(params), {
+      runner,
+    });
     let failed = false;
 
-    const bundles = new Map<string, Bundle>();
-    const bundleForRunner = runner => {
-      if (bundles.has(runner)) {
-        return bundles.get(runner);
-      }
-
-      const bundle = new Bundle(runner);
-
-      bundles.set(runner, bundle);
-      return bundle;
-    };
-
-    for (const match of configs.values()) {
-      const { runners } = match.config.document;
-
-      for (const r of runner == null
-        ? runners
-        : runners.includes(runner)
-        ? [runner]
-        : []) {
-        bundleForRunner(r).addMatch(match);
-      }
-    }
     for (const [runner, bundle] of bundles) {
       const outFile = outFileParam != null ? outFileParam : await tmpName();
 

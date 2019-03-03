@@ -23,6 +23,36 @@ import { bundlerAliasForRunner } from "./bundlerAliasForRunner";
 import { thunkify } from "./task/BundleTask/thunkify";
 
 export class Bundle implements BundleInterface {
+  static fromConfigs(
+    configs,
+    { runner }: { runner?: string } = {},
+  ): Map<string, Bundle> {
+    const bundles = new Map<string, Bundle>();
+    const bundleForRunner = runner => {
+      if (bundles.has(runner)) {
+        return bundles.get(runner);
+      }
+
+      const bundle = new Bundle(runner);
+
+      bundles.set(runner, bundle);
+      return bundle;
+    };
+
+    for (const match of configs.values()) {
+      const { runners } = match.config.document;
+
+      for (const r of runner == null
+        ? runners
+        : runners.includes(runner)
+        ? [runner]
+        : []) {
+        bundleForRunner(r).addMatch(match);
+      }
+    }
+    return bundles;
+  }
+
   runner: string;
 
   matches: Set<StablercMatch>;

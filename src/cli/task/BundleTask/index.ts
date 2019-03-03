@@ -1,25 +1,32 @@
-import { join, dirname, basename } from "path";
 import { Task, BundleTaskParams } from "../../../interfaces";
-import { generateBundle } from "./generateBundle";
 import { writeBundle } from "./writeBundle";
 import { stablercsForParams } from "../../stablerc/stablercsForParams";
 import { CliArgKey } from "../../../enums";
+import { Bundle } from "../../Bundle";
+import { formatForRunner } from "../RunTask/formatForRunner";
+import { kebab } from "../../case/kebab";
+import { join, dirname, basename } from "path";
 
 export class BundleTask implements Task {
   async run(params: BundleTaskParams) {
     const { [CliArgKey.BUNDLE_FILE]: outFile = "static/bundle.js" } = params;
     const configs = await stablercsForParams(params);
-    let count = 0;
+    const bundles = Bundle.fromConfigs(configs);
 
-    for (const { config, files } of configs.values()) {
-      const bundle = await generateBundle(files, config, params);
-      const filename =
-        count === 0
-          ? outFile
-          : `${join(dirname(outFile), basename(outFile, ".js"))}-${count}.js`;
+    for (const [runner, bundle] of bundles) {
+      const b = await bundle.rollup({
+        ...params,
+        runner,
+      });
+      const outFileForRunner = `${join(
+        dirname(outFile),
+        basename(outFile, ".js"),
+      )}-${kebab(runner)}.js`;
 
-      await writeBundle(bundle, filename, params);
-      count += 1;
+      await writeBundle(b, outFileForRunner, {
+        ...params,
+        [CliArgKey.BUNDLE_FORMAT]: formatForRunner(runner),
+      });
     }
   }
 }

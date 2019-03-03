@@ -160,8 +160,8 @@ export const cli = new Menu({
     new Option({
       name: CliArgKey.COVERAGE,
       help: "unclear what function this serves at this point",
-      type: OptionType.STRING,
-      default: "lcov",
+      type: OptionType.STRING_OR_BOOLEAN,
+      default: process.env.NYC_PARENT_PID ? "lcov" : false,
     }),
     new Option({
       name: CliArgKey.HIDE_SKIPS,
