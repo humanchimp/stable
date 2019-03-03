@@ -2,7 +2,7 @@ import { join } from "path";
 import { importNameForPackageName } from "./importNameForPackageName";
 import { StablercPlugin } from "../../../interfaces";
 
-export function bundlePlugins(plugins: StablercPlugin[]): string {
+export function codeForPlugins(plugins: StablercPlugin[]): string {
   const listenerModules = plugins
     .map(({ plugin }) => plugin)
     .filter(plugin => plugin.provides && plugin.provides.listeners)

@@ -1,4 +1,8 @@
+import { join, resolve } from "path";
 import { RollupBuild, RollupSingleFileBuild, rollup } from "rollup";
+import { writeFile, copy } from "fs-extra";
+import { dir } from "tmp-promise";
+import deepEqual from "fast-deep-equal";
 import {
   Bundle as BundleInterface,
   StablercMatch,
@@ -9,31 +13,27 @@ import {
 } from "../interfaces";
 import { CliArgKey } from "../enums";
 import { loadModule } from "./loadModule";
-import { join } from "path";
 import { bundleFromFiles } from "./task/BundleTask/bundleFromFiles";
-import { bundlePlugins } from "./task/BundleTask/bundlePlugins";
-import deepEqual from "fast-deep-equal";
-import { dir } from "tmp-promise";
-import { writeFile, copy } from "fs-extra";
-import { codeForLibrary } from "./task/BundleTask/codeForLibrary";
-import { codeForRunner } from "./task/BundleTask/codeForRunner";
+import { codeForPlugins } from "./task/BundleTask/codeForPlugins";
 import { instantiatePlugin } from "./stablerc/instantiatePlugin";
 import { codeForTestBundle } from "./task/BundleTask/codeForTestBundle";
 import { bundlerAliasForRunner } from "./bundlerAliasForRunner";
 import { thunkify } from "./task/BundleTask/thunkify";
+import { verboseWarn } from "./verboseWarn";
 
 export class Bundle implements BundleInterface {
-  static fromConfigs(
-    configs,
-    { runner }: { runner?: string } = {},
-  ): Map<string, Bundle> {
+  static fromConfigs(configs, params: BundleTaskParams): Map<string, Bundle> {
+    const { runner } = params;
     const bundles = new Map<string, Bundle>();
     const bundleForRunner = runner => {
       if (bundles.has(runner)) {
         return bundles.get(runner);
       }
 
-      const bundle = new Bundle(runner);
+      const bundle = new Bundle({
+        ...params,
+        runner,
+      });
 
       bundles.set(runner, bundle);
       return bundle;
@@ -55,10 +55,38 @@ export class Bundle implements BundleInterface {
 
   runner: string;
 
+  shouldInstrument: boolean;
+
+  verbose: boolean;
+
+  rollupConfig: string;
+
+  rollupPromise: Promise<any>;
+
+  rollupPlugins: Promise<any[]>;
+
+  cwd: string;
+
+  onready: string;
+
   matches: Set<StablercMatch>;
 
-  constructor(runner: string) {
+  constructor({
+    [CliArgKey.RUNNER]: runner,
+    [CliArgKey.COVERAGE]: shouldInstrument = false,
+    [CliArgKey.VERBOSE]: verbose = false,
+    [CliArgKey.ROLLUP]: rollupConfig = "rollup.config.js",
+    [CliArgKey.WORKING_DIRECTORY]: cwd = process.cwd(),
+    [CliArgKey.ONREADY]: onready = "run",
+  }: BundleTaskParams) {
     this.runner = runner;
+    this.shouldInstrument = !!shouldInstrument;
+    this.verbose = verbose;
+    this.rollupConfig = rollupConfig;
+    this.cwd = cwd;
+    this.rollupPromise = loadModule(join(cwd, this.rollupConfig));
+    this.rollupPlugins = this.rollupPromise.then(config => config.plugins);
+    this.onready = onready;
     this.matches = new Set<StablercMatch>();
   }
 
@@ -112,17 +140,9 @@ export class Bundle implements BundleInterface {
     };
   }
 
-  async rollup({
-    [CliArgKey.COVERAGE]: shouldInstrument = false,
-    [CliArgKey.VERBOSE]: verbose = false,
-    [CliArgKey.ROLLUP]: rollupConfig = "rollup.config.js",
-    [CliArgKey.WORKING_DIRECTORY]: cwd = process.cwd(),
-    [CliArgKey.RUNNER]: runner = "isolate",
-    [CliArgKey.ONREADY]: onready = "run",
-  }: BundleTaskParams): Promise<RollupSingleFileBuild> {
-    const { plugins: rollupPlugins } = await loadModule(
-      join(cwd, rollupConfig),
-    );
+  async rollup(): Promise<RollupSingleFileBuild> {
+    const { shouldInstrument, verbose, cwd, onready, runner } = this;
+    const rollupPlugins = await this.rollupPlugins;
     const matchValues = [...this.matches.values()];
     const pluginsPromise = this.loadPlugins(
       matchValues.map(({ config }) => config.document.plugins),
@@ -144,11 +164,9 @@ export class Bundle implements BundleInterface {
       testBundles,
       tmp,
     ] = await Promise.all([
-      this.libraryOutput(rollupPlugins),
-      this.runnerOutput(rollupPlugins),
-      pluginsPromise
-        .then(({ plugins }) => Promise.all(plugins.values()))
-        .then(() => pluginsPromise),
+      this.libraryBundle(),
+      this.runnerBundle(),
+      this.awaitPlugins(pluginsPromise),
       Promise.all(testBundlePromises),
       dir({ unsafeCleanup: true }),
     ]);
@@ -185,7 +203,7 @@ export class Bundle implements BundleInterface {
         firstPhase.push(
           writeFile(
             join(tmp.path, `plugins-${index}.js`),
-            bundlePlugins([...pluginBundle]),
+            codeForPlugins([...pluginBundle]),
             "utf-8",
           ),
           testBundles[index].write({
@@ -208,11 +226,7 @@ export class Bundle implements BundleInterface {
 
       return await rollup({
         input: testBundlePath,
-        onwarn: verbose
-          ? warning => {
-              console.warn((warning as any).message); // eslint-disable-line
-            }
-          : () => {},
+        onwarn: verbose ? verboseWarn : () => {},
         plugins: [
           thunkify({
             files: [...matches.keys()].map(i =>
@@ -230,11 +244,31 @@ export class Bundle implements BundleInterface {
     return bundleFromFiles(params);
   }
 
-  async libraryOutput(plugins): Promise<RollupSingleFileBuild> {
-    return codeForLibrary(plugins);
+  async libraryBundle(): Promise<RollupSingleFileBuild> {
+    return rollup({
+      input: join(__dirname, "./src/framework/lib.ts"),
+      plugins: await this.rollupPlugins,
+    });
   }
 
-  async runnerOutput(plugins): Promise<RollupSingleFileBuild> {
-    return codeForRunner(this.runner, plugins);
+  async runnerBundle(): Promise<RollupSingleFileBuild> {
+    const alias = bundlerAliasForRunner(this.runner);
+    const entry =
+      alias != null
+        ? `./src/runners/${alias}/run.ts`
+        : "./src/framework/run.ts";
+
+    return rollup({
+      input: resolve(__dirname, entry),
+      plugins: await this.rollupPlugins,
+    });
+  }
+
+  async awaitPlugins(
+    pluginsPromise: Promise<LoadedPlugins>,
+  ): Promise<LoadedPlugins> {
+    return pluginsPromise
+      .then(({ plugins }) => Promise.all(plugins.values()))
+      .then(() => pluginsPromise);
   }
 }

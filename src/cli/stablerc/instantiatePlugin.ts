@@ -14,9 +14,7 @@ export async function instantiatePlugin(
   const files =
     baseConfig && baseConfig.include != null
       ? (await glob(baseConfig.include, { cwd: __dirname })).filter(
-          baseConfig.exclude != null
-            ? createFilter("**", baseConfig.exclude)
-            : Boolean,
+          createFilter("**", baseConfig.exclude),
         )
       : [];
   const config = { ...baseConfig, files };

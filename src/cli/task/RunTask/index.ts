@@ -14,24 +14,20 @@ export class RunTask implements Task {
   async run(params) {
     const {
       [CliArgKey.QUIET]: quiet,
-      [CliArgKey.RUNNER]: runner,
       [CliArgKey.OUTPUT_FORMAT]: format = StreamFormat.TAP,
       [CliArgKey.BUNDLE_FILE]: outFileParam,
       [CliArgKey.COVERAGE]: coverage,
     }: RunTaskParams = params;
     const bundles = Bundle.fromConfigs(await stablercsForParams(params), {
-      runner,
+      ...params,
+      [CliArgKey.ONREADY]: "stableRun",
     });
     let failed = false;
 
     for (const [runner, bundle] of bundles) {
       const outFile = outFileParam != null ? outFileParam : await tmpName();
 
-      const b = await bundle.rollup({
-        ...params,
-        runner,
-        [CliArgKey.ONREADY]: "stableRun",
-      });
+      const b = await bundle.rollup();
 
       await writeBundle(b, outFile, {
         ...params,
