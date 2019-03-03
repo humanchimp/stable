@@ -31,6 +31,7 @@
     "eslint": "^5.14.0",
     "eslint-plugin-prettier": "^3.0.1",
     "express": "^4.16.4",
+    "fast-deep-equal": "^2.0.1",
     "fast-glob": "^2.2.4",
     "fs-extra": "^7.0.1",
     "fuzzy": "^0.1.3",

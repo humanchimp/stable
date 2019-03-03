@@ -1,18 +1,37 @@
-import { rollup } from "rollup";
+import { rollup, RollupBuild } from "rollup";
 import { isAbsolute } from "path";
 import { readFile } from "fs-extra";
 import babel from "@babel/core";
 import multiEntry from "rollup-plugin-multi-entry";
 import babelPluginIstanbul from "babel-plugin-istanbul";
+import { verboseWarn } from "../../verboseWarn";
+import { StablercPlugin, LoadedPlugins } from "../../../interfaces";
 
-export function bundleFromFiles({ files, plugins, shouldInstrument, verbose }) {
+export async function bundleFromFiles({
+  files,
+  rollupPlugins,
+  pluginsPromise,
+  shouldInstrument,
+  verbose,
+}: {
+  files: string[];
+  rollupPlugins: any[];
+  pluginsPromise: Promise<LoadedPlugins>;
+  shouldInstrument: boolean;
+  verbose: boolean;
+}): Promise<RollupBuild> {
+  const stablePlugins: StablercPlugin[] = await Promise.all(
+    (await pluginsPromise).plugins.values(),
+  );
+
+  const plugins = [
+    ...rollupPlugins,
+    ...stablePlugins.flatMap(it => it.rollupPlugins),
+  ];
+
   return rollup({
     input: files,
-    onwarn: verbose
-      ? warning => {
-          console.warn((warning as any).message); // eslint-disable-line
-        }
-      : () => {},
+    onwarn: verbose ? verboseWarn : () => {},
     external(id) {
       if (["tslib"].includes(id)) {
         return false;
@@ -21,11 +40,9 @@ export function bundleFromFiles({ files, plugins, shouldInstrument, verbose }) {
         (id[0] !== "." && !isAbsolute(id)) ||
         id.slice(-5, id.length) === ".json"
       ) {
-        const isExternal = plugins.every(
+        return plugins.every(
           plugin => plugin.resolveId == null || plugin.resolveId(id) == null,
         );
-
-        return isExternal;
       }
       return false;
     },

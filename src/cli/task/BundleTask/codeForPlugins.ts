@@ -1,7 +1,8 @@
 import { join } from "path";
 import { importNameForPackageName } from "./importNameForPackageName";
+import { StablercPlugin } from "../../../interfaces";
 
-export function bundlePlugins(plugins) {
+export function codeForPlugins(plugins: StablercPlugin[]): string {
   const listenerModules = plugins
     .map(({ plugin }) => plugin)
     .filter(plugin => plugin.provides && plugin.provides.listeners)
@@ -11,8 +12,7 @@ export function bundlePlugins(plugins) {
       config: plugin.config,
     }));
 
-  const listenerBundle = `
-import { plugins as convert } from './stable';
+  const listenerBundle = `import { plugins as convert } from './stable';
 ${listenerModules
   .map(
     ({ exportName, path }) =>
@@ -25,14 +25,13 @@ ${listenerModules
     const jsonConfig = JSON.stringify(config);
 
     // Shoehorn-in the config... This is pretty gross
-    return `
-const ${exportName} = {
+    return `const ${exportName} = {
   pending: ${importName}.pending && ${importName}.pending.bind(null, ${jsonConfig}),
   complete: ${importName}.complete && ${importName}.complete.bind(null, ${jsonConfig})
 };`;
   })
   .join("\n")}
-const plugins = convert({${listenerModules.map(m => m.exportName).join(",")}})
+const plugins = convert({${listenerModules.map(m => m.exportName).join(",")}});
 export { plugins };
 `;
 

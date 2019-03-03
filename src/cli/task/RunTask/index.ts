@@ -2,77 +2,57 @@ import { join } from "path";
 import { readFile, writeFile } from "fs-extra";
 import { tmpName } from "tmp-promise";
 import { Task, RunTaskParams } from "../../../interfaces";
-import { generateBundle } from "../BundleTask/generateBundle";
 import { implForRunner } from "./implForRunner";
 import { transformForFormat } from "../../output/transformForFormat";
 import { CliArgKey, StreamFormat } from "../../../enums";
 import { stablercsForParams } from "../../stablerc/stablercsForParams";
 import { writeBundle } from "../BundleTask/writeBundle";
 import { formatForRunner } from "./formatForRunner";
+import { Bundle } from "../../Bundle";
 
 export class RunTask implements Task {
   async run(params) {
     const {
       [CliArgKey.QUIET]: quiet,
-      [CliArgKey.RUNNER]: runner,
       [CliArgKey.OUTPUT_FORMAT]: format = StreamFormat.TAP,
       [CliArgKey.BUNDLE_FILE]: outFileParam,
       [CliArgKey.COVERAGE]: coverage,
-
-      defaultRunner,
     }: RunTaskParams = params;
-    const configs = await stablercsForParams(params);
+    const bundles = Bundle.fromConfigs(await stablercsForParams(params), {
+      ...params,
+      [CliArgKey.ONREADY]: "stableRun",
+    });
     let failed = false;
 
-    for (const { config, files } of configs.values()) {
+    for (const [runner, bundle] of bundles) {
       const outFile = outFileParam != null ? outFileParam : await tmpName();
-      const { document } = config;
 
-      const runners = (() => {
-        if (document.runners == null || document.runners.length === 0) {
-          return [defaultRunner];
-        }
-        if (runner == null) {
-          return document.runners;
-        }
-        if (document.runners.includes(runner)) {
-          return [runner];
-        }
-        return [];
-      })();
+      const b = await bundle.rollup();
 
-      for (const runner of runners) {
-        const bundle = await generateBundle(files, config, {
-          ...params,
-          runner,
-          [CliArgKey.ONREADY]: "stableRun",
-        });
+      await writeBundle(b, outFile, {
+        ...params,
+        [CliArgKey.BUNDLE_FORMAT]: formatForRunner(runner),
+      });
 
-        await writeBundle(bundle, outFile, {
-          ...params,
-          [CliArgKey.BUNDLE_FORMAT]: formatForRunner(runner),
-        });
+      const code = await readFile(outFile, "utf-8");
+      const run = implForRunner(runner);
+      const transform = transformForFormat(format);
 
-        const code = await readFile(outFile, "utf-8");
-        const run = implForRunner(runner);
-        const transform = transformForFormat(format);
+      await run(code, { ...params, runner })
+        .tap(report => {
+          if (report.failed > 0) {
+            failed = true;
+          }
+        })
+        .map(transform)
+        .observe(console.log); // eslint-disable-line
 
-        await run(code, { ...params, runner })
-          .tap(report => {
-            if (report.failed > 0) {
-              failed = true;
-            }
-          })
-          .map(transform)
-          .observe(console.log); // eslint-disable-line
-
-        if (coverage != null && typeof global["__coverage__"] !== "undefined") {
-          await writeFile(
-            join(".nyc_output", "out.json"),
-            JSON.stringify(global["__coverage__"]),
-            "utf-8",
-          );
-        }
+      if (coverage != null && typeof global["__coverage__"] !== "undefined") {
+        await writeFile(
+          join(".nyc_output", "out.json"),
+          JSON.stringify(global["__coverage__"]),
+          "utf-8",
+        );
       }
     }
 
