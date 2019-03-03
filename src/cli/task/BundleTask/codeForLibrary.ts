@@ -1,11 +1,9 @@
 import { join } from "path";
-import { rollup } from "rollup";
+import { rollup, RollupSingleFileBuild } from "rollup";
 
-export async function codeForLibrary(plugins) {
-  const libraryBundle = await rollup({
+export async function codeForLibrary(plugins): Promise<RollupSingleFileBuild> {
+  return rollup({
     input: join(__dirname, "./src/framework/lib.ts"),
     plugins: plugins,
   });
-
-  return libraryBundle.generate({ format: "esm", sourcemap: true });
 }

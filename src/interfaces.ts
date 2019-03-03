@@ -395,6 +395,7 @@ export interface StablercPlugin {
     provides: any;
     config: any;
   };
+  rollupPlugins: any[];
 }
 
 export interface StablercDocument {
@@ -442,6 +443,12 @@ export interface StablercFileParams {
   plugins?: boolean;
 }
 
+export interface Bundle {
+  runner: string;
+  matches: Set<StablercMatch>;
+  addMatch(match: StablercMatch): Bundle;
+}
+
 export interface SpecEntry {
   entry: string;
   stablerc: string;
@@ -484,4 +491,13 @@ export interface RunTaskParams extends BundleTaskParams {
   [CliArgKey.QUIET]: boolean;
   [CliArgKey.RUNNER]: string;
   [CliArgKey.OUTPUT_FORMAT]: StreamFormat;
+}
+
+export interface LoadedConfigs {
+  seen: Map<string, Set<any>>;
+  configs: any[];
+}
+
+export interface LoadedPlugins extends LoadedConfigs {
+  plugins: Map<any, Promise<StablercPlugin>>;
 }

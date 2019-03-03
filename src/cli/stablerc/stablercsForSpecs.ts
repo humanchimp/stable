@@ -27,7 +27,7 @@ export async function stablercsForSpecs(
       entry.files.push(specfile);
     } else {
       const chain = await load(filename);
-      const config = chain.flat().withPlugins();
+      const config = chain.flat();
 
       byStablerc.set(filename, {
         config,

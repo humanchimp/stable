@@ -63,7 +63,7 @@ export class StablercChain implements StablercChainInterface {
         },
         {},
       ),
-      plugins: true,
+      plugins: false,
     });
   }
 }
