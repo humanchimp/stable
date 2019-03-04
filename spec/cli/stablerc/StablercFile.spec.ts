@@ -236,6 +236,20 @@ describe("StablercFile.loadAll(filename: string, params: StablercFileLoadParams)
         },
       ],
       [
+        "spec/runners/.stablerc.yml",
+        {
+          filename: "spec/runners/.stablerc.yml",
+          document: {
+            extends: [],
+            include: [],
+            exclude: [],
+            plugins: undefined,
+            runners: ["isolate"],
+          },
+          plugins: false,
+        },
+      ],
+      [
         "spec/cli/.stablerc.yml",
         {
           filename: "spec/cli/.stablerc.yml",
@@ -257,7 +271,15 @@ describe("StablercFile.loadAll(filename: string, params: StablercFileLoadParams)
             extends: ["../.stablerc.yml"],
             include: [],
             exclude: [],
-            plugins: [["timing", { timeout: 500 }], ["rescue"]],
+            plugins: [
+              [
+                "timing",
+                {
+                  timeout: 500,
+                },
+              ],
+              ["rescue"],
+            ],
             runners: undefined,
           },
           plugins: false,
@@ -271,7 +293,14 @@ describe("StablercFile.loadAll(filename: string, params: StablercFileLoadParams)
             extends: ["../.stablerc.yml"],
             include: [],
             exclude: [],
-            plugins: [["fixture", { include: "./fixture/**/*" }]],
+            plugins: [
+              [
+                "fixture",
+                {
+                  include: "./fixture/**/*",
+                },
+              ],
+            ],
             runners: ["isolate", "headless chrome", "jsdom"],
           },
           plugins: false,

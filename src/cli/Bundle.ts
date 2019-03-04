@@ -20,9 +20,13 @@ import { codeForTestBundle } from "./task/BundleTask/codeForTestBundle";
 import { bundlerAliasForRunner } from "./bundlerAliasForRunner";
 import { thunkify } from "./task/BundleTask/thunkify";
 import { verboseWarn } from "./verboseWarn";
+import { readTripleSlashDirectives } from "./readTripleSlashDirectives";
 
 export class Bundle implements BundleInterface {
-  static fromConfigs(configs, params: BundleTaskParams): Map<string, Bundle> {
+  static async fromConfigs(
+    configs,
+    params: BundleTaskParams,
+  ): Promise<Map<string, Bundle>> {
     const { runner } = params;
     const bundles = new Map<string, Bundle>();
     const bundleForRunner = runner => {
@@ -39,15 +43,30 @@ export class Bundle implements BundleInterface {
       return bundle;
     };
 
-    for (const match of configs.values()) {
-      const { runners } = match.config.document;
+    for (const { config, files } of configs.values()) {
+      const filtered = [];
+
+      for (const file of files) {
+        let overriddenLocally = false;
+
+        for await (const { runner: r } of readTripleSlashDirectives(file)) {
+          if (params.runner == null || params.runner === r) {
+            bundleForRunner(r).addMatch({ config, files: [file] });
+          }
+          overriddenLocally = true;
+        }
+        if (!overriddenLocally) {
+          filtered.push(file);
+        }
+      }
+      const { runners } = config.document;
 
       for (const r of runner == null
         ? runners
         : runners.includes(runner)
         ? [runner]
         : []) {
-        bundleForRunner(r).addMatch(match);
+        bundleForRunner(r).addMatch({ config, files: filtered });
       }
     }
     return bundles;
