@@ -14,6 +14,10 @@ it("should be possible to set a timeout for an individual spec", async () => {
     expect(reason.message).to.match(/Timeout/);
   });
 
+it("should be possible to pass a done callback-receiving test case", done => {
+  setTimeout(done, 10);
+});
+
 function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }

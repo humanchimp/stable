@@ -219,8 +219,9 @@ describe("load('.stablerc.yml'): Promise<StablercFile>", () => {
 describe("StablercFile.loadAll(filename: string, params: StablercFileLoadParams): Promise<StablercFile[]>", () => {
   it("should load all the .yml files it can find by following includes recusively and then finding the nearest .stablerc", async () => {
     const loaded = await loadAll(".stablerc.yml");
+    const sorted = [...loaded.entries()].sort(([a], [b]) => a.localeCompare(b));
 
-    expect([...loaded.entries()]).to.eql([
+    expect(sorted).to.eql([
       [
         ".stablerc.yml",
         {
@@ -231,34 +232,6 @@ describe("StablercFile.loadAll(filename: string, params: StablercFileLoadParams)
             exclude: ["./node_modules/**"],
             plugins: undefined,
             runners: undefined,
-          },
-          plugins: false,
-        },
-      ],
-      [
-        "spec/runners/.stablerc.yml",
-        {
-          filename: "spec/runners/.stablerc.yml",
-          document: {
-            extends: [],
-            include: [],
-            exclude: [],
-            plugins: undefined,
-            runners: ["isolate"],
-          },
-          plugins: false,
-        },
-      ],
-      [
-        "spec/cli/.stablerc.yml",
-        {
-          filename: "spec/cli/.stablerc.yml",
-          document: {
-            extends: ["../.stablerc.yml"],
-            include: [],
-            exclude: [],
-            plugins: undefined,
-            runners: ["isolate"],
           },
           plugins: false,
         },
@@ -286,6 +259,20 @@ describe("StablercFile.loadAll(filename: string, params: StablercFileLoadParams)
         },
       ],
       [
+        "spec/cli/.stablerc.yml",
+        {
+          filename: "spec/cli/.stablerc.yml",
+          document: {
+            extends: ["../.stablerc.yml"],
+            include: [],
+            exclude: [],
+            plugins: undefined,
+            runners: ["isolate"],
+          },
+          plugins: false,
+        },
+      ],
+      [
         "spec/framework/.stablerc.yml",
         {
           filename: "spec/framework/.stablerc.yml",
@@ -302,6 +289,20 @@ describe("StablercFile.loadAll(filename: string, params: StablercFileLoadParams)
               ],
             ],
             runners: ["isolate", "headless chrome", "jsdom"],
+          },
+          plugins: false,
+        },
+      ],
+      [
+        "spec/runners/.stablerc.yml",
+        {
+          filename: "spec/runners/.stablerc.yml",
+          document: {
+            extends: [],
+            include: [],
+            exclude: [],
+            plugins: undefined,
+            runners: ["isolate"],
           },
           plugins: false,
         },

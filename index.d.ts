@@ -4,8 +4,12 @@ interface Rescuer {
   (reason: any): void;
 }
 
+interface DoneCallback {
+  (reason?: any): void;
+}
+
 interface Thunk {
-  (): ThunkResult;
+  (done?: DoneCallback): ThunkResult;
 }
 
 interface TableThunk {

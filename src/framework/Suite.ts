@@ -19,6 +19,7 @@ import { Hooks } from "./Hooks";
 import { Listeners } from "./Listeners";
 import { shuffle } from "./shuffle";
 import { required } from "./required";
+import { wrapTestCase } from "./wrapTestCase";
 
 const { assign } = Object;
 
@@ -138,7 +139,7 @@ export class Suite implements SuiteInterface {
     this.specs.push(
       new Spec({
         description,
-        test,
+        test: wrapTestCase(test),
         skipped: test == null || this.skipped,
         focused: this.focused,
       }),
@@ -151,7 +152,7 @@ export class Suite implements SuiteInterface {
     this.specs.push(
       new Spec({
         description,
-        test,
+        test: wrapTestCase(test),
         focused: true,
         skipped: this.skipped,
       }),

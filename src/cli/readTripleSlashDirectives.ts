@@ -8,12 +8,10 @@ interface Directive {
 export async function* readTripleSlashDirectives(
   file: string,
 ): AsyncIterableIterator<Directive> {
-  const readStream = createReadStream(file, {
-    encoding: "utf8",
+  for await (const chunk of createReadStream(file, {
+    encoding: "utf-8",
     highWaterMark: 1024,
-  });
-
-  for await (const chunk of readStream) {
+  })) {
     lines: for (const line of chunk.split("\n")) {
       if (!line.startsWith("///") && line.trim() !== "") {
         return;
