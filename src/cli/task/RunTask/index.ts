@@ -18,7 +18,7 @@ export class RunTask implements Task {
       [CliArgKey.BUNDLE_FILE]: outFileParam,
       [CliArgKey.COVERAGE]: coverage,
     }: RunTaskParams = params;
-    const bundles = Bundle.fromConfigs(await stablercsForParams(params), {
+    const bundles = await Bundle.fromConfigs(await stablercsForParams(params), {
       ...params,
       [CliArgKey.ONREADY]: "stableRun",
     });
