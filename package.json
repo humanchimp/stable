@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "yet another test framework",
   "main": "lib/lib.js",
-  "author": "hi@lilthorny.party",
+  "author": "Lil Thorny <hi@lilthorny.party>",
   "license": "MIT",
   "private": false,
   "scripts": {
