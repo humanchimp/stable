@@ -43,4 +43,12 @@ export class Spec implements SpecInterface {
     this.meta.rescuer = rescuer;
     return this;
   }
+
+  info(info: any) {
+    if (this.meta.infos == null) {
+      this.meta.infos = [];
+    }
+    this.meta.infos.push(info);
+    return this;
+  }
 }

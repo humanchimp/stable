@@ -94,6 +94,7 @@ export interface SpecMeta {
   shouldFail?: boolean;
   timeout?: number;
   rescuer?: ErrorHandler;
+  infos?: any[];
 }
 
 export interface Job {

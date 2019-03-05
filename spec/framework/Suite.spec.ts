@@ -718,6 +718,26 @@ describe("new Suite(description)", () => {
       expect(spy2.calledOnce).to.be.true;
       expect(specSpy.called).to.be.false;
     });
+
+    it("recursively calls open on its parents", async () => {
+      const outerSpy = spy();
+      const middleSpy = spy();
+      const innerSpy = spy();
+      const subject = new Suite("open a suite")
+        .describe("open a child suite", s =>
+          s
+            .describe("open a grandchild suite", s2 => s2.beforeAll(innerSpy))
+            .beforeAll(middleSpy),
+        )
+        .beforeAll(outerSpy);
+      const innerSuite = subject.suites[0].suites[0];
+
+      for await (const _ of innerSuite.open());
+
+      expect(outerSpy.calledOnce).to.be.true;
+      expect(middleSpy.calledOnce).to.be.true;
+      expect(innerSpy.calledOnce).to.be.true;
+    }).info("https://github.com/humanchimp/stable/issues/32");
   });
 
   describe(".close()", () => {

@@ -411,6 +411,9 @@ export class Suite implements SuiteInterface {
     if (this.opened) {
       return;
     }
+    if (this.parent) {
+      yield* await this.parent.open();
+    }
     for (const hook of this.hooks.run("beforeAll")) {
       yield* await this.runHook(hook, this.description);
     }
