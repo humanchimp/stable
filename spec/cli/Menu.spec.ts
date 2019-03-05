@@ -341,6 +341,28 @@ describe(".commandForArgv(argv: string[])", () => {
         [],
       ],
       [
+        ["explicit-command", "-quiet"],
+        {
+          grep: undefined,
+          port: 0,
+          "output-format": false,
+          quiet: true,
+          ordered: "contrived",
+        },
+        [],
+      ],
+      [
+        ["explicit-command", "-quiet", "-no-quiet"],
+        {
+          grep: undefined,
+          port: 0,
+          "output-format": false,
+          quiet: false,
+          ordered: "contrived",
+        },
+        [],
+      ],
+      [
         ["explicit-command", "-bls", "10"],
         {
           grep: undefined,

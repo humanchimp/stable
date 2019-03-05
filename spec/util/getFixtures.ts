@@ -1,5 +1,5 @@
 import fixtures from "fixture";
-import { partition } from "./partition";
+import { partition } from "../../src/partition";
 
 export function getFixtures() {
   const files = Object.keys(fixtures).sort((a, b) => a.localeCompare(b));
