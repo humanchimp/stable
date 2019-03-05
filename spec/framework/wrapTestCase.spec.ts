@@ -28,7 +28,7 @@ describeEach(
   [
     /* eslint-disable */
     function binary(a, b) {},
-    function trinary(a, b, c) {},
+    function ternary(a, b, c) {},
     function quaternary(a, b, c, d) {},
     function veternary(h, o, r, s, e) {},
     /* eslint-enable */
