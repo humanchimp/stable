@@ -35,3 +35,15 @@ describe(".rescue(rescuer)", () => {
     expect(spec.meta).to.eql({ rescuer });
   });
 });
+
+describe(".info(infos)", () => {
+  it("should accumulate meta.infos", () => {
+    expect(spec.meta).to.eql({});
+    spec.info("lala");
+    expect(spec.meta).to.eql({ infos: ["lala"] });
+    spec.info("baba");
+    expect(spec.meta).to.eql({ infos: ["lala", "baba"] });
+    spec.info("caca");
+    expect(spec.meta).to.eql({ infos: ["lala", "baba", "caca"] });
+  });
+});
