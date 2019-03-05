@@ -2,7 +2,7 @@ import babel from "@babel/core";
 import traverse from "@babel/traverse";
 import generate from "@babel/generator";
 import t from "@babel/types";
-import { partition } from "../../partition";
+import { partition } from "../../../partition";
 
 const names = [
   "describe",
