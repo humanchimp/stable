@@ -80,11 +80,15 @@ export class Menu implements MenuInterface {
           continue;
         }
       }
-      if (arg.startsWith("--") || (arg.startsWith("-") && arg.includes("="))) {
+      if (arg.startsWith("--") || arg.startsWith("-")) {
         const option = this.detectOption(arg.split("=")[0]);
 
         if (option == null) {
-          invalid.push(arg);
+          if (arg.startsWith("--")) {
+            invalid.push(arg);
+            continue;
+          }
+          // fallthrough!!!
         } else {
           const { name, splat, hasValue } = parseOption(option, arg);
 
@@ -96,8 +100,8 @@ export class Menu implements MenuInterface {
           } else {
             currentOption = option;
           }
+          continue;
         }
-        continue;
       }
       if (arg.startsWith("-") && !arg.startsWith("--")) {
         const { lastValid } = arg
