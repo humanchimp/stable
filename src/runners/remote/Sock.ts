@@ -15,6 +15,10 @@ export class Sock extends WebSocket {
     super.send(JSON.stringify({ message }));
   }
 
+  console(method: string, rest: any[]): void {
+    this.message({ console: { method, arguments: rest } });
+  }
+
   close(code: any): Promise<Event> {
     return new Promise(resolve => {
       super.close(code);

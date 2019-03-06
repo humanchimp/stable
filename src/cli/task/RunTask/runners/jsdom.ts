@@ -1,22 +1,13 @@
+import { run as runLocal } from "./local";
 import { JSDOM } from "jsdom";
-import { Stream, of } from "most";
-import { fromAsyncIterable } from "most-async-iterable";
-import { implForSort } from "../implForSort";
-import { Selection } from "../../../../framework/lib";
-import { skipped } from "../skipped";
-import { Suite } from "../../../../interfaces";
+import { Stream } from "most";
 
-export function run(code, { sort, filter, grep }): Stream<any> {
-  const selection = new Selection({
-    filter,
-    grep: grep && new RegExp(grep),
-  });
-  let hideSkips: boolean | string = "focus";
-
-  return of(
-    new Promise(resolve => {
-      new JSDOM(
-        `<!doctype html>
+export function run(code, options): Stream<any> {
+  return runLocal(
+    console =>
+      new Promise(resolve => {
+        new JSDOM(
+          `<!doctype html>
 <html>
   <head>
     <title>stable</title>
@@ -29,29 +20,16 @@ export function run(code, { sort, filter, grep }): Stream<any> {
   </body>
 </html>
 `,
-        {
-          runScripts: "dangerously",
-          resources: "usable",
-          beforeParse(window) {
-            window.stableRun = resolve;
+          {
+            runScripts: "dangerously",
+            resources: "usable",
+            beforeParse(window) {
+              window.console = console;
+              window.stableRun = resolve;
+            },
           },
-        },
-      );
-    }),
-  )
-    .await()
-    .chain((suite: Suite) =>
-      fromAsyncIterable(
-        suite.run(implForSort(sort), selection.predicate),
-      ).filter(report => {
-        switch (hideSkips) {
-          case true:
-            return !skipped(report);
-          case "focus": {
-            return !skipped(report) || !suite.isFocusMode;
-          }
-        }
-        return true;
+        );
       }),
-    );
+    options,
+  );
 }

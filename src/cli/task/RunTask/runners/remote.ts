@@ -72,13 +72,6 @@ export function run(code, { port, verbose, spawn: spawnParams }) {
     .map(({ data }: WebSocketMessage) => data)
     .map(JSON.parse)
     .filter(payload => {
-      if ("console" in payload) {
-        const {
-          console: { method, args },
-        }: { console: { method: string; args: any[] } } = payload;
-        console[method](...args); // eslint-disable-line
-        return false;
-      }
       if ("message" in payload) {
         const { __coverage__: coverage } = payload.message;
 

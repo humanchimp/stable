@@ -1,4 +1,5 @@
 import { formatReason } from "./formatReason";
+import { inspect } from "util";
 
 export function tapTransform() {
   let count = 0;
@@ -11,6 +12,7 @@ export function tapTransform() {
     planned,
     completed,
     userAgent,
+    console,
   }) => {
     if (planned != null) {
       if (completed == null) {
@@ -34,6 +36,11 @@ export function tapTransform() {
           : ""
       }
 `;
+    }
+    if (console != null) {
+      return `\t${console.method.toUpperCase()}: ${inspect(console.arguments, {
+        colors: true,
+      })}`;
     }
     return `${ok ? "" : "not "}ok ${++count} ${description}${
       !ok ? formatReason(reason) : ""
