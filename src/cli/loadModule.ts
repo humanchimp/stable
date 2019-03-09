@@ -1,4 +1,4 @@
-import { rollup } from "rollup";
+import { rollup, RollupOutput } from "rollup";
 import { isAbsolute } from "path";
 import nodeResolve from "rollup-plugin-node-resolve";
 import commonjs from "rollup-plugin-commonjs";
@@ -23,7 +23,9 @@ export async function loadModule(input) {
       commonjs(),
     ],
   });
-  const { code } = await bundle.generate({ format: "cjs" });
+  const {
+    output: [{ code }],
+  }: RollupOutput = await bundle.generate({ format: "cjs" });
 
   // temporarily override require 💅
   const defaultLoader = require.extensions[".js"];

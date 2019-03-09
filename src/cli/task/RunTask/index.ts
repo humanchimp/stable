@@ -1,7 +1,7 @@
 import { join } from "path";
 import { readFile, writeFile } from "fs-extra";
 import { tmpName } from "tmp-promise";
-import { Task, RunTaskParams } from "../../../interfaces";
+import { Task, RunTaskParams, Report } from "../../../interfaces";
 import { implForRunner } from "./implForRunner";
 import { transformForFormat } from "../../output/transformForFormat";
 import { CliArgKey, StreamFormat } from "../../../enums";
@@ -9,6 +9,7 @@ import { stablercsForParams } from "../../stablerc/stablercsForParams";
 import { writeBundle } from "../BundleTask/writeBundle";
 import { formatForRunner } from "./formatForRunner";
 import { Bundle } from "../../Bundle";
+import { of } from "most";
 
 export class RunTask implements Task {
   async run(params) {
@@ -39,6 +40,7 @@ export class RunTask implements Task {
       const transform = transformForFormat(format);
 
       await run(code, { ...params, runner })
+        .recoverWith(reason => of({ ok: false, reason } as Report))
         .tap(report => {
           if (report.failed > 0) {
             failed = true;

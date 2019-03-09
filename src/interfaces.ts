@@ -6,7 +6,7 @@ import {
 } from "./enums";
 import { StablercFile } from "./cli/stablerc/StablercFile";
 import { CliArgs, StablercPluginDefinition } from "./types";
-import { ModuleFormat, RollupSingleFileBuild } from "rollup";
+import { ModuleFormat, RollupBuild } from "rollup";
 import { Stream } from "most";
 
 export interface Suite {
@@ -456,7 +456,7 @@ export interface Bundle {
   runner: string;
   matches: Set<StablercMatch>;
   addMatch(match: StablercMatch): Bundle;
-  rollup(): Promise<RollupSingleFileBuild>;
+  rollup(): Promise<RollupBuild>;
 }
 
 export interface SpecEntry {

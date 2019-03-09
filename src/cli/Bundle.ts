@@ -1,5 +1,5 @@
 import { join, resolve } from "path";
-import { RollupBuild, RollupSingleFileBuild, rollup } from "rollup";
+import { RollupBuild, rollup } from "rollup";
 import { writeFile, copy } from "fs-extra";
 import { dir } from "tmp-promise";
 import deepEqual from "fast-deep-equal";
@@ -159,7 +159,7 @@ export class Bundle implements BundleInterface {
     };
   }
 
-  async rollup(): Promise<RollupSingleFileBuild> {
+  async rollup(): Promise<RollupBuild> {
     const { shouldInstrument, verbose, cwd, onready, runner } = this;
     const rollupPlugins = await this.rollupPlugins;
     const matchValues = [...this.matches.values()];
@@ -263,14 +263,14 @@ export class Bundle implements BundleInterface {
     return bundleFromFiles(params);
   }
 
-  async libraryBundle(): Promise<RollupSingleFileBuild> {
+  async libraryBundle(): Promise<RollupBuild> {
     return rollup({
       input: join(__dirname, "./src/framework/lib.ts"),
       plugins: await this.rollupPlugins,
     });
   }
 
-  async runnerBundle(): Promise<RollupSingleFileBuild> {
+  async runnerBundle(): Promise<RollupBuild> {
     const alias = bundlerAliasForRunner(this.runner);
     const entry =
       alias != null
