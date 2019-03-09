@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import * as sinon from "sinon";
-import { asyncSpread } from "../util/asyncSpread";
+import { accumulate } from "../util/accumulate";
 import { getFixtures } from "../util/getFixtures";
 import { dsl } from "../../src/framework/dsl";
 
@@ -15,7 +15,7 @@ describe("fixtures", () => {
     ({ fixture, code, data: expectedReports }) => {
       it(`should return an asynchronous iterator over the sequential ${fixture} reports`, async () => {
         const suite = await dsl({ code, helpers: { expect, sinon } });
-        const reports = await asyncSpread(suite.reports(it => it));
+        const reports = await accumulate(suite.reports(it => it));
 
         scrubReasons(reports);
         expect(reports).to.eql(expectedReports);

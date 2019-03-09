@@ -1,4 +1,4 @@
-export async function asyncSpread(asyncIterator) {
+export async function accumulate(asyncIterator) {
   const collection = [];
 
   for await (const item of asyncIterator) {

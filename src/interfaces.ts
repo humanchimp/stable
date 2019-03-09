@@ -133,6 +133,14 @@ export interface CoverageMessage {
   __coverage__: any;
 }
 
+export interface EndSignal {
+  __end__: boolean;
+}
+
+export interface ConsoleMessage {
+  console: any;
+}
+
 export interface SuiteParams {
   parent?: Suite;
   skipped?: boolean;

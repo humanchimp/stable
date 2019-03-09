@@ -1,5 +1,5 @@
-import { Plan, Report, Summary } from "../../../interfaces";
+import { Message } from "../../../types";
 
-export function skipped(report: Plan | Report | Summary): boolean {
+export function skipped(report: Message): boolean {
   return "skipped" in report && !report.skipped;
 }

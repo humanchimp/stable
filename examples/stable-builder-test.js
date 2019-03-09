@@ -1,5 +1,5 @@
-import { describe, run } from "../src/stable";
-import { asyncSpread } from "../test/util/asyncSpread";
+import { describe } from "../src/stable";
+import { accumulate } from "../test/util/accumulate";
 
 export const coreSuite = describe("describe", suite => {
   let subject;
@@ -33,7 +33,7 @@ export const coreSuite = describe("describe", suite => {
         })
 
         .it("asynchronously yields reports", async () => {
-          expect(await asyncSpread(subject.reports(it => it))).to.eql([
+          expect(await accumulate(subject.reports(it => it))).to.eql([
             { description: "subject a", ok: true },
             { description: "subject b", ok: true },
           ]);
@@ -64,7 +64,7 @@ export const coreSuite = describe("describe", suite => {
         .it(
           "should skip all the specs all the way down, turtle-wise",
           async () => {
-            expect(await asyncSpread(subject.reports(it => it))).to.eql([
+            expect(await accumulate(subject.reports(it => it))).to.eql([
               {
                 description: "subject xdescribe should pass",
                 ok: true,

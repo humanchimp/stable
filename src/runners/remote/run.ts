@@ -4,17 +4,16 @@ import { Selection } from "../../framework/Selection";
 import { serializeReason } from "../../serializeReason";
 import { parseSelectionParams } from "./parseSelectionParams";
 import { implForSort } from "../../cli/task/RunTask/implForSort";
+import { setupVconsole } from "../../cli/task/RunTask/Vconsole";
 
 declare var __coverage__: any;
 
-// function log(...args) {
-//   sock.send(JSON.stringify({ console: { method: "log", args } }));
-// }
-
 export async function run(suite: Suite): Promise<void> {
-  const sock = new Sock(`ws://0.0.0.0:10001/ws`);
+  const sock = new Sock("ws://0.0.0.0:10001/ws");
 
   await sock.opened;
+
+  setupVconsole(suite, sock.console.bind(sock));
 
   const { searchParams } = new URL(location.href);
   const selection = new Selection(parseSelectionParams(searchParams));

@@ -30,13 +30,18 @@ interface ComputedHooks {
 }
 
 export class Suite implements SuiteInterface {
+  static empty() {
+    return new this(null);
+  }
+
   static from(suites: Suite[]): Suite {
     return suites.length === 1
       ? suites[0]
       : suites.reduce((memo, suite) => {
           memo.suites.push(suite);
+          suite.parent = memo;
           return memo;
-        }, new this(null));
+        }, this.empty());
   }
 
   static of(...suites: Suite[]): Suite {

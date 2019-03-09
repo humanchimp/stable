@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { spy as createSpy } from "sinon";
-import { asyncSpread } from "../util/asyncSpread";
+import { accumulate } from "../util/accumulate";
 import { describe as createSuite } from "../../src/framework/describe";
 
 let subject;
@@ -33,14 +33,14 @@ describe("group", () => {
       });
 
       it("asynchronously yields reports", async () => {
-        expect(await asyncSpread(subject.reports(it => it))).to.eql([
+        expect(await accumulate(subject.reports(it => it))).to.eql([
           { description: "subject a", ok: true },
           { description: "subject b", ok: true },
         ]);
       });
 
       it("should shuffle the specs by default", async () => {
-        const reports = await asyncSpread(subject.reports());
+        const reports = await accumulate(subject.reports());
 
         expect(reports).to.have.lengthOf(2);
       });
@@ -67,7 +67,7 @@ describe("group", () => {
       });
 
       it("should skip all the specs all the way down, turtle-wise", async () => {
-        expect(await asyncSpread(subject.reports(it => it))).to.eql([
+        expect(await accumulate(subject.reports(it => it))).to.eql([
           {
             description: "subject xdescribe should pass",
             ok: true,

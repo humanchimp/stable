@@ -1,11 +1,13 @@
 /* eslint no-undef: off, no-unused-vars: off, @typescript-eslint/no-unused-vars: off */
 import { expect } from "chai";
-import { spy } from "sinon";
+import { spy, SinonSpy } from "sinon";
 import { Suite } from "../../src/framework/Suite";
 import { Hooks } from "../../src/framework/Hooks";
 import { Listeners } from "../../src/framework/Listeners";
 import { describe as createSuite } from "../../src/framework/describe";
 import { specNamesForSuite } from "../util/specNamesForSuite";
+import { exhaust } from "../util/exhaust";
+import { accumulate } from "../util/accumulate";
 
 describe("static factories/explicit casts", () => {
   let suites: Suite[], subject: Suite;
@@ -51,15 +53,15 @@ describe("static factories/explicit casts", () => {
     });
 
     afterEach(() => {
-      Suite.from.restore();
+      (Suite.from as SinonSpy).restore();
     });
 
     it("should delegate to Suite.from", () => {
-      expect(Suite.from.calledOnce).to.be.true;
+      expect((Suite.from as SinonSpy).calledOnce).to.be.true;
     });
 
     it("should be called with the splatted rest param", () => {
-      expect(Suite.from.getCall(0).args[0]).to.eql(suites);
+      expect((Suite.from as SinonSpy).getCall(0).args[0]).to.eql(suites);
     });
   });
 });
@@ -186,7 +188,7 @@ describe("new Suite(description)", () => {
         const focusedSpy = spy();
 
         subject.fit("i will run", focusedSpy);
-        for await (const _ of subject.reports());
+        await exhaust(subject.reports());
         expect(focusedSpy.calledOnce).to.be.true;
       });
 
@@ -196,7 +198,7 @@ describe("new Suite(description)", () => {
         subject.fdescribe("focused", s => {
           s.it("test", focusedSpy);
         });
-        for await (const _ of subject.reports());
+        await exhaust(subject.reports());
         expect(focusedSpy.calledOnce).to.be.true;
       });
 
@@ -208,7 +210,7 @@ describe("new Suite(description)", () => {
             s2.it("test", focusedSpy);
           });
         });
-        for await (const _ of subject.reports());
+        await exhaust(subject.reports());
         expect(focusedSpy.calledOnce).to.be.true;
       });
 
@@ -218,7 +220,7 @@ describe("new Suite(description)", () => {
         subject.fdescribe("focused", s => {
           s.xit("test", focusedSpy);
         });
-        for await (const _ of subject.reports());
+        await exhaust(subject.reports());
         expect(focusedSpy.called).to.be.false;
       });
 
@@ -230,7 +232,7 @@ describe("new Suite(description)", () => {
             s2.it("would run but its parent is skipped", focusedSpy);
           });
         });
-        for await (const _ of subject.reports());
+        await exhaust(subject.reports());
         expect(focusedSpy.called).to.be.false;
       });
 
@@ -242,7 +244,7 @@ describe("new Suite(description)", () => {
             s2.fit("would run but its parent is skipped", focusedSpy);
           });
         });
-        for await (const _ of subject.reports());
+        await exhaust(subject.reports());
         expect(focusedSpy.called).to.be.false;
       });
 
@@ -620,13 +622,45 @@ describe("new Suite(description)", () => {
 
           subject[hook](hookSpy);
           subject.it("breezes by", specSpy);
-          for await (const _ of subject.reports());
+          await exhaust(subject.reports());
           expect(hookSpy.calledOnce).to.be.true;
           expect(specSpy.calledOnce).to.be.true;
         });
       });
     },
   );
+
+  it("works for the use-case of attaching global setup/teardown code after the fact", async () => {
+    const memo = [];
+    const pusher = label =>
+      spy(() => {
+        memo.push(label);
+      });
+    const specSpyA = pusher("spec a");
+    const specSpyB = pusher("spec b");
+    const specSpyC = pusher("spec c");
+    const beforeSpy = pusher("before");
+    const afterSpy = pusher("after");
+
+    for await (const _ of new Suite(null)
+      .it("test a", specSpyA)
+      .describe("suite a", s => s.it("test b", specSpyB))
+      .describe("suite b", s =>
+        s.describe("suite c", s2 => s2.it("test c", specSpyC)),
+      )
+      .beforeAll(beforeSpy)
+      .afterAll(afterSpy)
+      .reports());
+
+    expect(beforeSpy.calledOnce).to.be.true;
+    expect(specSpyA.calledOnce).to.be.true;
+    expect(specSpyB.calledOnce).to.be.true;
+    expect(specSpyC.calledOnce).to.be.true;
+    expect(afterSpy.calledOnce).to.be.true;
+    expect(memo[0]).to.equal("before");
+    expect(memo[memo.length - 1]).to.equal("after");
+    expect(memo).to.have.lengthOf(5);
+  });
 
   describe(".open()", () => {
     describe("when there are no exceptions", () => {
@@ -652,7 +686,7 @@ describe("new Suite(description)", () => {
       });
 
       it("should run all the hooks in FIFO order", async () => {
-        for await (const _ of subject.open());
+        await exhaust(subject.open());
 
         expect(superSpy.getCalls().map(call => call.args)).to.eql([
           [1],
@@ -681,7 +715,7 @@ describe("new Suite(description)", () => {
       });
 
       it("should bail midway", async () => {
-        for await (const _ of subject.open());
+        await exhaust(subject.open());
       })
         .shouldFail()
         .rescue(reason => {
@@ -694,7 +728,7 @@ describe("new Suite(description)", () => {
           const specSpy = spy();
 
           subject.it("a spec", specSpy).it("another spec", specSpy);
-          for await (const _ of subject.reports());
+          await exhaust(subject.reports());
           expect(specSpy.called).to.be.false;
         });
       });
@@ -710,9 +744,9 @@ describe("new Suite(description)", () => {
         .beforeAll(spy2)
         .it("does nothing", specSpy);
 
-      for await (const report of subject.open());
-      for await (const report of subject.open()); // reopening
-      for await (const report of subject.open()); // once more for gratuity
+      await exhaust(subject.open());
+      await exhaust(subject.open()); // reopening
+      await exhaust(subject.open()); // once more for gratuity
 
       expect(spy1.calledOnce).to.be.true;
       expect(spy2.calledOnce).to.be.true;
@@ -732,7 +766,7 @@ describe("new Suite(description)", () => {
         .beforeAll(outerSpy);
       const innerSuite = subject.suites[0].suites[0];
 
-      for await (const _ of innerSuite.open());
+      await exhaust(innerSuite.open());
 
       expect(outerSpy.calledOnce).to.be.true;
       expect(middleSpy.calledOnce).to.be.true;
@@ -746,7 +780,7 @@ describe("new Suite(description)", () => {
         const hookSpy = spy();
 
         subject.afterAll(hookSpy).afterAll(hookSpy);
-        for await (const _ of subject.close());
+        await exhaust(subject.close());
         expect(hookSpy.called).to.be.false;
       });
     });
@@ -766,7 +800,7 @@ describe("new Suite(description)", () => {
           .afterAll(spy2)
           .afterAll(spy3);
 
-        for await (const _ of subject.open());
+        await exhaust(subject.open());
       });
 
       it("should return an empty async iterator", async () => {
@@ -776,7 +810,7 @@ describe("new Suite(description)", () => {
       });
 
       it("should run all the hooks in LIFO order", async () => {
-        for await (const _ of subject.close());
+        await exhaust(subject.close());
 
         expect(superSpy.getCalls().map(call => call.args)).to.eql([
           [3],
@@ -805,7 +839,7 @@ describe("new Suite(description)", () => {
       });
 
       it("should bail midway", async () => {
-        for await (const _ of subject.open());
+        await exhaust(subject.open());
       })
         .shouldFail()
         .rescue(reason => {
@@ -818,10 +852,10 @@ describe("new Suite(description)", () => {
       const hookSpy = spy();
 
       subject.afterAll(hookSpy);
-      for await (const _ of subject.open());
-      for await (const _ of subject.close());
-      for await (const _ of subject.close());
-      for await (const _ of subject.close()); // third time's the charm!
+      await exhaust(subject.open());
+      await exhaust(subject.close());
+      await exhaust(subject.close());
+      await exhaust(subject.close()); // third time's the charm!
 
       expect(hookSpy.calledOnce).to.be.true;
     });
@@ -1042,11 +1076,8 @@ describe("new Suite(description)", () => {
 
     describe(".reports()", () => {
       it("should return an asynchronous iterator over all the reports", async () => {
-        let memo = [];
+        const memo = await accumulate(subject.reports());
 
-        for await (const report of subject.reports()) {
-          memo.push(report);
-        }
         expect(memo.length).to.equal(4);
         expect(memo.reduce((m, report) => m + report.ok, 0)).to.equal(3);
       });
@@ -1056,22 +1087,16 @@ describe("new Suite(description)", () => {
 
     describe(".reports(sorter)", () => {
       it("should return an asynchronous iterator over all the reports", async () => {
-        let memo = [];
+        const memo = await accumulate(subject.reports());
 
-        for await (const report of subject.reports()) {
-          memo.push(report);
-        }
         expect(memo.length).to.equal(4);
         expect(memo.reduce((m, report) => m + report.ok, 0)).to.equal(3);
       });
 
       it("should iterate in sort order", async () => {
-        const memo = [];
+        const memo = await accumulate(subject.reports(it => it));
 
-        for await (const { description } of subject.reports(it => it)) {
-          memo.push(description);
-        }
-        expect(memo).to.eql([
+        expect(memo.map(it => it.description)).to.eql([
           "yep fancy description should work",
           "yep fancy description should work async",
           "yep fancy description should work too",
@@ -1086,25 +1111,16 @@ describe("new Suite(description)", () => {
       }
 
       it("should return an asynchronous iterator over the reports for the jobs matching the predicate", async () => {
-        let memo = [];
+        const memo = await accumulate(subject.reports());
 
-        for await (const report of subject.reports(it => it)) {
-          memo.push(report);
-        }
         expect(memo.length).to.equal(4);
         expect(memo.reduce((m, report) => m + report.ok, 0)).to.equal(3);
       });
 
       it("should iterate in sort order", async () => {
-        const memo = [];
+        const memo = await accumulate(subject.reports(it => it, predicate));
 
-        for await (const { description } of subject.reports(
-          it => it,
-          predicate,
-        )) {
-          memo.push(description);
-        }
-        expect(memo).to.eql([
+        expect(memo.map(it => it.description)).to.eql([
           "yep fancy description should work",
           "yep fancy description should work async",
           "yep fancy description gonna fail",
@@ -1118,11 +1134,8 @@ describe("new Suite(description)", () => {
       }
 
       it("should return an asynchronous iterator over the reports for the jobs matching the predicate", async () => {
-        let memo = [];
+        const memo = await accumulate(subject.reports(undefined, predicate));
 
-        for await (const report of subject.reports(undefined, predicate)) {
-          memo.push(report);
-        }
         expect(memo.length).to.equal(3);
         expect(memo.reduce((m, report) => m + report.ok, 0)).to.equal(2);
       });
@@ -1132,11 +1145,8 @@ describe("new Suite(description)", () => {
 
     describe(".run()", () => {
       it("should return an asynchronous iterator over all the plan, reports and summary", async () => {
-        let memo = [];
+        const memo = await accumulate(subject.run());
 
-        for await (const report of subject.run()) {
-          memo.push(report);
-        }
         expect(memo[0]).to.eql({
           planned: 4,
           total: 4,
@@ -1157,11 +1167,8 @@ describe("new Suite(description)", () => {
 
     describe(".run(sorter)", () => {
       it("should return an asynchronous iterator over all the plan, reports and summary", async () => {
-        let memo = [];
+        const memo = await accumulate(subject.run(it => it));
 
-        for await (const report of subject.run(it => it)) {
-          memo.push(report);
-        }
         expect(memo[0]).to.eql({
           planned: 4,
           total: 4,
@@ -1178,12 +1185,9 @@ describe("new Suite(description)", () => {
       });
 
       it("should iterate in sort order", async () => {
-        const memo = [];
+        const memo = await accumulate(subject.reports(it => it));
 
-        for await (const { description } of subject.reports(it => it)) {
-          memo.push(description);
-        }
-        expect(memo).to.eql([
+        expect(memo.map(it => it.description)).to.eql([
           "yep fancy description should work",
           "yep fancy description should work async",
           "yep fancy description should work too",
@@ -1198,11 +1202,8 @@ describe("new Suite(description)", () => {
       }
 
       it("should return an asynchronous iterator over all the plan, reports and summary", async () => {
-        let memo = [];
+        const memo = await accumulate(subject.run(it => it, predicate));
 
-        for await (const report of subject.run(it => it, predicate)) {
-          memo.push(report);
-        }
         expect(memo[0]).to.eql({
           planned: 3,
           total: 4,
@@ -1219,15 +1220,9 @@ describe("new Suite(description)", () => {
       });
 
       it("should iterate in sort order", async () => {
-        const memo = [];
+        const memo = await accumulate(subject.reports(it => it, predicate));
 
-        for await (const { description } of subject.reports(
-          it => it,
-          predicate,
-        )) {
-          memo.push(description);
-        }
-        expect(memo).to.eql([
+        expect(memo.map(it => it.description)).to.eql([
           "yep fancy description should work",
           "yep fancy description should work async",
           "yep fancy description should work too",
@@ -1241,11 +1236,8 @@ describe("new Suite(description)", () => {
       }
 
       it("should return an asynchronous iterator over all the plan, reports and summary", async () => {
-        let memo = [];
+        const memo = await accumulate(subject.run(undefined, predicate));
 
-        for await (const report of subject.run(undefined, predicate)) {
-          memo.push(report);
-        }
         expect(memo[0]).to.eql({
           planned: 3,
           total: 4,
@@ -1350,7 +1342,7 @@ describe("new Suite(description, { listeners })", () => {
         .it("test 1", spec1Spy)
         .it("test 2", spec2Spy);
 
-      for await (const _ of subject.reports());
+      await exhaust(subject.reports());
 
       expect(pendingSpy.calledTwice).to.be.true;
       expect(spec1Spy.calledOnce).to.be.true;
@@ -1372,7 +1364,7 @@ describe("new Suite(description, { listeners })", () => {
         },
       ).it("should be skipped", specSpy);
 
-      for await (const _ of subject.reports());
+      await exhaust(subject.reports());
 
       expect(pendingSpy.calledOnce).to.be.true;
       expect(specSpy.called).to.be.false;
@@ -1393,7 +1385,7 @@ describe("new Suite(description, { listeners })", () => {
         .xit("would pass but is skipped", specSpy)
         .it("is a mere stub");
 
-      for await (const _ of subject.reports());
+      await exhaust(subject.reports());
 
       expect(pendingSpy.called).to.be.false;
       expect(specSpy.called).to.be.false;
@@ -1420,7 +1412,7 @@ describe("new Suite(description, { listeners })", () => {
         .it("runs... oh, does it run... yes! yes! IT'S ALIVE!!!", specSpy)
         .it("is a mere stub");
 
-      for await (const _ of subject.reports());
+      await exhaust(subject.reports());
 
       expect(pendingSpy.called).to.be.true;
       expect(specSpy.called).to.be.false;
@@ -1447,7 +1439,7 @@ describe("new Suite(description, { listeners })", () => {
         },
       ).it("should be skipped", specSpy);
 
-      for await (const _ of subject.reports());
+      await exhaust(subject.reports());
 
       expect(pendingSpy1.calledOnce).to.be.true;
       expect(pendingSpy2.calledOnce).to.be.true;
@@ -1473,7 +1465,7 @@ describe("new Suite(description, { listeners })", () => {
         .it("test 1", spec1Spy)
         .it("test 2", spec2Spy);
 
-      for await (const _ of subject.reports());
+      await exhaust(subject.reports());
 
       expect(completeSpy.calledTwice).to.be.true;
       expect(spec1Spy.calledOnce).to.be.true;
@@ -1573,7 +1565,7 @@ describe("new Suite(description, { listeners })", () => {
         .xit("would pass but is skipped", specSpy)
         .it("is a mere stub");
 
-      for await (const _ of subject.reports());
+      await exhaust(subject.reports());
 
       expect(completeSpy.called).to.be.false;
       expect(specSpy.called).to.be.false;
@@ -1598,7 +1590,7 @@ describe("new Suite(description, { listeners })", () => {
         },
       }).it("passes elegantly", specSpy);
 
-      for await (const _ of subject.reports());
+      await exhaust(subject.reports());
 
       expect(spy1.calledOnce).to.be.true;
       expect(spy2.calledOnce).to.be.true;
@@ -1619,7 +1611,7 @@ describe("new Suite(description, { listeners })", () => {
         },
       }).it("should run", specSpy);
 
-      for await (const _ of subject.reports());
+      await exhaust(subject.reports());
 
       expect(pendingSpy.calledOnce).to.be.true;
       expect(completeSpy.calledOnce).to.be.true;
