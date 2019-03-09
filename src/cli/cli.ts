@@ -27,6 +27,7 @@ export const cli = new Menu({
         CliArgKey.COVERAGE,
         CliArgKey.HIDE_SKIPS,
         CliArgKey.FAIL_FAST,
+        CliArgKey.HEADFUL,
         CliArgKey.VERBOSE,
         CliArgKey.QUIET,
       ],
@@ -181,6 +182,12 @@ export const cli = new Menu({
       help: "the port to listen on whenever stable needs an http server.",
       type: OptionType.NUMBER,
       default: 10001,
+    }),
+    new Option({
+      name: CliArgKey.HEADFUL,
+      help: "run the user agent headfully",
+      type: OptionType.BOOLEAN,
+      default: false,
     }),
     new Option({
       name: CliArgKey.VERBOSE,

@@ -12,12 +12,12 @@ steps:
   args: ['build']
 - name: node:11
   entrypoint: yarn
-  args: ['cover', '-r', 'isolate']
+  args: ['cover', '--runner=isolate']
 - name: gcr.io/cloud-builders/gcloud
   args: ['builds', 'submit',  '--config',  './cloud-builders/chrome/cloudbuild.yaml', '.']
 - name: 'gcr.io/$PROJECT_ID/ci-node-chrome'
   entrypoint: yarn
-  args: ['test', '-r', 'headless chrome']
+  args: ['test', '--runner=chrome']
 - name: gcr.io/cloud-builders/git
   entrypoint: bash
   args: ['./codecov.sh']

@@ -288,7 +288,7 @@ describe("StablercFile.loadAll(filename: string, params: StablercFileLoadParams)
                 },
               ],
             ],
-            runners: ["isolate", "headless chrome", "jsdom"],
+            runners: ["isolate", "chrome", "jsdom"],
           },
           plugins: false,
         },

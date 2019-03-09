@@ -4,8 +4,7 @@ import { ModuleFormat } from "rollup";
 export function formatForRunner(runner: string): ModuleFormat {
   switch (kebab(runner)) {
     case "remote":
-    case "headless-chrome":
-    case "headless chrome":
+    case "chrome":
     case "jsdom":
       return "iife";
   }

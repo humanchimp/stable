@@ -1,7 +1,7 @@
 export function bundlerAliasForRunner(runner: string) {
   switch (runner) {
     case "remote":
-    case "headless chrome":
+    case "chrome":
       return "remote";
   }
 }

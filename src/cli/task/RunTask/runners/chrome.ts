@@ -1,12 +1,18 @@
 import { run as runRemote } from "./remote";
+import { RunTaskParams } from "../../../../interfaces";
+import { CliArgKey } from "../../../../enums";
 
-export function run(code, params) {
+export function run(code, params: RunTaskParams) {
   return runRemote(
     code,
     () => {
+      const remoteDebuggingPortFlag = "--remote-debugging-port=9222";
+
       return [
         chromePathForPlatform(),
-        ["--headless", "--remote-debugging-port=9222"],
+        params[CliArgKey.HEADFUL]
+          ? [remoteDebuggingPortFlag]
+          : ["--headless", remoteDebuggingPortFlag],
       ];
     },
     params,
