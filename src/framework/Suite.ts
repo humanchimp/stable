@@ -13,6 +13,7 @@ import {
   TableClosure,
   JobPredicate,
   Sorter,
+  Hook,
 } from "../interfaces";
 import { Spec } from "./Spec";
 import { Hooks } from "./Hooks";
@@ -378,36 +379,33 @@ export class Suite implements SuiteInterface {
     }
   }
 
-  private async *runHook(hook, description): AsyncIterableIterator<Report> {
-    const reason = await runTest(hook.effect);
+  private async *runHook(
+    hook: Hook,
+    context: SpecInterface | SuiteInterface,
+  ): AsyncIterableIterator<Report> {
+    const reason = await runTest(hook.effect, context);
 
     if (reason != null) {
       yield {
         reason,
-        description: `${hook.name}: ${description}`,
+        description: `${hook.name}: ${context.description}`,
         ok: false,
       };
       throw reason;
     }
   }
 
-  private async *runSpec(spec): AsyncIterableIterator<Report> {
+  private async *runSpec(spec: SpecInterface): AsyncIterableIterator<Report> {
     this.computeHooks();
     if (!spec.skipped) {
       for (const effect of this.computedHooks.beforeEach) {
-        yield* await this.runHook(
-          { name: "beforeEach", effect },
-          spec.description,
-        );
+        yield* await this.runHook({ name: "beforeEach", effect }, spec);
       }
     }
     yield await this.reportForSpec(spec);
     if (!spec.skipped) {
       for (const effect of this.computedHooks.afterEach) {
-        yield* await this.runHook(
-          { name: "afterEach", effect },
-          spec.description,
-        );
+        yield* await this.runHook({ name: "afterEach", effect }, spec);
       }
     }
   }
@@ -420,7 +418,7 @@ export class Suite implements SuiteInterface {
       yield* await this.parent.open();
     }
     for (const hook of this.hooks.run("beforeAll")) {
-      yield* await this.runHook(hook, this.description);
+      yield* await this.runHook(hook, this);
     }
     this.opened = true;
   }
@@ -430,19 +428,15 @@ export class Suite implements SuiteInterface {
       return;
     }
     for (const hook of this.hooks.run("afterAll")) {
-      yield* await this.runHook(hook, this.description);
+      yield* await this.runHook(hook, this);
     }
     this.opened = false;
   }
 
-  private async reportForSpec({
-    description,
-    test,
-    focused,
-    skipped,
-    meta,
-  }: SpecInterface): Promise<Report> {
-    description = this.prefixed(description);
+  private async reportForSpec(spec: SpecInterface): Promise<Report> {
+    const description = this.prefixed(spec.description);
+    const { test, focused, meta } = spec;
+    let { skipped } = spec;
 
     if (skipped || (this.isFocusMode && !focused)) {
       return {
@@ -464,7 +458,7 @@ export class Suite implements SuiteInterface {
       notify(report, skip);
     }
     if (!skipped) {
-      const reason = await runTest(test);
+      const reason = await runTest(test, spec);
 
       if (reason != null) {
         report.ok = false;
@@ -530,9 +524,9 @@ export class Suite implements SuiteInterface {
   }
 }
 
-async function runTest(test) {
+async function runTest(test: Effect, context: any) {
   try {
-    await test();
+    await test.call(context);
   } catch (reason) {
     return reason;
   }
