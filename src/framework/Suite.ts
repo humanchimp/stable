@@ -14,6 +14,7 @@ import {
   JobPredicate,
   Sorter,
   Hook,
+  SpecOptions,
 } from "../interfaces";
 import { Spec } from "./Spec";
 import { Hooks } from "./Hooks";
@@ -112,12 +113,7 @@ export class Suite implements SuiteInterface {
   }
 
   info(info: any = required()): Suite {
-    this.specs.push(
-      new Spec({
-        description: descriptionForInfo(info),
-        skipped: true,
-      }),
-    );
+    this.it(descriptionForInfo(info), undefined, { skipped: true });
     return this;
   }
 
@@ -141,40 +137,40 @@ export class Suite implements SuiteInterface {
     return this;
   }
 
-  it(description: string = required(), test?: Effect): Suite {
-    this.specs.push(
-      new Spec({
-        description,
-        test: wrapTestCase(test),
-        skipped: test == null || this.skipped,
-        focused: this.focused,
-      }),
-    );
+  it(
+    description: string = required(),
+    test?: Effect,
+    options?: SpecOptions,
+  ): Suite {
+    const params = {
+      skipped: test == null || this.skipped,
+      focused: this.focused,
+      ...options,
+      description,
+      test: wrapTestCase(test),
+    };
+    if (params.focused) {
+      this.isFocusMode = true;
+    }
+    this.specs.push(new Spec(params));
     return this;
   }
 
-  fit(description: string, test: Effect = required()): Suite {
-    this.isFocusMode = true;
-    this.specs.push(
-      new Spec({
-        description,
-        test: wrapTestCase(test),
-        focused: true,
-        skipped: this.skipped,
-      }),
-    );
+  fit(
+    description: string,
+    test: Effect = required(),
+    options?: SpecOptions,
+  ): Suite {
+    this.it(description, test, { focused: true });
     return this;
   }
 
-  xit(description: string = required(), test?: Effect): Suite {
-    this.specs.push(
-      new Spec({
-        description,
-        test,
-        skipped: true,
-        focused: this.focused,
-      }),
-    );
+  xit(
+    description: string = required(),
+    test?: Effect,
+    options?: SpecOptions,
+  ): Suite {
+    this.it(description, test, { skipped: true });
     return this;
   }
 
@@ -369,7 +365,6 @@ export class Suite implements SuiteInterface {
 
       if (!poisoned.has(instance)) {
         try {
-          yield* await instance.open();
           yield* await instance.runSpec(spec);
         } catch (_) {
           poisoned.add(instance);
@@ -395,7 +390,8 @@ export class Suite implements SuiteInterface {
     }
   }
 
-  private async *runSpec(spec: SpecInterface): AsyncIterableIterator<Report> {
+  async *runSpec(spec: SpecInterface): AsyncIterableIterator<Report> {
+    yield* await this.open();
     this.computeHooks();
     if (!spec.skipped) {
       for (const effect of this.computedHooks.beforeEach) {

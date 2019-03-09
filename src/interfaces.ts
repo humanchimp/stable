@@ -55,9 +55,9 @@ export interface Suite {
     closure: TableClosure,
     options?: SuiteParams,
   ): Suite;
-  it(description: string, test?: Effect): Suite;
-  xit(description: string, test?: Effect): Suite;
-  fit(description: string, test: Effect): Suite;
+  it(description: string, test?: Effect, options?: SpecOptions): Suite;
+  xit(description: string, test?: Effect, options?: SpecOptions): Suite;
+  fit(description: string, test: Effect, options?: SpecOptions): Suite;
   beforeAll(hook: Effect): Suite;
   beforeEach(hook: Effect): Suite;
   afterAll(hook: Effect): Suite;
@@ -74,13 +74,17 @@ export interface Suite {
   ): AsyncIterableIterator<Plan | Report | Summary>;
   open(): AsyncIterableIterator<Report>;
   close(): AsyncIterableIterator<Report>;
+  runSpec(spec: Spec): AsyncIterableIterator<Report>;
 }
 
-export interface SpecParams {
-  description: string;
+export interface SpecOptions {
   test?: Effect;
   focused?: boolean;
   skipped?: boolean;
+}
+
+export interface SpecParams extends SpecOptions {
+  description: string;
 }
 
 export interface Spec extends SpecParams {
