@@ -5,6 +5,9 @@ import { serializeReason } from "../../serializeReason";
 import { parseSelectionParams } from "./parseSelectionParams";
 import { implForSort } from "../../cli/task/RunTask/implForSort";
 import { setupVconsole } from "../../cli/task/RunTask/Vconsole";
+import { runSuite } from "../../cli/task/RunTask/runSuite";
+import { CliArgKey, OptionType } from "../../enums";
+import { castValue } from "../../cli/castValue";
 
 declare var __coverage__: any;
 
@@ -18,9 +21,14 @@ export async function run(suite: Suite): Promise<void> {
   const { searchParams } = new URL(location.href);
   const selection = new Selection(parseSelectionParams(searchParams));
 
-  for await (const message of suite.run(
-    implForSort(searchParams.get("sort")),
-    selection.predicate,
+  for await (const message of runSuite(
+    suite,
+    selection,
+    implForSort(searchParams.get(CliArgKey.SORT)),
+    castValue(
+      searchParams.get(CliArgKey.FAIL_FAST),
+      OptionType.BOOLEAN,
+    ) as boolean,
   )) {
     if ("planned" in message && message.planned != null) {
       // Append the user agent to the plan and summary

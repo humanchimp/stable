@@ -1,18 +1,23 @@
 import { spawn } from "child_process";
 import { createServer } from "http";
-import { fromEvent } from "most";
+import { fromEvent, Stream } from "most";
 import express from "express";
 import { Server as WebSocketServer, WebSocket } from "ws";
+import { RunTaskParams } from "../../../../interfaces";
+import { Message } from "../../../../types";
+import { CliArgKey } from "../../../../enums";
+import { defaultValueForOption } from "../../../defaultValueForOption";
 
 interface WebSocketMessage {
   data: string;
 }
 
-export function run(code, { port, verbose, spawn: spawnParams }) {
-  if (spawnParams == null) {
-    throw new TypeError("Missing a required param: spawnParams");
-  }
-
+export function run(
+  code: string,
+  spawnParams,
+  params: RunTaskParams,
+): Stream<Message> {
+  const { [CliArgKey.PORT]: port, [CliArgKey.VERBOSE]: verbose } = params;
   const server = createServer();
   const app = express();
 
@@ -45,15 +50,22 @@ export function run(code, { port, verbose, spawn: spawnParams }) {
   start();
 
   function start() {
-    const url = `http://0.0.0.0:${port}`;
+    const url = new URL(`http://0.0.0.0:${port}`);
+
+    url.search = `${new URLSearchParams(Object.entries(params)
+      .map(([key, value]: [CliArgKey, any]) => [
+        key,
+        defaultValueForOption(key, value),
+      ])
+      .filter(([, value]) => value != null) as [string, string][])}`;
 
     server.listen(port, () => {
       if (verbose) {
-        console.log(`server listening at ${url}`); // eslint-disable-line
+        console.log(`server listening at ${url.origin}`); // eslint-disable-line
       }
       const [proc, args] = spawnParams(url);
 
-      browser = spawn(proc, args);
+      browser = spawn(proc, [...args, `${url}`]);
     });
   }
 

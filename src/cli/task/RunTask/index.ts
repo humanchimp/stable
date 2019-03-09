@@ -41,7 +41,8 @@ export class RunTask implements Task {
       const code = await readFile(outFile, "utf-8");
       const run = implForRunner(runner);
       const transform = transformForFormat(format);
-      const messages = run(code, { ...params, runner })
+
+      await run(code, { ...params, runner })
         .filter(report => {
           switch (hideSkips) {
             case true:
@@ -63,15 +64,8 @@ export class RunTask implements Task {
             failed = true;
           }
         })
-        .multicast();
-
-      const failures = messages.filter(report => report.ok === false);
-
-      const stream = failFast
-        ? messages.takeUntil(failures).concat(failures.take(1))
-        : messages;
-
-      await stream.map(transform).observe(console.log); // eslint-disable-line
+        .map(transform)
+        .observe(console.log); // eslint-disable-line
 
       if (failed && failFast) {
         break;

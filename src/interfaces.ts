@@ -504,6 +504,7 @@ export interface RunTaskParams extends BundleTaskParams {
   [CliArgKey.OUTPUT_FORMAT]: StreamFormat;
   [CliArgKey.HIDE_SKIPS]: boolean | "focus";
   [CliArgKey.FAIL_FAST]: boolean;
+  [CliArgKey.PORT]?: string;
 }
 
 export interface LoadedConfigs {
