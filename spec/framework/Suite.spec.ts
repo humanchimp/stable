@@ -1,6 +1,7 @@
 /* eslint no-undef: off, no-unused-vars: off, @typescript-eslint/no-unused-vars: off */
 import { expect } from "chai";
 import { spy, SinonSpy } from "sinon";
+import { Suite as SuiteInterface } from "../../src/interfaces";
 import { Suite } from "../../src/framework/Suite";
 import { Hooks } from "../../src/framework/Hooks";
 import { Listeners } from "../../src/framework/Listeners";
@@ -987,7 +988,7 @@ describe("new Suite(description)", () => {
     });
 
     describe("when the suite has parents", () => {
-      let s1: Suite, s2: Suite, s3: Suite;
+      let s1: SuiteInterface, s2: SuiteInterface, s3: SuiteInterface;
 
       beforeEach(() => {
         subject.describe(null, s => (s1 = s));
@@ -1635,5 +1636,54 @@ describe("new Suite(null)", () => {
     expect(new Suite(null).description).to.be.null;
   });
 });
+
+describe('the correct "this" bindings', () => {
+  it('should call the specs with the spec as "this"', async () => {
+    let that;
+    const suite = new Suite(null).it(
+      "should work with old function expressions and such",
+      function() {
+        that = this;
+      },
+    );
+
+    await exhaust(suite.run());
+    expect(that).to.equal(suite.specs[0]);
+  });
+
+  it('should call "xEach" hooks with the spec as "this"', async () => {
+    let thatBefore, thatAfter;
+    const suite = new Suite(null)
+      .beforeEach(function() {
+        thatBefore = this;
+      })
+      .afterEach(function() {
+        thatAfter = this;
+      })
+      .it("passes", () => {});
+
+    await exhaust(suite.run());
+    expect(thatBefore)
+      .to.equal(thatAfter)
+      .and.equal(suite.specs[0]);
+  });
+
+  it('should call "xAll" hooks with the suite as "this"', async () => {
+    let thatBefore, thatAfter;
+    const suite = new Suite(null)
+      .beforeAll(function() {
+        thatBefore = this;
+      })
+      .afterAll(function() {
+        thatAfter = this;
+      })
+      .it("passes", () => {});
+
+    await exhaust(suite.run());
+    expect(thatBefore)
+      .to.equal(thatAfter)
+      .and.equal(suite);
+  });
+}).info("https://github.com/humanchimp/stable/issues/60");
 
 function noop() {}

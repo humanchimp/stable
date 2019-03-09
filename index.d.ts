@@ -21,11 +21,11 @@ interface DslHook {
 }
 
 interface DslSuite {
-  (description: string, closure: Thunk): void;
+  (description: string, closure: Thunk): Suite;
 }
 
 interface DslTableSuite {
-  (description: string, table: any[], closure: TableThunk): void;
+  (description: string, table: any[], closure: TableThunk): Suite;
 }
 
 interface Spec {
@@ -33,6 +33,10 @@ interface Spec {
   shouldFail(): Spec;
   rescue(rescuer: Rescuer): Spec;
   info(info: any): Spec;
+}
+
+interface Suite {
+  info(info: any): Suite;
 }
 
 interface DslSpec {
