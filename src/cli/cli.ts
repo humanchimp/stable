@@ -35,7 +35,7 @@ export const cli = new Menu({
     new Command({
       name: "bundle",
       emoji: "📦",
-      help: `Produce a bundle artifact, but don't run any tests.`,
+      help: `Produce bundle artifacts, but don't run any tests.`,
       args: [
         CliArgKey.PARTITION,
         CliArgKey.PARTITIONS,
