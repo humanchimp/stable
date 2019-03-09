@@ -111,6 +111,7 @@ export interface Report extends SpecParams {
   elapsed?: number;
   shouldFail?: boolean;
   rescued?: boolean;
+  suite?: Suite;
   [key: string]: any;
 }
 
@@ -501,6 +502,9 @@ export interface RunTaskParams extends BundleTaskParams {
   [CliArgKey.QUIET]: boolean;
   [CliArgKey.RUNNER]: string;
   [CliArgKey.OUTPUT_FORMAT]: StreamFormat;
+  [CliArgKey.HIDE_SKIPS]: boolean | "focus";
+  [CliArgKey.FAIL_FAST]: boolean;
+  [CliArgKey.PORT]?: string;
 }
 
 export interface LoadedConfigs {

@@ -19,6 +19,8 @@ export enum CliArgKey {
   PARTITION = "partition",
   PORT = "port",
   HIDE_SKIPS = "hide-skips",
+  FAIL_FAST = "fail-fast",
+  HEADFUL = "headful",
   COVERAGE = "coverage",
   REST = "rest",
   LIST_BY_SPEC = "list-by-spec",

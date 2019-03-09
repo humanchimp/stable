@@ -1,21 +1,22 @@
 import { run as runRemote } from "./remote";
+import { RunTaskParams } from "../../../../interfaces";
+import { CliArgKey } from "../../../../enums";
 
-export function run(code, params) {
-  return runRemote(code, {
-    ...params,
-    spawn: u => {
-      const url = new URL(u);
-
-      url.search = `${new URLSearchParams(Object.entries(params).filter(
-        ([, value]) => value != null,
-      ) as [string, string][])}`;
+export function run(code, params: RunTaskParams) {
+  return runRemote(
+    code,
+    () => {
+      const remoteDebuggingPortFlag = "--remote-debugging-port=9222";
 
       return [
         chromePathForPlatform(),
-        ["--headless", "--remote-debugging-port=9222", `${url}`],
+        params[CliArgKey.HEADFUL]
+          ? [remoteDebuggingPortFlag]
+          : ["--headless", remoteDebuggingPortFlag],
       ];
     },
-  });
+    params,
+  );
 }
 
 export function chromePathForPlatform() {

@@ -16,8 +16,8 @@ Note: this currently doesn't work since the package is not published to npm at t
 
 ## usage
 
-    Now I don't know, but I been told 
-    If the horse don't pull you got to carry the load. 
+    Now I don't know, but I been told
+    If the horse don't pull you got to carry the load.
 
 ### cli
 
@@ -77,7 +77,7 @@ Options:
 },
 ```
 
-It makes sense to disable `nyc` instrumentation, since `stable` performs code instrumentation itself. 
+It makes sense to disable `nyc` instrumentation, since `stable` performs code instrumentation itself.
 
 ```json
 "nyc": {
@@ -104,7 +104,7 @@ _Figure 1_: `project/.stablerc` Global configuration.
 extends: ..
 runners:
 - isolate
-- headless chrome
+- chrome
 - jsdom
 ```
 _Figure 2_: `project/spec/lib/.stablerc` The configuration for tests meant to run in both node and browsers.
@@ -119,7 +119,7 @@ _Figure 3_: `project/spec/server/.stablerc` The configuration for tests meant to
 ```yaml
 extends: ..
 runners:
-- headless chrome
+- chrome
 - jsdom
 ```
 _Figure 4_: `project/spec/ui/.stablerc` The configuration for tests meant to run only in browsers.
@@ -176,7 +176,7 @@ _Figure 2_: In this example, `describe` is a factory method which is the entry p
   - [ ] others are possible
 - [ ] Plays nice.
   - [x] Works in browsers
-    - [x] Runs in-process using `Function` 
+    - [x] Runs in-process using `Function`
     - [ ] Remote excution by default.
   - [x] Works in node
   - [ ] Works in deno

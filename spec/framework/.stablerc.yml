@@ -1,7 +1,7 @@
 extends: ../.stablerc.yml
 runners:
 - isolate
-- headless chrome
+- chrome
 - jsdom
 plugins:
 - - fixture

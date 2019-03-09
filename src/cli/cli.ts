@@ -26,6 +26,8 @@ export const cli = new Menu({
         CliArgKey.PORT,
         CliArgKey.COVERAGE,
         CliArgKey.HIDE_SKIPS,
+        CliArgKey.FAIL_FAST,
+        CliArgKey.HEADFUL,
         CliArgKey.VERBOSE,
         CliArgKey.QUIET,
       ],
@@ -35,7 +37,7 @@ export const cli = new Menu({
     new Command({
       name: "bundle",
       emoji: "📦",
-      help: `Produce a bundle artifact, but don't run any tests.`,
+      help: `Produce bundle artifacts, but don't run any tests.`,
       args: [
         CliArgKey.PARTITION,
         CliArgKey.PARTITIONS,
@@ -170,10 +172,22 @@ export const cli = new Menu({
       default: "focus",
     }),
     new Option({
+      name: CliArgKey.FAIL_FAST,
+      help: "exit immediately when something is not ok",
+      type: OptionType.BOOLEAN,
+      default: true,
+    }),
+    new Option({
       name: CliArgKey.PORT,
       help: "the port to listen on whenever stable needs an http server.",
       type: OptionType.NUMBER,
       default: 10001,
+    }),
+    new Option({
+      name: CliArgKey.HEADFUL,
+      help: "run the user agent headfully",
+      type: OptionType.BOOLEAN,
+      default: false,
     }),
     new Option({
       name: CliArgKey.VERBOSE,

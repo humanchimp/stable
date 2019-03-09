@@ -1,4 +1,4 @@
-/// <stable runner="headless chrome" />
+/// <stable runner="chrome" />
 /// <stable runner="jsdom" />
 import { expect } from "chai";
 import { Sock } from "../../../src/runners/remote/Sock";

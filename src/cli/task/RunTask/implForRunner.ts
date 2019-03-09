@@ -2,8 +2,7 @@ import { TestRun } from "../../../interfaces";
 import { kebab } from "../../case/kebab";
 import { run as evalRunner } from "./runners/eval";
 import { run as vmRunner } from "./runners/vm";
-import { run as remoteRunner } from "./runners/remote";
-import { run as headlessChromeRunner } from "./runners/headlessChrome";
+import { run as chromeRunner } from "./runners/chrome";
 import { run as jsdomRunner } from "./runners/jsdom";
 
 export function implForRunner(runner): TestRun {
@@ -13,12 +12,8 @@ export function implForRunner(runner): TestRun {
     case "vm":
     case "isolate": // This is cheating for now
       return vmRunner;
-    case "remote":
-      // This will fail because of no `spawnParams` 🤷
-      return remoteRunner;
-    case "headless-chrome":
-    case "headless chrome":
-      return headlessChromeRunner;
+    case "chrome":
+      return chromeRunner;
     case "jsdom":
       return jsdomRunner;
   }
