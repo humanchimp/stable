@@ -4,7 +4,7 @@ import { cli } from "./cli";
 import { ValidationError } from "./ValidationError";
 
 /* eslint-disable no-console */
-main().catch(console.error);
+main();
 
 async function main() {
   try {

@@ -41,6 +41,7 @@ export default {
     }),
     nodeResolve({
       extensions: [".js", ".ts"],
+      only: [],
     }),
     ...(process.env.CLI
       ? [

@@ -8,7 +8,7 @@ import { Vconsole } from "../Vconsole";
 import { Message } from "../../../../types";
 import { EndSignal } from "../EndSignal";
 
-export function run(thunk, { sort, filter, grep }) {
+export function run(thunk, { sort, filter, grep }): Stream<Message> {
   const selection = new Selection({
     filter,
     grep: grep && new RegExp(grep),
@@ -42,7 +42,7 @@ export function run(thunk, { sort, filter, grep }) {
           return true;
         })
         .merge(
-          fromEvent("message", vconsole).takeUntil(
+          fromEvent<Message>("message", vconsole).takeUntil(
             reports.filter(it => it === end),
           ),
         );
