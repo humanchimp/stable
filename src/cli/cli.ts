@@ -26,6 +26,7 @@ export const cli = new Menu({
         CliArgKey.PORT,
         CliArgKey.COVERAGE,
         CliArgKey.HIDE_SKIPS,
+        CliArgKey.FAIL_FAST,
         CliArgKey.VERBOSE,
         CliArgKey.QUIET,
       ],
@@ -168,6 +169,12 @@ export const cli = new Menu({
       help: "hide skipped specs from the stream.",
       type: OptionType.STRING_OR_BOOLEAN,
       default: "focus",
+    }),
+    new Option({
+      name: CliArgKey.FAIL_FAST,
+      help: "exit immediately when something is not ok",
+      type: OptionType.BOOLEAN,
+      default: true,
     }),
     new Option({
       name: CliArgKey.PORT,

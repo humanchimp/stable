@@ -13,7 +13,7 @@ export function run(thunk, { sort, filter, grep }): Stream<Message> {
     filter,
     grep: grep && new RegExp(grep),
   });
-  let hideSkips: boolean | string = "focus";
+  let hideSkips: boolean | "focus";
 
   const vconsole = new Vconsole(console);
 
@@ -23,28 +23,17 @@ export function run(thunk, { sort, filter, grep }): Stream<Message> {
       const end = new EndSignal();
       const reports = (fromAsyncIterable(
         suite.run(implForSort(sort), selection.predicate),
-      ) as Stream<Message>)
+      ) as Stream<Message | EndSignal>)
         .continueWith(() => of(end))
         .multicast();
 
       return reports
-        .filter(report => {
-          if (report === end) {
-            return false;
-          }
-          switch (hideSkips) {
-            case true:
-              return !skipped(report);
-            case "focus": {
-              return !skipped(report) || !suite.isFocusMode;
-            }
-          }
-          return true;
-        })
+        .filter(it => it !== end)
         .merge(
           fromEvent<Message>("message", vconsole).takeUntil(
             reports.filter(it => it === end),
           ),
-        );
+        )
+        .map(report => ({ ...report, suite })) as Stream<Message>;
     });
 }

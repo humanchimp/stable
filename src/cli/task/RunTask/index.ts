@@ -10,6 +10,7 @@ import { writeBundle } from "../BundleTask/writeBundle";
 import { formatForRunner } from "./formatForRunner";
 import { Bundle } from "../../Bundle";
 import { of } from "most";
+import { skipped } from "./skipped";
 
 export class RunTask implements Task {
   async run(params) {
@@ -18,6 +19,8 @@ export class RunTask implements Task {
       [CliArgKey.OUTPUT_FORMAT]: format = StreamFormat.TAP,
       [CliArgKey.BUNDLE_FILE]: outFileParam,
       [CliArgKey.COVERAGE]: coverage,
+      [CliArgKey.HIDE_SKIPS]: hideSkips = "focus",
+      [CliArgKey.FAIL_FAST]: failFast = true,
     }: RunTaskParams = params;
     const bundles = await Bundle.fromConfigs(await stablercsForParams(params), {
       ...params,
@@ -38,16 +41,41 @@ export class RunTask implements Task {
       const code = await readFile(outFile, "utf-8");
       const run = implForRunner(runner);
       const transform = transformForFormat(format);
-
-      await run(code, { ...params, runner })
-        .recoverWith(reason => of({ ok: false, reason } as Report))
+      const messages = run(code, { ...params, runner })
+        .filter(report => {
+          switch (hideSkips) {
+            case true:
+              return !skipped(report);
+            case "focus": {
+              return !skipped(report) || !report.suite.isFocusMode;
+            }
+          }
+        })
+        .recoverWith(reason =>
+          of({
+            description: "recovered with reason",
+            ok: false,
+            reason,
+          } as Report),
+        )
         .tap(report => {
-          if (report.failed > 0) {
+          if (report.ok === false) {
             failed = true;
           }
         })
-        .map(transform)
-        .observe(console.log); // eslint-disable-line
+        .multicast();
+
+      const failures = messages.filter(report => report.ok === false);
+
+      const stream = failFast
+        ? messages.takeUntil(failures).concat(failures.take(1))
+        : messages;
+
+      await stream.map(transform).observe(console.log); // eslint-disable-line
+
+      if (failed && failFast) {
+        break;
+      }
 
       if (coverage != null && typeof global["__coverage__"] !== "undefined") {
         await writeFile(

@@ -5,7 +5,6 @@ import {
   Summary,
   CoverageMessage,
   ConsoleMessage,
-  EndSignal,
 } from "./interfaces";
 
 export type CliArgs = { [P in CliArgKey]?: any[] };
@@ -19,5 +18,4 @@ export type Message =
   | Report
   | Summary
   | CoverageMessage
-  | ConsoleMessage
-  | EndSignal;
+  | ConsoleMessage;
