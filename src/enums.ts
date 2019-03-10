@@ -2,6 +2,7 @@ export enum CliArgKey {
   FILTER = "filter",
   GREP = "grep",
   RUNNER = "runner",
+  FORCE = "force",
   OUTPUT_FORMAT = "output-format",
   WORKING_DIRECTORY = "working-directory",
   READ_STDIN = "read-stdin",
@@ -24,6 +25,14 @@ export enum CliArgKey {
   COVERAGE = "coverage",
   REST = "rest",
   LIST_BY_SPEC = "list-by-spec",
+}
+
+export enum CliCommandKey {
+  RUN = "run",
+  BUNDLE = "bundle",
+  CONFIG = "config",
+  HELP = "help",
+  PARSE_OPTIONS = "parse-options",
 }
 
 export enum OptionType {

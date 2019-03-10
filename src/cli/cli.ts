@@ -1,21 +1,18 @@
-import { CliArgKey, OptionType } from "../enums";
+import { CliArgKey, OptionType, CliCommandKey } from "../enums";
 import { Menu } from "./Menu";
 import { Command } from "./Command";
 import { Option } from "./Option";
-import { PrintHelpMenuTask } from "./task/PrintHelpMenuTask";
-import { PrintConfigTask } from "./task/PrintConfigTask";
-import { BundleTask } from "./task/BundleTask";
-import { RunTask } from "./task/RunTask";
 
 export const cli = new Menu({
   debug: true,
   commands: [
     new Command({
-      name: "run",
+      name: CliCommandKey.RUN,
       emoji: "🐎",
       help: `If files are passed, start there, find .stablercs. If no files passed, start with the .stablerc in the pwd. Run every suite we find with the correct .stablerc.`,
       args: [
         CliArgKey.RUNNER,
+        CliArgKey.FORCE,
         CliArgKey.PARTITION,
         CliArgKey.PARTITIONS,
         CliArgKey.FILTER,
@@ -31,11 +28,10 @@ export const cli = new Menu({
         CliArgKey.VERBOSE,
         CliArgKey.QUIET,
       ],
-      task: new RunTask(),
       default: true,
     }),
     new Command({
-      name: "bundle",
+      name: CliCommandKey.BUNDLE,
       emoji: "📦",
       help: `Produce bundle artifacts, but don't run any tests.`,
       args: [
@@ -49,10 +45,9 @@ export const cli = new Menu({
         CliArgKey.VERBOSE,
         CliArgKey.QUIET,
       ],
-      task: new BundleTask(),
     }),
     new Command({
-      name: "config",
+      name: CliCommandKey.CONFIG,
       emoji: "⚙️",
       help: `Print the config to stdout after performing the algorithm to load it relative to the given path, else the pwd. Stream the reports to stdout`,
       args: [
@@ -60,14 +55,12 @@ export const cli = new Menu({
         CliArgKey.WORKING_DIRECTORY,
         CliArgKey.VERBOSE,
       ],
-      task: new PrintConfigTask(),
     }),
     new Command({
-      name: "help",
+      name: CliCommandKey.HELP,
       emoji: "🙃",
       help: `Print this message.`,
       args: [],
-      task: new PrintHelpMenuTask(),
     }),
   ],
   options: [
@@ -95,6 +88,12 @@ export const cli = new Menu({
       short: "r",
       help: "the runner to use.",
       type: OptionType.STRING,
+    }),
+    new Option({
+      name: CliArgKey.FORCE,
+      help:
+        "force the use of the specified runner even against conflicting directives",
+      type: OptionType.BOOLEAN,
     }),
     new Option({
       name: CliArgKey.OUTPUT_FORMAT,
@@ -215,7 +214,7 @@ export const cli = new Menu({
       help: "print this message.",
       type: OptionType.BOOLEAN,
       default: false,
-      task: new PrintHelpMenuTask(),
+      command: "help",
     }),
   ],
 });

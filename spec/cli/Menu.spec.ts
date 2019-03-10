@@ -1,8 +1,8 @@
 import { expect } from "chai";
 import { spy as createSpy, SinonSpy } from "sinon";
 import { Menu } from "../../src/cli/Menu";
-import { Command, Option } from "../../src/interfaces";
-import { OptionType, CliArgKey } from "../../src/enums";
+import { Command, Option, Task } from "../../src/interfaces";
+import { OptionType, CliArgKey, CliCommandKey } from "../../src/enums";
 import { ValidationError } from "../../src/cli/ValidationError";
 
 let subject: Menu;
@@ -124,7 +124,7 @@ describe(".commandForArgv(argv: string[])", () => {
       },
     ];
     explicitCommand = {
-      name: "explicit-command",
+      name: CliCommandKey.BUNDLE,
       help: "explicit command",
       emoji: "🗿",
       args: new Set<CliArgKey>([
@@ -134,9 +134,7 @@ describe(".commandForArgv(argv: string[])", () => {
         CliArgKey.GREP,
         CliArgKey.ORDERED,
       ]),
-      task: { run() {} },
       default: false,
-      run() {},
       validateOptions() {},
     };
     defaultCommand = { ...mockCommand("default-command"), default: true };
@@ -154,7 +152,7 @@ describe(".commandForArgv(argv: string[])", () => {
     [
       // These are cherry-picked and overly naive during bootstrapping
       [
-        ["explicit-command"],
+        [CliCommandKey.BUNDLE],
         {
           port: 0,
           "output-format": false,
@@ -165,7 +163,7 @@ describe(".commandForArgv(argv: string[])", () => {
         [],
       ],
       [
-        ["explicit-command", "-s", "12"],
+        [CliCommandKey.BUNDLE, "-s", "12"],
         {
           port: 12,
           "output-format": false,
@@ -176,7 +174,7 @@ describe(".commandForArgv(argv: string[])", () => {
         [],
       ],
       [
-        ["explicit-command", "--port=0"],
+        [CliCommandKey.BUNDLE, "--port=0"],
         {
           port: 0,
           "output-format": false,
@@ -187,7 +185,7 @@ describe(".commandForArgv(argv: string[])", () => {
         [],
       ],
       [
-        ["explicit-command", "-l", "false"],
+        [CliCommandKey.BUNDLE, "-l", "false"],
         {
           "output-format": false,
           port: 0,
@@ -198,7 +196,7 @@ describe(".commandForArgv(argv: string[])", () => {
         [],
       ],
       [
-        ["explicit-command", "--output-format=true"],
+        [CliCommandKey.BUNDLE, "--output-format=true"],
         {
           "output-format": true,
           port: 0,
@@ -209,7 +207,7 @@ describe(".commandForArgv(argv: string[])", () => {
         [],
       ],
       [
-        ["explicit-command", "-b"],
+        [CliCommandKey.BUNDLE, "-b"],
         {
           quiet: true,
           port: 0,
@@ -220,7 +218,7 @@ describe(".commandForArgv(argv: string[])", () => {
         [],
       ],
       [
-        ["explicit-command", "--quiet"],
+        [CliCommandKey.BUNDLE, "--quiet"],
         {
           quiet: true,
           port: 0,
@@ -231,7 +229,7 @@ describe(".commandForArgv(argv: string[])", () => {
         [],
       ],
       [
-        ["explicit-command", "--grep=hi"],
+        [CliCommandKey.BUNDLE, "--grep=hi"],
         {
           grep: "hi",
           port: 0,
@@ -242,7 +240,7 @@ describe(".commandForArgv(argv: string[])", () => {
         [],
       ],
       [
-        ["explicit-command", "--grep", "get hep"],
+        [CliCommandKey.BUNDLE, "--grep", "get hep"],
         {
           grep: "get hep",
           port: 0,
@@ -253,7 +251,7 @@ describe(".commandForArgv(argv: string[])", () => {
         [],
       ],
       [
-        ["explicit-command", "-b", "-l"],
+        [CliCommandKey.BUNDLE, "-b", "-l"],
         {
           grep: undefined,
           port: 0,
@@ -264,7 +262,7 @@ describe(".commandForArgv(argv: string[])", () => {
         [],
       ],
       [
-        ["explicit-command", "-bl", "--grep", "hi"],
+        [CliCommandKey.BUNDLE, "-bl", "--grep", "hi"],
         {
           grep: "hi",
           port: 0,
@@ -275,7 +273,7 @@ describe(".commandForArgv(argv: string[])", () => {
         [],
       ],
       [
-        ["explicit-command", "--no-output-format"],
+        [CliCommandKey.BUNDLE, "--no-output-format"],
         {
           grep: undefined,
           port: 0,
@@ -286,7 +284,7 @@ describe(".commandForArgv(argv: string[])", () => {
         [],
       ],
       [
-        ["explicit-command", "--no-quiet"],
+        [CliCommandKey.BUNDLE, "--no-quiet"],
         {
           grep: undefined,
           port: 0,
@@ -297,7 +295,7 @@ describe(".commandForArgv(argv: string[])", () => {
         [],
       ],
       [
-        ["explicit-command", "--quiet", "off"],
+        [CliCommandKey.BUNDLE, "--quiet", "off"],
         {
           grep: undefined,
           port: 0,
@@ -308,7 +306,7 @@ describe(".commandForArgv(argv: string[])", () => {
         [],
       ],
       [
-        ["explicit-command", "--no-quiet", "on"],
+        [CliCommandKey.BUNDLE, "--no-quiet", "on"],
         {
           grep: undefined,
           port: 0,
@@ -319,7 +317,7 @@ describe(".commandForArgv(argv: string[])", () => {
         ["on"],
       ],
       [
-        ["explicit-command", "--no-quiet", "--quiet"],
+        [CliCommandKey.BUNDLE, "--no-quiet", "--quiet"],
         {
           grep: undefined,
           port: 0,
@@ -330,7 +328,7 @@ describe(".commandForArgv(argv: string[])", () => {
         [],
       ],
       [
-        ["explicit-command", "--quiet", "--no-quiet"],
+        [CliCommandKey.BUNDLE, "--quiet", "--no-quiet"],
         {
           grep: undefined,
           port: 0,
@@ -341,7 +339,7 @@ describe(".commandForArgv(argv: string[])", () => {
         [],
       ],
       [
-        ["explicit-command", "-quiet"],
+        [CliCommandKey.BUNDLE, "-quiet"],
         {
           grep: undefined,
           port: 0,
@@ -352,7 +350,7 @@ describe(".commandForArgv(argv: string[])", () => {
         [],
       ],
       [
-        ["explicit-command", "-quiet", "-no-quiet"],
+        [CliCommandKey.BUNDLE, "-quiet", "-no-quiet"],
         {
           grep: undefined,
           port: 0,
@@ -363,7 +361,7 @@ describe(".commandForArgv(argv: string[])", () => {
         [],
       ],
       [
-        ["explicit-command", "-bls", "10"],
+        [CliCommandKey.BUNDLE, "-bls", "10"],
         {
           grep: undefined,
           port: 10,
@@ -374,7 +372,7 @@ describe(".commandForArgv(argv: string[])", () => {
         [],
       ],
       [
-        ["explicit-command", "-ll"],
+        [CliCommandKey.BUNDLE, "-ll"],
         {
           grep: undefined,
           port: 0,
@@ -385,7 +383,7 @@ describe(".commandForArgv(argv: string[])", () => {
         [],
       ],
       [
-        ["explicit-command", "--output-format"],
+        [CliCommandKey.BUNDLE, "--output-format"],
         {
           grep: undefined,
           port: 0,
@@ -396,7 +394,7 @@ describe(".commandForArgv(argv: string[])", () => {
         [],
       ],
       [
-        ["explicit-command", "--grep"],
+        [CliCommandKey.BUNDLE, "--grep"],
         {
           grep: "",
           port: 0,
@@ -407,7 +405,7 @@ describe(".commandForArgv(argv: string[])", () => {
         [],
       ],
       [
-        ["explicit-command", "--port=10", "--port"],
+        [CliCommandKey.BUNDLE, "--port=10", "--port"],
         {
           grep: undefined,
           port: 0,
@@ -418,7 +416,7 @@ describe(".commandForArgv(argv: string[])", () => {
         [],
       ],
       [
-        ["explicit-command", "--ordered"],
+        [CliCommandKey.BUNDLE, "--ordered"],
         {
           grep: undefined,
           port: 0,
@@ -453,10 +451,10 @@ describe(".commandForArgv(argv: string[])", () => {
   describeEach(
     "invalid cases with an explicit command and an unintelligible argument",
     [
-      [["explicit-command", "--rdjodpjsm"], ["--rdjodpjsm"]],
-      [["explicit-command", "-j"], ["-j"]],
-      [["explicit-command", "-jds"], ["-j", "-d"]],
-      [["explicit-command", "--no-port"], ["--no-port"]],
+      [[CliCommandKey.BUNDLE, "--rdjodpjsm"], ["--rdjodpjsm"]],
+      [[CliCommandKey.BUNDLE, "-j"], ["-j"]],
+      [[CliCommandKey.BUNDLE, "-jds"], ["-j", "-d"]],
+      [[CliCommandKey.BUNDLE, "--no-port"], ["--no-port"]],
     ],
     ([argv, expectedInvalid]) => {
       it("should collect the invalid parameters", () => {
@@ -476,19 +474,17 @@ describe(".runFromArgv(argv: string[])", () => {
   let runSpy: SinonSpy;
 
   describe("with an explicit command", () => {
-    describe("when no matching option has a task", () => {
+    describe("when no matching option has an associated command", () => {
       beforeEach(async () => {
         runSpy = createSpy();
         subject = new Menu({
           commands: [
             {
-              name: "command",
+              name: CliCommandKey.CONFIG,
               help: "help for command",
               emoji: "😇",
-              task: { run() {} },
               args: new Set<CliArgKey>([CliArgKey.QUIET, CliArgKey.PORT]),
               default: false,
-              run: runSpy,
               validateOptions() {},
             },
           ],
@@ -506,7 +502,17 @@ describe(".runFromArgv(argv: string[])", () => {
           ],
         });
 
-        await subject.runFromArgv(["0", "1", "command", "--quiet"]);
+        await subject.runFromArgv(
+          ["0", "1", CliCommandKey.CONFIG, "--quiet"],
+          new Map<CliCommandKey, Task>([
+            [
+              CliCommandKey.CONFIG,
+              {
+                run: runSpy,
+              },
+            ],
+          ]),
+        );
       });
 
       it("should perform the task attached to the matching command asynchronously and return a promise representing its eventual completion", () => {
@@ -523,13 +529,19 @@ describe(".runFromArgv(argv: string[])", () => {
         subject = new Menu({
           commands: [
             {
-              name: "command",
-              help: "help for command",
+              name: CliCommandKey.CONFIG,
+              help: "a command",
               emoji: "😇",
-              task: { run() {} },
               args: new Set<CliArgKey>([CliArgKey.QUIET, CliArgKey.PORT]),
               default: false,
-              run: runSpy,
+              validateOptions() {},
+            },
+            {
+              name: CliCommandKey.HELP,
+              help: "help for command",
+              emoji: "😇",
+              args: new Set<CliArgKey>([CliArgKey.QUIET, CliArgKey.PORT]),
+              default: false,
               validateOptions() {},
             },
           ],
@@ -538,7 +550,7 @@ describe(".runFromArgv(argv: string[])", () => {
               name: CliArgKey.QUIET,
               help: "help for a",
               type: OptionType.BOOLEAN,
-              task: { run: optionSpy },
+              command: CliCommandKey.HELP,
             },
             {
               name: CliArgKey.PORT,
@@ -548,7 +560,13 @@ describe(".runFromArgv(argv: string[])", () => {
           ],
         });
 
-        await subject.runFromArgv(["0", "1", "command", "--quiet"]);
+        await subject.runFromArgv(
+          ["0", "1", CliCommandKey.CONFIG, "--quiet"],
+          new Map<CliCommandKey, Task>([
+            [CliCommandKey.CONFIG, { run: runSpy }],
+            [CliCommandKey.HELP, { run: optionSpy }],
+          ]),
+        );
       });
 
       it("should perform the task of the matching option asynchronously and return a promise representing its eventual completion", async () => {
@@ -570,13 +588,27 @@ describe(".runFromArgv(argv: string[])", () => {
         subject = new Menu({
           commands: [
             {
-              name: "command",
-              help: "help for command",
+              name: CliCommandKey.CONFIG,
+              help: "a command",
               emoji: "😇",
-              task: { run() {} },
               args: new Set<CliArgKey>([CliArgKey.QUIET, CliArgKey.PORT]),
               default: false,
-              run: runSpy,
+              validateOptions() {},
+            },
+            {
+              name: CliCommandKey.HELP,
+              help: "a command",
+              emoji: "😇",
+              args: new Set<CliArgKey>([CliArgKey.QUIET, CliArgKey.PORT]),
+              default: false,
+              validateOptions() {},
+            },
+            {
+              name: CliCommandKey.PARSE_OPTIONS,
+              help: "a command",
+              emoji: "😇",
+              args: new Set<CliArgKey>([CliArgKey.QUIET, CliArgKey.PORT]),
+              default: false,
               validateOptions() {},
             },
           ],
@@ -585,18 +617,25 @@ describe(".runFromArgv(argv: string[])", () => {
               name: CliArgKey.QUIET,
               help: "help for a",
               type: OptionType.BOOLEAN,
-              task: { run: optionASpy },
+              command: CliCommandKey.HELP,
             },
             {
               name: CliArgKey.PORT,
               help: "help for b",
               type: OptionType.NUMBER,
-              task: { run: optionBSpy },
+              command: CliCommandKey.PARSE_OPTIONS,
             },
           ],
         });
 
-        await subject.runFromArgv(["0", "1", "command", "--port", "--quiet"]);
+        await subject.runFromArgv(
+          ["0", "1", "command", "--port", "--quiet"],
+          new Map<CliCommandKey, Task>([
+            [CliCommandKey.CONFIG, { run: runSpy }],
+            [CliCommandKey.HELP, { run: optionASpy }],
+            [CliCommandKey.PARSE_OPTIONS, { run: optionBSpy }],
+          ]),
+        );
       });
 
       it(
@@ -614,7 +653,7 @@ describe(".runFromArgv(argv: string[])", () => {
         options: [],
       });
 
-      await subject.runFromArgv(["0", "1", "luke", "--yoda"]);
+      await subject.runFromArgv(["0", "1", "luke", "--yoda"], new Map());
     })
       .shouldFail()
       .rescue(reason => {
@@ -630,13 +669,11 @@ describe(".runFromArgv(argv: string[])", () => {
         subject = new Menu({
           commands: [
             {
-              name: "command",
+              name: CliCommandKey.HELP,
               help: "help for command",
               emoji: "😇",
-              task: { run() {} },
               args: new Set<CliArgKey>([CliArgKey.QUIET, CliArgKey.PORT]),
               default: true,
-              run: runSpy,
               validateOptions() {},
             },
           ],
@@ -654,7 +691,10 @@ describe(".runFromArgv(argv: string[])", () => {
           ],
         });
 
-        await subject.runFromArgv(["0", "1", "--quiet"]);
+        await subject.runFromArgv(
+          ["0", "1", "--quiet"],
+          new Map<CliCommandKey, Task>([[CliCommandKey.HELP, { run: runSpy }]]),
+        );
       });
 
       it("should perform the task attached to the default command asynchronously and return a promise representing its eventual completion", () => {
@@ -682,21 +722,13 @@ describe(".runFromArgv(argv: string[])", () => {
 
 describe("debug mode", () => {
   it("should append the `parse-options` command for debugging the argv parser itself", async () => {
-    /* eslint-disable no-console */
     subject = new Menu({
       commands: [],
       options: [],
       debug: true,
     });
 
-    const command = subject.commands.get("parse-options");
-
-    expect(command).to.exist;
-    createSpy(console, "log");
-    command.run([], subject);
-    expect((console.log as SinonSpy).calledOnce).to.be.true;
-    (console.log as SinonSpy).restore();
-    /* eslint-enable no-console */
+    expect(subject.commands.get(CliCommandKey.PARSE_OPTIONS)).to.exist;
   });
 
   it("should not have the `parse-options` command otherwise", () => {
@@ -705,7 +737,7 @@ describe("debug mode", () => {
       options: [],
     });
 
-    expect(subject.commands.get("parse-options")).not.to.exist;
+    expect(subject.commands.get(CliCommandKey.PARSE_OPTIONS)).not.to.exist;
     expect(subject.commands.size).to.equal(0);
   });
 });
@@ -725,9 +757,7 @@ function mockCommand(name): Command {
     help: `mock command: ${name}`,
     emoji: "🗿",
     args: new Set(),
-    task: { run() {} },
     default: false,
-    run() {},
     validateOptions() {},
   };
 }

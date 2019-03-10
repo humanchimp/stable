@@ -1,13 +1,12 @@
 import {
   Option as OptionInterface,
   OptionParams,
-  Task,
   OptionSampler,
 } from "../interfaces";
-import { OptionType } from "../enums";
+import { OptionType, CliCommandKey, CliArgKey } from "../enums";
 
 export class Option implements OptionInterface {
-  name: string;
+  name: CliArgKey;
 
   short: string;
 
@@ -17,7 +16,7 @@ export class Option implements OptionInterface {
 
   default: any;
 
-  task: Task;
+  command: CliCommandKey;
 
   sample: OptionSampler;
 
@@ -27,14 +26,14 @@ export class Option implements OptionInterface {
     help,
     type,
     default: defaultValue,
-    task,
+    command,
     sample,
   }: OptionParams) {
     this.name = name;
     this.short = short;
     this.help = help;
     this.type = type;
-    this.task = task;
+    this.command = command;
     this.sample = sample;
     this.default = defaultValue;
   }

@@ -3,6 +3,7 @@ import {
   OptionType,
   ConfigOutputFormat,
   StreamFormat,
+  CliCommandKey,
 } from "./enums";
 import { StablercFile } from "./cli/stablerc/StablercFile";
 import { CliArgs, StablercPluginDefinition } from "./types";
@@ -85,6 +86,7 @@ export interface SpecOptions {
 
 export interface SpecParams extends SpecOptions {
   description: string;
+  parent?: Suite;
 }
 
 export interface Spec extends SpecParams {
@@ -92,6 +94,7 @@ export interface Spec extends SpecParams {
   timeout(ms: number): Spec;
   shouldFail(): Spec;
   rescue(rescuer: ErrorHandler): Spec;
+  run(): AsyncIterableIterator<Report>;
 }
 
 export interface SpecMeta {
@@ -107,7 +110,8 @@ export interface Job {
   series: number;
 }
 
-export interface Report extends SpecParams {
+export interface Report extends SpecOptions {
+  description: string;
   ok?: boolean;
   reason?: any;
   startedAt?: number;
@@ -309,25 +313,20 @@ export interface DslInfoBlock {
   (...rest: any[]): void;
 }
 
-export interface Named {
-  name: string;
-}
-
-export interface CommandParams extends Named {
+export interface CommandParams {
+  name: CliCommandKey;
   emoji: string;
   args: CliArgKey[];
-  task: Task;
   help?: string;
   default?: boolean;
 }
 
-export interface Command extends Named {
+export interface Command {
+  name: CliCommandKey;
   emoji: string;
   args: Set<CliArgKey>;
   help: string;
-  task: Task;
   default: boolean;
-  run(args: any, menu: Menu);
   validateOptions(options: CliArgs): void;
 }
 
@@ -343,28 +342,31 @@ export interface OptionSampler {
   (splat: any[]): any;
 }
 
-export interface Option extends Named {
+export interface Option {
+  name: CliArgKey;
   short?: string;
   help: string;
   type: OptionType;
   default?: any;
-  task?: Task;
+  command?: CliCommandKey;
   sample?: OptionSampler;
 }
 
-export interface OptionParse extends Named {
+export interface OptionParse {
+  name: CliArgKey;
   option: Option;
   hasValue: boolean;
   negated: boolean;
   splat: (string | boolean | number)[];
 }
 
-export interface OptionParams extends Named {
+export interface OptionParams {
+  name: CliArgKey;
   short?: string;
   help: string;
   type: OptionType;
   default?: any;
-  task?: Task;
+  command?: CliCommandKey;
   sample?: OptionSampler;
 }
 
@@ -372,7 +374,7 @@ export interface Menu {
   commands: Map<string, Command>;
   options: Map<string, Option>;
   commandFromArgv(argv: string[]): CommandParse;
-  runFromArgv(argv: string[]): Promise<void>;
+  runFromArgv(argv: string[], tasks: Map<string, Task>): Promise<void>;
 }
 
 export interface MenuParams {
@@ -393,7 +395,8 @@ export interface TestRun {
   (code, options): Stream<any>;
 }
 
-export interface CommandChoice extends Named {
+export interface CommandChoice {
+  name: CliCommandKey;
   args: CliArgKey[];
 }
 

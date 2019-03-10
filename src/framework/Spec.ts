@@ -4,6 +4,8 @@ import {
   ErrorHandler,
   Effect,
   SpecParams,
+  Suite,
+  Report,
 } from "../interfaces";
 
 export class Spec implements SpecInterface {
@@ -17,8 +19,11 @@ export class Spec implements SpecInterface {
 
   meta: SpecMeta = {};
 
+  parent: Suite;
+
   constructor({
     description,
+    parent,
     test,
     focused = false,
     skipped = false,
@@ -27,6 +32,11 @@ export class Spec implements SpecInterface {
     this.test = test;
     this.focused = focused;
     this.skipped = skipped;
+    Object.defineProperty(this, "parent", {
+      get() {
+        return parent;
+      },
+    });
   }
 
   timeout(ms: number): Spec {
@@ -50,5 +60,9 @@ export class Spec implements SpecInterface {
     }
     this.meta.infos.push(info);
     return this;
+  }
+
+  run(): AsyncIterableIterator<Report> {
+    return this.parent.runSpec(this);
   }
 }

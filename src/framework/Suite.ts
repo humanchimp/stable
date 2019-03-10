@@ -15,6 +15,7 @@ import {
   Sorter,
   Hook,
   SpecOptions,
+  SpecParams,
 } from "../interfaces";
 import { Spec } from "./Spec";
 import { Hooks } from "./Hooks";
@@ -142,7 +143,8 @@ export class Suite implements SuiteInterface {
     test?: Effect,
     options?: SpecOptions,
   ): Suite {
-    const params = {
+    const params: SpecParams = {
+      parent: this,
       skipped: test == null || this.skipped,
       focused: this.focused,
       ...options,
@@ -161,7 +163,7 @@ export class Suite implements SuiteInterface {
     test: Effect = required(),
     options?: SpecOptions,
   ): Suite {
-    this.it(description, test, { focused: true });
+    this.it(description, test, { ...options, focused: true });
     return this;
   }
 
@@ -170,7 +172,7 @@ export class Suite implements SuiteInterface {
     test?: Effect,
     options?: SpecOptions,
   ): Suite {
-    this.it(description, test, { skipped: true });
+    this.it(description, test, { ...options, skipped: true });
     return this;
   }
 
@@ -392,7 +394,6 @@ export class Suite implements SuiteInterface {
 
   async *runSpec(spec: SpecInterface): AsyncIterableIterator<Report> {
     yield* await this.open();
-    this.computeHooks();
     if (!spec.skipped) {
       for (const effect of this.computedHooks.beforeEach) {
         yield* await this.runHook({ name: "beforeEach", effect }, spec);
@@ -417,6 +418,7 @@ export class Suite implements SuiteInterface {
       yield* await this.runHook(hook, this);
     }
     this.opened = true;
+    this.computeHooks();
   }
 
   async *close(): AsyncIterableIterator<Report> {

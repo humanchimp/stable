@@ -1,8 +1,6 @@
 import { expect } from "chai";
-import { spy as createSpy, SinonSpy } from "sinon";
 import { Command } from "../../src/cli/Command";
-import { Menu, Task, Option } from "../../src/interfaces";
-import { CliArgKey } from "../../src/enums";
+import { CliArgKey, CliCommandKey } from "../../src/enums";
 
 describeEach(
   "new Command(params: CommandParams)",
@@ -14,7 +12,7 @@ describeEach(
   ],
   ([
     {
-      name = "Command",
+      name = CliCommandKey.PARSE_OPTIONS,
       args = [CliArgKey.QUIET, CliArgKey.FILTER], // Selected willy-nilly
       help = "A meta command for unit testing.",
       emoji = "🧶", // Also willy-nilly
@@ -22,7 +20,7 @@ describeEach(
     },
   ]: [
     {
-      name: string;
+      name: CliCommandKey;
       args: CliArgKey[];
       help: string;
       emoji: string;
@@ -30,29 +28,15 @@ describeEach(
     }
   ]) => {
     let subject: Command;
-    let menuMock: Menu;
-    let taskMock: Task;
 
     beforeEach(() => {
-      taskMock = {
-        run: createSpy(),
-      };
       subject = new Command({
         name,
         args,
         help,
         emoji,
-        task: taskMock,
         default: isDefault,
       });
-      menuMock = {
-        commands: new Map<string, Command>([[name, subject]]),
-        options: new Map<string, Option>(
-          args.map(name => [name, { name }] as [string, Option]),
-        ),
-        commandFromArgv: createSpy(),
-        runFromArgv: createSpy(),
-      };
     });
 
     describe(".name", () => {
@@ -87,39 +71,6 @@ describeEach(
       });
     });
 
-    describe(".task", () => {
-      it("should have a run method", () => {
-        expect(typeof subject.task.run).to.equal("function");
-      });
-    });
-
-    describe(".run(args, menu)", () => {
-      const options = { quiet: [true] };
-
-      beforeEach(() => {
-        createSpy(subject, "validateOptions");
-        subject.run(options, menuMock);
-      });
-
-      afterEach(() => {
-        (subject.validateOptions as SinonSpy).restore();
-      });
-
-      it("should validate the arguments", () => {
-        const spy: SinonSpy = subject.validateOptions as SinonSpy;
-
-        expect(spy.calledOnce).to.be.true;
-        expect(spy.getCall(0).args[0]).to.eql(options);
-      });
-
-      it("should delegate to the task's .run() method", () => {
-        const spy = taskMock.run as SinonSpy;
-
-        expect(spy.calledOnce).to.be.true;
-        expect(spy.getCall(0).args[0]).to.eql(options);
-      });
-    });
-
     describe(".validateOptions(args)", () => {
       describeEach(
         "valid case",
@@ -130,8 +81,8 @@ describeEach(
           [{ help: true }], // "help" is tolerated despite not being explicitly listed
         ],
         ([args]) => {
-          it("should return a promise", () => {
-            expect(subject.run(args, menuMock)).to.be.instanceOf(Promise);
+          it("should return void", () => {
+            expect(subject.validateOptions(args)).to.equal(undefined);
           });
         },
       );
@@ -145,7 +96,7 @@ describeEach(
         ],
         ([args]) => {
           it("should throw an error", async () => {
-            await subject.run(args, menuMock);
+            subject.validateOptions(args);
           })
             .shouldFail()
             .rescue(reason => {
@@ -162,13 +113,10 @@ describe("when the default parameter is not provided", () => {
 
   beforeEach(() => {
     subject = new Command({
-      name: "no default",
+      name: CliCommandKey.RUN,
       help: "meta command without explicit default option",
       emoji: "🥫",
       args: [],
-      task: {
-        run() {},
-      },
     });
   });
 

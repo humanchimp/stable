@@ -1,34 +1,34 @@
-import fuzzy from "fuzzy";
-import chalk from "chalk";
 import { cli } from "./cli";
-import { ValidationError } from "./ValidationError";
+import { Task } from "../interfaces";
+import { RunTask } from "./task/RunTask";
+import { BundleTask } from "./task/BundleTask";
+import { PrintConfigTask } from "./task/PrintConfigTask";
+import { PrintHelpMenuTask } from "./task/PrintHelpMenuTask";
+import { CliCommandKey } from "../enums";
 
 /* eslint-disable no-console */
 main();
 
 async function main() {
   try {
-    await cli.runFromArgv(process.argv);
+    await cli.runFromArgv(
+      process.argv,
+      new Map<string, Task>([
+        [CliCommandKey.RUN, new RunTask()],
+        [CliCommandKey.BUNDLE, new BundleTask()],
+        [CliCommandKey.CONFIG, new PrintConfigTask()],
+        [CliCommandKey.HELP, new PrintHelpMenuTask()],
+        [
+          CliCommandKey.PARSE_OPTIONS,
+          {
+            run(options) {
+              console.log(options);
+            },
+          },
+        ],
+      ]),
+    );
   } catch (reason) {
-    if (reason instanceof ValidationError) {
-      const [firstInvalid] = reason.invalid.map(i =>
-        i
-          .trim()
-          .split("=")[0]
-          .replace(/^--?/, ""),
-      );
-      const suggestions = fuzzy.filter(firstInvalid, [...reason.command.args]);
-
-      if (suggestions.length > 0) {
-        const [{ string: suggestion }] = suggestions;
-
-        console.log(
-          `Invalid: ${firstInvalid}\n\nDid you mean ${chalk.bold(
-            `--${suggestion}`,
-          )}?\n`,
-        );
-      }
-    }
     console.error(reason);
     process.exit(reason.code || 1); // 👋
   }

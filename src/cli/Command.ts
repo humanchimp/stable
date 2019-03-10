@@ -2,9 +2,8 @@ import {
   Command as CommandInterface,
   CommandParams,
   Task,
-  Menu,
 } from "../interfaces";
-import { CliArgKey } from "../enums";
+import { CliArgKey, CliCommandKey } from "../enums";
 import { CliArgs } from "../types";
 import { ValidationError } from "./ValidationError";
 
@@ -16,7 +15,7 @@ export const toleratedArgs = new Set<CliArgKey>([
 export class Command implements CommandInterface {
   static toleratedArgs = toleratedArgs;
 
-  name: string;
+  name: CliCommandKey;
 
   args: Set<CliArgKey>;
 
@@ -32,21 +31,14 @@ export class Command implements CommandInterface {
     name,
     args,
     help,
-    task,
     default: isDefault = false,
     emoji,
   }: CommandParams) {
     this.name = name;
     this.args = new Set<CliArgKey>(args);
     this.help = help;
-    this.task = task;
     this.default = isDefault;
     this.emoji = emoji;
-  }
-
-  async run(options: CliArgs, menu: Menu): Promise<void> {
-    this.validateOptions(options);
-    await this.task.run(options, this, menu);
   }
 
   validateOptions(options: CliArgs): void {
