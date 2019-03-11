@@ -27,7 +27,10 @@ export class Bundle implements BundleInterface {
     configs,
     params: BundleTaskParams,
   ): Promise<Map<string, Bundle>> {
-    const { runner } = params;
+    const {
+      [CliArgKey.RUNNER]: runner,
+      [CliArgKey.FORCE]: forceRunner = false,
+    } = params;
     const bundles = new Map<string, Bundle>();
     const bundleForRunner = runner => {
       if (bundles.has(runner)) {
@@ -63,7 +66,7 @@ export class Bundle implements BundleInterface {
 
       for (const r of runner == null
         ? runners
-        : runners.includes(runner)
+        : runners.includes(runner) || forceRunner === true
         ? [runner]
         : []) {
         bundleForRunner(r).addMatch({ config, files: filtered });

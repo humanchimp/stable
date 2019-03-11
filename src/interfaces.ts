@@ -505,6 +505,7 @@ export interface BundleTaskParams extends StablercTaskParams {
   [CliArgKey.COVERAGE]: boolean;
   [CliArgKey.VERBOSE]: boolean;
   [CliArgKey.RUNNER]: string;
+  [CliArgKey.FORCE]: boolean;
 }
 
 export interface RunTaskParams extends BundleTaskParams {
@@ -515,6 +516,7 @@ export interface RunTaskParams extends BundleTaskParams {
   [CliArgKey.PARTITIONS]: number;
   [CliArgKey.QUIET]: boolean;
   [CliArgKey.RUNNER]: string;
+  [CliArgKey.FORCE]: boolean;
   [CliArgKey.OUTPUT_FORMAT]: StreamFormat;
   [CliArgKey.HIDE_SKIPS]: boolean | "focus";
   [CliArgKey.FAIL_FAST]: boolean;
