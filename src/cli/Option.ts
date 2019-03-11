@@ -1,13 +1,14 @@
 import {
   Option as OptionInterface,
   OptionParams,
-  Task,
   OptionSampler,
+  OptionExpander,
+  Menu,
 } from "../interfaces";
-import { OptionType } from "../enums";
+import { OptionType, CliCommandKey, CliArgKey } from "../enums";
 
 export class Option implements OptionInterface {
-  name: string;
+  name: CliArgKey;
 
   short: string;
 
@@ -17,25 +18,35 @@ export class Option implements OptionInterface {
 
   default: any;
 
-  task: Task;
+  command: CliCommandKey;
 
   sample: OptionSampler;
+
+  expander: OptionExpander;
 
   constructor({
     name,
     short,
     help,
     type,
-    default: defaultValue,
-    task,
+    command,
     sample,
+    default: defaultValue,
+    expand,
   }: OptionParams) {
     this.name = name;
     this.short = short;
     this.help = help;
     this.type = type;
-    this.task = task;
+    this.command = command;
     this.sample = sample;
     this.default = defaultValue;
+    this.expander = expand;
+  }
+
+  *expand(value: any, menu: Menu): IterableIterator<[CliArgKey, any]> {
+    if (this.expander != null) {
+      yield* this.expander(value, this, menu);
+    }
   }
 }

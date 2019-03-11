@@ -1,27 +1,25 @@
-import { CliArgKey, OptionType } from "../enums";
+import { CliArgKey, OptionType, CliCommandKey } from "../enums";
 import { Menu } from "./Menu";
 import { Command } from "./Command";
 import { Option } from "./Option";
-import { PrintHelpMenuTask } from "./task/PrintHelpMenuTask";
-import { PrintConfigTask } from "./task/PrintConfigTask";
-import { BundleTask } from "./task/BundleTask";
-import { RunTask } from "./task/RunTask";
 
 export const cli = new Menu({
   debug: true,
   commands: [
     new Command({
-      name: "run",
+      name: CliCommandKey.RUN,
       emoji: "🐎",
       help: `If files are passed, start there, find .stablercs. If no files passed, start with the .stablerc in the pwd. Run every suite we find with the correct .stablerc.`,
       args: [
         CliArgKey.RUNNER,
+        CliArgKey.FORCE,
         CliArgKey.PARTITION,
         CliArgKey.PARTITIONS,
+        CliArgKey.SHARD,
         CliArgKey.FILTER,
         CliArgKey.GREP,
-        CliArgKey.ORDERED,
         CliArgKey.SORT,
+        CliArgKey.ORDERED,
         CliArgKey.OUTPUT_FORMAT,
         CliArgKey.PORT,
         CliArgKey.COVERAGE,
@@ -31,11 +29,10 @@ export const cli = new Menu({
         CliArgKey.VERBOSE,
         CliArgKey.QUIET,
       ],
-      task: new RunTask(),
       default: true,
     }),
     new Command({
-      name: "bundle",
+      name: CliCommandKey.BUNDLE,
       emoji: "📦",
       help: `Produce bundle artifacts, but don't run any tests.`,
       args: [
@@ -49,10 +46,9 @@ export const cli = new Menu({
         CliArgKey.VERBOSE,
         CliArgKey.QUIET,
       ],
-      task: new BundleTask(),
     }),
     new Command({
-      name: "config",
+      name: CliCommandKey.CONFIG,
       emoji: "⚙️",
       help: `Print the config to stdout after performing the algorithm to load it relative to the given path, else the pwd. Stream the reports to stdout`,
       args: [
@@ -60,14 +56,12 @@ export const cli = new Menu({
         CliArgKey.WORKING_DIRECTORY,
         CliArgKey.VERBOSE,
       ],
-      task: new PrintConfigTask(),
     }),
     new Command({
-      name: "help",
+      name: CliCommandKey.HELP,
       emoji: "🙃",
       help: `Print this message.`,
       args: [],
-      task: new PrintHelpMenuTask(),
     }),
   ],
   options: [
@@ -97,6 +91,12 @@ export const cli = new Menu({
       type: OptionType.STRING,
     }),
     new Option({
+      name: CliArgKey.FORCE,
+      help:
+        "force the use of the specified runner even against conflicting directives",
+      type: OptionType.BOOLEAN,
+    }),
+    new Option({
       name: CliArgKey.OUTPUT_FORMAT,
       short: "o",
       help: "the format of the output stream.",
@@ -114,6 +114,11 @@ export const cli = new Menu({
       help: "a convenient shorthand for --sort=ordered.",
       type: OptionType.BOOLEAN,
       default: undefined,
+      *expand(value) {
+        if (value === true) {
+          yield [CliArgKey.SORT, "ordered"];
+        }
+      },
     }),
     new Option({
       name: CliArgKey.PARTITIONS,
@@ -126,6 +131,33 @@ export const cli = new Menu({
       help: "the partition to run and report.",
       type: OptionType.NUMBER,
       default: undefined,
+    }),
+    new Option({
+      name: CliArgKey.SHARD,
+      help: "a shorthand notation of partition/partitions.",
+      type: OptionType.STRING,
+      default: undefined,
+      *expand(value) {
+        if (value !== undefined) {
+          const [partitionInput, partitionsInput] = value.split("/");
+
+          const partition = parseInt(partitionInput, 10);
+          const partitions = parseInt(partitionsInput, 10);
+
+          if (Number.isNaN(partition) || Number.isNaN(partitions)) {
+            throw new TypeError(
+              "partition and partitions should both be numbers",
+            );
+          }
+          if (partition <= 0 || partitions <= 0 || partition > partitions) {
+            throw new RangeError(
+              "partition must be a positive number less than or equal to partitions",
+            );
+          }
+          yield [CliArgKey.PARTITION, partition];
+          yield [CliArgKey.PARTITIONS, partitions];
+        }
+      },
     }),
     new Option({
       name: CliArgKey.SEED,
@@ -215,7 +247,7 @@ export const cli = new Menu({
       help: "print this message.",
       type: OptionType.BOOLEAN,
       default: false,
-      task: new PrintHelpMenuTask(),
+      command: CliCommandKey.HELP,
     }),
   ],
 });

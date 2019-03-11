@@ -4,40 +4,35 @@ import {
   Command,
   Option,
   CommandParse,
-  Named,
+  Task,
 } from "../interfaces";
 import { Command as SimpleCommand, toleratedArgs } from "./Command";
 import { kebab } from "./case/kebab";
-import { OptionType, CliArgKey } from "../enums";
+import { OptionType, CliArgKey, CliCommandKey } from "../enums";
 import { ValidationError } from "./ValidationError";
 import { parseOption } from "./parseOption";
 import { parseOptionValue } from "./parseOptionValue";
 import { CliArgs } from "../types";
 
 export class Menu implements MenuInterface {
-  commands: Map<string, Command>;
+  commands: Map<CliCommandKey, Command>;
 
-  options: Map<string, Option>;
+  options: Map<CliArgKey, Option>;
 
   debug: boolean;
 
   constructor({ commands, options, debug = false }: MenuParams) {
-    this.commands = this.makeMap<Command>(commands);
-    this.options = this.makeMap<Option>(options);
+    this.commands = this.makeMap<CliCommandKey, Command>(commands);
+    this.options = this.makeMap<CliArgKey, Option>(options);
     this.debug = debug;
 
-    if (debug && !this.commands.has("parse-options")) {
+    if (debug && !this.commands.has(CliCommandKey.PARSE_OPTIONS)) {
       this.commands.set(
-        "parse-options",
+        CliCommandKey.PARSE_OPTIONS,
         new SimpleCommand({
-          name: "parse-options",
+          name: CliCommandKey.PARSE_OPTIONS,
           emoji: "🥢",
           help: "Parse argv; print result",
-          task: {
-            run(options) {
-              console.log(options); // eslint-disable-line
-            },
-          },
           args: [...this.options.keys()] as CliArgKey[],
         }),
       );
@@ -159,15 +154,16 @@ export class Menu implements MenuInterface {
     return {
       command: selectedCommand,
       isDefault,
-      options: this.flatOptions(options, selectedCommand),
+      options: this.compileOptions(options, selectedCommand),
       invalid,
       rest,
     };
   }
 
-  async runFromArgv(argv: string[]): Promise<void> {
+  async runFromArgv(argv: string[], tasks: Map<string, Task>): Promise<void> {
     const parsed = this.commandFromArgv(argv.slice(2));
-    const { command, options, rest, invalid } = parsed;
+    const { options, rest, invalid } = parsed;
+    let { command }: { command: Command } = parsed;
 
     if (invalid.length > 0) {
       throw new ValidationError(
@@ -178,11 +174,9 @@ export class Menu implements MenuInterface {
     // the task belonging to any option will run instead of the command's task, because
     // options are finer-grained than commands. Concretely, `$ stable run -h` is equivalent
     // to running `$ stable help`, and doesn't invoke `$ stable run` machinery at all.
-    let task;
-
-    for (const { task: t, name } of this.options.values()) {
-      if (options[name] && t != null) {
-        task = t;
+    for (const { command: commandName, name } of this.options.values()) {
+      if (options[name] && commandName != null) {
+        command = this.commands.get(commandName);
       }
     }
 
@@ -194,39 +188,50 @@ export class Menu implements MenuInterface {
       rest,
     };
 
-    await (task != null
-      ? task.run(mashup, null, this)
-      : command.run(mashup, this));
+    await command.validateOptions(options);
+    await tasks.get(command.name).run(mashup, command, this);
   }
 
-  private flatOptions(options: CliArgs, command: Command): CliArgs {
+  private compileOptions(options: CliArgs, command: Command): CliArgs {
     const flat: CliArgs = {};
 
     for (const optionName of [...command.args, ...toleratedArgs]) {
       const option = this.options.get(optionName);
       const splat = [].concat(options[optionName] || []);
-      const sample =
-        option && option.sample != null
-          ? option.sample(splat)
-          : splat[splat.length - 1];
-      const value = sample === undefined ? option && option.default : sample;
+      let sample: any;
+      let defaultValue: any;
 
-      // Only create keys for undefineds for explicit args, not merely tolerated ones
-      if (value !== undefined || command.args.has(optionName)) {
+      if (option != null) {
+        // In this case we have an "explicit" option (not a merely tolarated one)
+        defaultValue = option.default;
+        sample =
+          option.sample != null
+            ? option.sample(splat)
+            : splat[splat.length - 1];
+
+        const value = sample === undefined ? defaultValue : sample;
+
         flat[optionName] = value;
+
+        for (const [expanedOptionName, expandedValue] of option.expand(
+          value,
+          this,
+        )) {
+          flat[expanedOptionName] = expandedValue;
+        }
       }
     }
     return flat;
   }
 
   private detectCommand(arg: string): Command {
-    return this.commands.get(kebab(arg));
+    return this.commands.get(kebab(arg) as CliCommandKey);
   }
 
   private detectOption(arg: string): Option {
     const [, stripped] = arg.match(/^--?(?:no-)?(.*)/);
     const candidate =
-      this.options.get(stripped) ||
+      this.options.get(stripped as CliArgKey) ||
       this.options.get(this.getAliases()[stripped]);
 
     return candidate == null
@@ -249,7 +254,7 @@ export class Menu implements MenuInterface {
       }, {});
   }
 
-  private makeMap<T extends Named>(list: T[]): Map<string, T> {
-    return new Map(list.map(t => [kebab(t.name), t] as [string, T]));
+  private makeMap<T, T2 extends { name: T }>(list: T2[]): Map<T, T2> {
+    return new Map(list.map(t => [kebab(`${t.name}`) as any, t] as [T, T2]));
   }
 }
