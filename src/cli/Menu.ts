@@ -154,7 +154,7 @@ export class Menu implements MenuInterface {
     return {
       command: selectedCommand,
       isDefault,
-      options: this.flatOptions(options, selectedCommand),
+      options: this.compileOptions(options, selectedCommand),
       invalid,
       rest,
     };
@@ -192,21 +192,33 @@ export class Menu implements MenuInterface {
     await tasks.get(command.name).run(mashup, command, this);
   }
 
-  private flatOptions(options: CliArgs, command: Command): CliArgs {
+  private compileOptions(options: CliArgs, command: Command): CliArgs {
     const flat: CliArgs = {};
 
     for (const optionName of [...command.args, ...toleratedArgs]) {
       const option = this.options.get(optionName);
       const splat = [].concat(options[optionName] || []);
-      const sample =
-        option && option.sample != null
-          ? option.sample(splat)
-          : splat[splat.length - 1];
-      const value = sample === undefined ? option && option.default : sample;
+      let sample: any;
+      let defaultValue: any;
 
-      // Only create keys for undefineds for explicit args, not merely tolerated ones
-      if (value !== undefined || command.args.has(optionName)) {
+      if (option != null) {
+        // In this case we have an "explicit" option (not a merely tolarated one)
+        defaultValue = option.default;
+        sample =
+          option.sample != null
+            ? option.sample(splat)
+            : splat[splat.length - 1];
+
+        const value = sample === undefined ? defaultValue : sample;
+
         flat[optionName] = value;
+
+        for (const [expanedOptionName, expandedValue] of option.expand(
+          value,
+          this,
+        )) {
+          flat[expanedOptionName] = expandedValue;
+        }
       }
     }
     return flat;

@@ -342,14 +342,20 @@ export interface OptionSampler {
   (splat: any[]): any;
 }
 
+export interface OptionExpander {
+  (value: any, option: Option, menu: Menu): IterableIterator<[CliArgKey, any]>;
+}
+
 export interface Option {
   name: CliArgKey;
-  short?: string;
+  short: string;
   help: string;
   type: OptionType;
-  default?: any;
-  command?: CliCommandKey;
-  sample?: OptionSampler;
+  default: any;
+  command: CliCommandKey;
+  sample: OptionSampler;
+  expander: OptionExpander;
+  expand(value: any, menu: Menu): IterableIterator<[CliArgKey, any]>;
 }
 
 export interface OptionParse {
@@ -368,6 +374,7 @@ export interface OptionParams {
   default?: any;
   command?: CliCommandKey;
   sample?: OptionSampler;
+  expand?: OptionExpander;
 }
 
 export interface Menu {

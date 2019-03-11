@@ -5,6 +5,15 @@ import { Command, Option, Task } from "../../src/interfaces";
 import { OptionType, CliArgKey, CliCommandKey } from "../../src/enums";
 import { ValidationError } from "../../src/cli/ValidationError";
 
+const basicOption = {
+  short: undefined,
+  command: undefined,
+  sample: undefined,
+  default: undefined,
+  expander: undefined,
+  *expand() {},
+};
+
 let subject: Menu;
 
 afterEach(() => {
@@ -90,6 +99,7 @@ describe(".commandForArgv(argv: string[])", () => {
     sampleSpy = createSpy(it => it[it.length - 1]);
     options = [
       {
+        ...basicOption,
         name: CliArgKey.PORT,
         short: "s",
         help: "a short option",
@@ -97,6 +107,7 @@ describe(".commandForArgv(argv: string[])", () => {
         default: 0,
       },
       {
+        ...basicOption,
         name: CliArgKey.OUTPUT_FORMAT,
         short: "l",
         help: "an option with a dash",
@@ -104,6 +115,7 @@ describe(".commandForArgv(argv: string[])", () => {
         default: false,
       },
       {
+        ...basicOption,
         name: CliArgKey.QUIET,
         short: "b",
         help: "a boolean flag",
@@ -111,12 +123,14 @@ describe(".commandForArgv(argv: string[])", () => {
         default: true,
       },
       {
+        ...basicOption,
         name: CliArgKey.GREP,
         help: "a string option with no short and no default",
         type: OptionType.STRING,
         sample: sampleSpy,
       },
       {
+        ...basicOption,
         name: CliArgKey.ORDERED,
         help: "a string or boolean option with a string default",
         type: OptionType.STRING_OR_BOOLEAN,
@@ -426,6 +440,17 @@ describe(".commandForArgv(argv: string[])", () => {
         },
         [],
       ],
+      [
+        [CliCommandKey.BUNDLE, "foo", "bar"],
+        {
+          grep: undefined,
+          port: 0,
+          "output-format": false,
+          quiet: true,
+          ordered: "contrived",
+        },
+        ["foo", "bar"],
+      ],
     ],
     ([argv, expected, expectRest]) => {
       it("should summon the matching command", () => {
@@ -490,11 +515,13 @@ describe(".runFromArgv(argv: string[])", () => {
           ],
           options: [
             {
+              ...basicOption,
               name: CliArgKey.QUIET,
               help: "help for a",
               type: OptionType.BOOLEAN,
             },
             {
+              ...basicOption,
               name: CliArgKey.PORT,
               help: "help for b",
               type: OptionType.NUMBER,
@@ -547,12 +574,14 @@ describe(".runFromArgv(argv: string[])", () => {
           ],
           options: [
             {
+              ...basicOption,
               name: CliArgKey.QUIET,
               help: "help for a",
               type: OptionType.BOOLEAN,
               command: CliCommandKey.HELP,
             },
             {
+              ...basicOption,
               name: CliArgKey.PORT,
               help: "help for b",
               type: OptionType.NUMBER,
@@ -614,12 +643,14 @@ describe(".runFromArgv(argv: string[])", () => {
           ],
           options: [
             {
+              ...basicOption,
               name: CliArgKey.QUIET,
               help: "help for a",
               type: OptionType.BOOLEAN,
               command: CliCommandKey.HELP,
             },
             {
+              ...basicOption,
               name: CliArgKey.PORT,
               help: "help for b",
               type: OptionType.NUMBER,
@@ -679,11 +710,13 @@ describe(".runFromArgv(argv: string[])", () => {
           ],
           options: [
             {
+              ...basicOption,
               name: CliArgKey.QUIET,
               help: "help for a",
               type: OptionType.BOOLEAN,
             },
             {
+              ...basicOption,
               name: CliArgKey.PORT,
               help: "help for b",
               type: OptionType.NUMBER,
@@ -742,8 +775,47 @@ describe("debug mode", () => {
   });
 });
 
+describe("when an option has an expander", () => {
+  it("should expand the options accordingly", () => {
+    const option: Option = {
+      ...mockOption(CliArgKey.HEADFUL),
+      default: true,
+      *expand(value: number, menu: Menu): IterableIterator<[CliArgKey, any]> {
+        yield [CliArgKey.GREP, "123"];
+        yield [CliArgKey.FORCE, 876];
+        yield [CliArgKey.COVERAGE, value];
+        yield [CliArgKey.FILTER, menu];
+      },
+    };
+    const subject = new Menu({
+      options: [option],
+      commands: [
+        {
+          ...mockCommand(CliCommandKey.RUN),
+          args: new Set([
+            CliArgKey.HEADFUL,
+            CliArgKey.GREP,
+
+            // ...intentionally omitting the others
+          ]),
+        },
+      ],
+    });
+    const { options } = subject.commandFromArgv(["run", "--headful"]);
+
+    expect(options).to.eql({
+      coverage: true,
+      filter: subject,
+      force: 876,
+      grep: "123",
+      headful: true,
+    });
+  });
+});
+
 function mockOption(name): Option {
   return {
+    ...basicOption,
     name,
     help: `mock option: ${name}`,
     type: OptionType.STRING_OR_BOOLEAN,

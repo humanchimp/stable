@@ -18,6 +18,7 @@ export enum CliArgKey {
   SEED = "seed",
   PARTITIONS = "partitions",
   PARTITION = "partition",
+  SHARD = "shard",
   PORT = "port",
   HIDE_SKIPS = "hide-skips",
   FAIL_FAST = "fail-fast",

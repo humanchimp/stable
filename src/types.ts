@@ -7,7 +7,7 @@ import {
   ConsoleMessage,
 } from "./interfaces";
 
-export type CliArgs = { [P in CliArgKey]?: any[] };
+export type CliArgs = { [P in CliArgKey]?: any };
 
 export type Splat<T> = T | T[];
 

@@ -15,10 +15,11 @@ export const cli = new Menu({
         CliArgKey.FORCE,
         CliArgKey.PARTITION,
         CliArgKey.PARTITIONS,
+        CliArgKey.SHARD,
         CliArgKey.FILTER,
         CliArgKey.GREP,
-        CliArgKey.ORDERED,
         CliArgKey.SORT,
+        CliArgKey.ORDERED,
         CliArgKey.OUTPUT_FORMAT,
         CliArgKey.PORT,
         CliArgKey.COVERAGE,
@@ -113,6 +114,11 @@ export const cli = new Menu({
       help: "a convenient shorthand for --sort=ordered.",
       type: OptionType.BOOLEAN,
       default: undefined,
+      *expand(value) {
+        if (value === true) {
+          yield [CliArgKey.SORT, "ordered"];
+        }
+      },
     }),
     new Option({
       name: CliArgKey.PARTITIONS,
@@ -125,6 +131,33 @@ export const cli = new Menu({
       help: "the partition to run and report.",
       type: OptionType.NUMBER,
       default: undefined,
+    }),
+    new Option({
+      name: CliArgKey.SHARD,
+      help: "a shorthand notation of partition/partitions.",
+      type: OptionType.STRING,
+      default: undefined,
+      *expand(value) {
+        if (value !== undefined) {
+          const [partitionInput, partitionsInput] = value.split("/");
+
+          const partition = parseInt(partitionInput, 10);
+          const partitions = parseInt(partitionsInput, 10);
+
+          if (Number.isNaN(partition) || Number.isNaN(partitions)) {
+            throw new TypeError(
+              "partition and partitions should both be numbers",
+            );
+          }
+          if (partition <= 0 || partitions <= 0 || partition > partitions) {
+            throw new RangeError(
+              "partition must be a positive number less than or equal to partitions",
+            );
+          }
+          yield [CliArgKey.PARTITION, partition];
+          yield [CliArgKey.PARTITIONS, partitions];
+        }
+      },
     }),
     new Option({
       name: CliArgKey.SEED,
@@ -214,7 +247,7 @@ export const cli = new Menu({
       help: "print this message.",
       type: OptionType.BOOLEAN,
       default: false,
-      command: "help",
+      command: CliCommandKey.HELP,
     }),
   ],
 });
