@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { cli } from "./cli";
 import { Task } from "../interfaces";
 import { RunTask } from "./task/RunTask";
