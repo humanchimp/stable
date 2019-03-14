@@ -3,6 +3,7 @@ import babel from "rollup-plugin-babel";
 import nodeResolve from "rollup-plugin-node-resolve";
 import commonjs from "rollup-plugin-commonjs";
 import typescript from "rollup-plugin-typescript";
+import hashbang from "rollup-plugin-hashbang";
 import typescript3 from "typescript";
 
 export default {
@@ -15,6 +16,7 @@ export default {
   external: id =>
     (id[0] !== "." && !isAbsolute(id)) || id.slice(-5, id.length) === ".json",
   plugins: [
+    hashbang(),
     typescript({
       typescript: typescript3,
       target: "es6",
