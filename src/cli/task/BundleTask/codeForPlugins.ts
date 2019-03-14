@@ -16,7 +16,9 @@ export function codeForPlugins(plugins: StablercPlugin[]): string {
 ${listenerModules
   .map(
     ({ exportName, path }) =>
-      `import * as ${exportName}_raw from "${forNow(path)}";`,
+      `import * as ${exportName}_raw from ${JSON.stringify(
+        require.resolve(path),
+      )};`,
   )
   .join("\n")}
 ${listenerModules
@@ -36,8 +38,4 @@ export { plugins };
 `;
 
   return listenerBundle;
-}
-
-function forNow(path) {
-  return `./plugins/${path.slice("@topl/stable-plugin-".length)}`;
 }

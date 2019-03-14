@@ -1,6 +1,6 @@
 import { join, resolve } from "path";
 import { RollupBuild, rollup } from "rollup";
-import { writeFile, copy } from "fs-extra";
+import { writeFile } from "fs-extra";
 import { dir } from "tmp-promise";
 import deepEqual from "fast-deep-equal";
 import {
@@ -163,7 +163,7 @@ export class Bundle implements BundleInterface {
   }
 
   async rollup(): Promise<RollupBuild> {
-    const { shouldInstrument, verbose, cwd, onready, runner } = this;
+    const { shouldInstrument, verbose, onready, runner } = this;
     const rollupPlugins = await this.rollupPlugins;
     const matchValues = [...this.matches.values()];
     const pluginsPromise = this.loadPlugins(
@@ -206,7 +206,7 @@ export class Bundle implements BundleInterface {
           format: "esm",
           sourcemap: "inline",
         }),
-        copy(join(cwd, "plugins"), join(tmp.path, "plugins")),
+        // copy(join(cwd, "plugins"), join(tmp.path, "plugins")),
       ];
 
       const matches = [...this.matches];
