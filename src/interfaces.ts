@@ -92,15 +92,11 @@ export interface SpecParams extends SpecOptions {
 export interface Spec extends SpecParams {
   meta: SpecMeta;
   timeout(ms: number): Spec;
-  shouldFail(): Spec;
-  rescue(rescuer: ErrorHandler): Spec;
   run(): AsyncIterableIterator<Report>;
 }
 
 export interface SpecMeta {
-  shouldFail?: boolean;
   timeout?: number;
-  rescuer?: ErrorHandler;
   infos?: any[];
 }
 
@@ -117,8 +113,6 @@ export interface Report extends SpecOptions {
   startedAt?: number;
   endedAt?: number;
   elapsed?: number;
-  shouldFail?: boolean;
-  rescued?: boolean;
   suite?: Suite;
   [key: string]: any;
 }
@@ -175,7 +169,7 @@ export interface Listeners {
 }
 
 export interface Listener {
-  (report: Report, continuation: Effect | ErrorHandler): void;
+  (report: Report, continuation: Effect): void;
 }
 
 export interface Hooks {
@@ -193,10 +187,6 @@ export interface Hook {
 
 export interface Effect {
   (): void;
-}
-
-export interface ErrorHandler {
-  (reason: Error): void;
 }
 
 export interface SuiteClosure {

@@ -24,21 +24,6 @@ describe("new Spec() properties of new instances", () => {
     });
   });
 
-  describe(".shouldFail()", () => {
-    it("should annotate meta.shouldFail", () => {
-      spec.shouldFail();
-      expect(spec.meta).to.eql({ shouldFail: true });
-    });
-  });
-
-  describe(".rescue(rescuer)", () => {
-    it("should annotate meta.rescuer", () => {
-      function rescuer() {}
-      spec.rescue(rescuer);
-      expect(spec.meta).to.eql({ rescuer });
-    });
-  });
-
   describe(".info(infos)", () => {
     it("should accumulate meta.infos", () => {
       expect(spec.meta).to.eql({});

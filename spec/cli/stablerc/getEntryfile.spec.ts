@@ -20,18 +20,14 @@ describe("getEntryfile(file: string): Promise<string>", () => {
   });
 
   it("should throw an error for a non-existent path in the case of a directory", async () => {
-    await getEntryfile("jlkjkljk");
-  })
-    .shouldFail()
-    .rescue(reason => {
+    await getEntryfile("jlkjkljk").catch(reason => {
       expect(reason.code).to.equal("ENOENT");
     });
+  });
 
   it("should throw an error for a non-existent path in the case of a .stablerc", async () => {
-    await getEntryfile("jlkjkljk/.stablerc");
-  })
-    .shouldFail()
-    .rescue(reason => {
+    await getEntryfile("jlkjkljk/.stablerc").catch(reason => {
       expect(reason.code).to.equal("ENOENT");
     });
+  });
 });

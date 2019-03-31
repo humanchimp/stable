@@ -396,12 +396,10 @@ describe("new Suite(description)", () => {
     });
 
     it("is read only", () => {
-      (subject as any).isDeeplyFocused = true;
-    })
-      .shouldFail()
-      .rescue(reason => {
-        expect(reason).to.be.instanceOf(TypeError);
-      });
+      expect(() => {
+        (subject as any).isDeeplyFocused = true;
+      }).to.throw(TypeError);
+    });
   });
 
   describeEach(
@@ -716,13 +714,11 @@ describe("new Suite(description)", () => {
       });
 
       it("should bail midway", async () => {
-        await exhaust(subject.open());
-      })
-        .shouldFail()
-        .rescue(reason => {
+        await exhaust(subject.open()).catch(reason => {
           expect(reason.message).to.match(/contrived/);
           expect(superSpy.getCalls().map(call => call.args)).to.eql([[1]]);
         });
+      });
 
       describe("attempting to run specs with a bad `beforeAll` hook", () => {
         it("should not run the specs", async () => {
@@ -840,13 +836,11 @@ describe("new Suite(description)", () => {
       });
 
       it("should bail midway", async () => {
-        await exhaust(subject.open());
-      })
-        .shouldFail()
-        .rescue(reason => {
+        await exhaust(subject.open()).catch(reason => {
           expect(reason.message).to.match(/contrived/);
           expect(superSpy.getCalls().map(call => call.args)).to.eql([[1]]);
         });
+      });
     });
 
     it("is idempotent", async () => {
@@ -1315,11 +1309,9 @@ describe("new Suite(description)", () => {
       ],
     ],
     ([signature, thunk, expectedErrorMessagePattern]) => {
-      it(`should throw for the call of signature: ${signature}`, thunk)
-        .shouldFail()
-        .rescue(reason => {
-          expect(reason.message).to.match(expectedErrorMessagePattern);
-        });
+      it(`should throw for the call of signature: ${signature}`, () => {
+        expect(thunk).to.throw(expectedErrorMessagePattern);
+      });
     },
   );
 });
@@ -1623,12 +1615,10 @@ describe("new Suite(description, { listeners })", () => {
 
 describe("new Suite()", () => {
   it("should throw an error", () => {
-    new Suite();
-  })
-    .shouldFail()
-    .rescue(reason => {
-      expect(reason.message).to.match(/required/);
-    });
+    expect(() => {
+      new Suite();
+    }).to.throw(/required/);
+  });
 });
 
 describe("new Suite(null)", () => {

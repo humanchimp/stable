@@ -34,12 +34,10 @@ describeEach(
   ],
   ([code, pattern]) => {
     it("should throw an error", async () => {
-      await dsl({ code });
-    })
-      .shouldFail()
-      .rescue(reason => {
+      await dsl({ code }).catch(reason => {
         expect(reason.message).to.match(pattern);
       });
+    });
   },
 );
 

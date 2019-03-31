@@ -59,13 +59,10 @@ describe("castValue(value, type)", () => {
     [["irrelevant", "not valid"]],
     ([input, badValue]) => {
       it("should throw a TypeError", () => {
-        (castValue as any)(input, badValue);
-      })
-        .shouldFail()
-        .rescue(reason => {
-          expect(reason.message).to.match(/cannot cast/);
-          expect(reason).to.be.instanceOf(TypeError);
-        });
+        expect(() => {
+          (castValue as any)(input, badValue);
+        }).to.throw(TypeError, /cannot cast/);
+      });
     },
   );
 

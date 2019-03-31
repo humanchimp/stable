@@ -96,12 +96,10 @@ describeEach(
         ],
         ([args]) => {
           it("should throw an error", async () => {
-            subject.validateOptions(args);
-          })
-            .shouldFail()
-            .rescue(reason => {
-              expect(reason.message).to.match(/invalid arguments/);
-            });
+            expect(() => {
+              subject.validateOptions(args);
+            }).to.throw(/invalid arguments/);
+          });
         },
       );
     });
