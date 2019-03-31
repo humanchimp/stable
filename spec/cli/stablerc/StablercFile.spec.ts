@@ -251,7 +251,6 @@ describe("StablercFile.loadAll(filename: string, params: StablercFileLoadParams)
                   timeout: 500,
                 },
               ],
-              ["rescue"],
             ],
             runners: undefined,
           },

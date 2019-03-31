@@ -35,7 +35,6 @@ describe("stablercsForSpecs", () => {
           { include: [join(__dirname, "spec/framework/fixture/**/*")] },
         ],
         ["timing", { timeout: 500 }],
-        ["rescue"],
       ],
       runners: ["isolate", "chrome", "jsdom"],
     });

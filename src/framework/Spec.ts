@@ -1,7 +1,6 @@
 import {
   Spec as SpecInterface,
   SpecMeta,
-  ErrorHandler,
   Effect,
   SpecParams,
   Suite,
@@ -41,16 +40,6 @@ export class Spec implements SpecInterface {
 
   timeout(ms: number): Spec {
     this.meta.timeout = ms;
-    return this;
-  }
-
-  shouldFail(): Spec {
-    this.meta.shouldFail = true;
-    return this;
-  }
-
-  rescue(rescuer: ErrorHandler): Spec {
-    this.meta.rescuer = rescuer;
     return this;
   }
 

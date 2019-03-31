@@ -83,12 +83,10 @@ describe("new Vconsole()", () => {
 
     describe("for any other event name", () => {
       it("should throw an error", () => {
-        subject.addListener("contrived", () => {});
-      })
-        .shouldFail()
-        .rescue(reason => {
-          expect(reason.message).to.match(/unknown event name/);
-        });
+        expect(() => {
+          subject.addListener("contrived", () => {});
+        }).to.throw(/unknown event name/);
+      });
     });
   });
 
@@ -116,12 +114,10 @@ describe("new Vconsole()", () => {
 
     describe("for any other event name", () => {
       it("should throw an error", () => {
-        subject.removeListener("contrived", () => {});
-      })
-        .shouldFail()
-        .rescue(reason => {
-          expect(reason.message).to.match(/unknown event name/);
-        });
+        expect(() => {
+          subject.removeListener("contrived", () => {});
+        }).to.throw(/unknown event name/);
+      });
     });
   });
 });

@@ -30,8 +30,6 @@ interface DslTableSuite {
 
 interface Spec {
   timeout(ms: number): Spec;
-  shouldFail(): Spec;
-  rescue(rescuer: Rescuer): Spec;
   info(info: any): Spec;
 }
 

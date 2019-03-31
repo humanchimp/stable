@@ -35,11 +35,9 @@ describeEach(
   ],
   testCase => {
     it("should throw an error about too many arugments", () => {
-      wrapTestCase(testCase);
-    })
-      .shouldFail()
-      .rescue(reason => {
-        expect(reason.message).to.match(/too many arguments/);
-      });
+      expect(() => {
+        wrapTestCase(testCase);
+      }).to.throw(/too many arguments/);
+    });
   },
 );

@@ -80,12 +80,10 @@ describe(".defaultCommand()", () => {
     });
 
     it("should throw an error", () => {
-      subject.defaultCommand();
-    })
-      .shouldFail()
-      .rescue(reason => {
-        expect(reason.message).to.match(/no default command/);
-      });
+      expect(() => {
+        subject.defaultCommand();
+      }).to.throw(/no default command/);
+    });
   });
 });
 
@@ -684,13 +682,13 @@ describe(".runFromArgv(argv: string[])", () => {
         options: [],
       });
 
-      await subject.runFromArgv(["0", "1", "luke", "--yoda"], new Map());
-    })
-      .shouldFail()
-      .rescue(reason => {
-        expect(reason).to.be.instanceOf(ValidationError);
-        expect(reason.message).to.match(/unintelligible arguments/);
-      });
+      await subject
+        .runFromArgv(["0", "1", "luke", "--yoda"], new Map())
+        .catch(reason => {
+          expect(reason).to.be.instanceOf(ValidationError);
+          expect(reason.message).to.match(/unintelligible arguments/);
+        });
+    });
   });
 
   describe("when no command is given", () => {

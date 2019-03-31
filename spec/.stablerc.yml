@@ -2,4 +2,3 @@ extends: ../.stablerc.yml
 plugins:
 - - timing
   - timeout: 500
-- - rescue
