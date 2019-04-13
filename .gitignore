@@ -8,5 +8,5 @@ package-lock.json
 yarn-error.log
 stable-bundle.js
 stable-bundle.js.map
-cli.js
+cli-impl.js
 script
