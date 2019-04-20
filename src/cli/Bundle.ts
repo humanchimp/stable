@@ -1,6 +1,6 @@
 import { join, resolve } from "path";
 import { RollupBuild, rollup } from "rollup";
-import { writeFile } from "fs-extra";
+import { writeFile, copy } from "fs-extra";
 import { dir } from "tmp-promise";
 import deepEqual from "fast-deep-equal";
 import {
@@ -179,14 +179,7 @@ export class Bundle implements BundleInterface {
           pluginsPromise,
         }),
     );
-    const [
-      libraryBundle,
-      runnerBundle,
-      pluginModules,
-      testBundles,
-      tmp,
-    ] = await Promise.all([
-      this.libraryBundle(),
+    const [runnerBundle, pluginModules, testBundles, tmp] = await Promise.all([
       this.runnerBundle(),
       this.awaitPlugins(pluginsPromise),
       Promise.all(testBundlePromises),
@@ -195,11 +188,7 @@ export class Bundle implements BundleInterface {
 
     try {
       const firstPhase = [
-        libraryBundle.write({
-          file: join(tmp.path, "stable.js"),
-          format: "esm",
-          sourcemap: "inline",
-        }),
+        copy(join(__dirname, "dist/framework.js"), join(tmp.path, "stable.js")),
         // TODO: should we only compile the runner conditionally?
         runnerBundle.write({
           file: join(tmp.path, "run.js"),
@@ -264,13 +253,6 @@ export class Bundle implements BundleInterface {
 
   async rollupSpecfiles(params): Promise<RollupBuild> {
     return bundleFromFiles(params);
-  }
-
-  async libraryBundle(): Promise<RollupBuild> {
-    return rollup({
-      input: join(__dirname, "./src/framework/lib.ts"),
-      plugins: await this.rollupPlugins,
-    });
   }
 
   async runnerBundle(): Promise<RollupBuild> {

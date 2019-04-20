@@ -1,16 +1,18 @@
 {
   "name": "@topl/stable",
-  "version": "0.5.10",
+  "version": "0.5.13",
   "description": "yet another test framework",
   "main": "lib/lib.js",
   "author": "Lil Thorny <hi@lilthorny.party>",
   "license": "MIT",
   "private": false,
   "scripts": {
-    "build": "$(npm bin)/rollup -c ./rollup.config.js",
+    "build": "rollup -c ./rollup.config.js",
+    "build:framework": "rollup -c ./rollup.framework.config.js",
+    "build:framework-inline-sourcemap": "rollup -c ./rollup.framework.config.js -m inline -o dist/framework-inline-sourcemap.js",
     "test": "node ./cli.js",
-    "cover": "$(npm bin)/nyc --reporter=lcov node ./cli.js",
-    "lint": "$(npm bin)/eslint src spec --ext=.ts"
+    "cover": "nyc --reporter=lcov node ./cli.js",
+    "lint": "eslint src spec --ext=.ts"
   },
   "types": "",
   "dependencies": {
