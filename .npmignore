@@ -12,4 +12,3 @@ cloudbuild.yaml
 .DS_Store
 yarn.lock
 script
-src/cli/

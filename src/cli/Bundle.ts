@@ -1,6 +1,6 @@
-import { join, resolve } from "path";
+import { join } from "path";
 import { RollupBuild, rollup } from "rollup";
-import { writeFile } from "fs-extra";
+import { writeFile, copy } from "fs-extra";
 import { dir } from "tmp-promise";
 import deepEqual from "fast-deep-equal";
 import {
@@ -179,34 +179,21 @@ export class Bundle implements BundleInterface {
           pluginsPromise,
         }),
     );
-    const [
-      libraryBundle,
-      runnerBundle,
-      pluginModules,
-      testBundles,
-      tmp,
-    ] = await Promise.all([
-      this.libraryBundle(),
-      this.runnerBundle(),
+    const [pluginModules, testBundles, tmp] = await Promise.all([
       this.awaitPlugins(pluginsPromise),
       Promise.all(testBundlePromises),
       dir({ unsafeCleanup: true }),
     ]);
 
     try {
+      const specialRunner = bundlerAliasForRunner(this.runner);
       const firstPhase = [
-        libraryBundle.write({
-          file: join(tmp.path, "stable.js"),
-          format: "esm",
-          sourcemap: "inline",
-        }),
-        // TODO: should we only compile the runner conditionally?
-        runnerBundle.write({
-          file: join(tmp.path, "run.js"),
-          format: "esm",
-          sourcemap: "inline",
-        }),
-        // copy(join(cwd, "plugins"), join(tmp.path, "plugins")),
+        copy(join(__dirname, "dist/framework.js"), join(tmp.path, "stable.js")),
+        specialRunner != null &&
+          copy(
+            join(__dirname, `dist/runners/${specialRunner}.js`),
+            join(tmp.path, "run.js"),
+          ),
       ];
 
       const matches = [...this.matches];
@@ -239,6 +226,7 @@ export class Bundle implements BundleInterface {
       const testBundle = codeForTestBundle(
         bundlerAliasForRunner(runner) ? undefined : onready,
         this.matches.size,
+        specialRunner,
       );
       const testBundlePath = join(tmp.path, "index.js");
 
@@ -264,26 +252,6 @@ export class Bundle implements BundleInterface {
 
   async rollupSpecfiles(params): Promise<RollupBuild> {
     return bundleFromFiles(params);
-  }
-
-  async libraryBundle(): Promise<RollupBuild> {
-    return rollup({
-      input: join(__dirname, "./src/framework/lib.ts"),
-      plugins: await this.rollupPlugins,
-    });
-  }
-
-  async runnerBundle(): Promise<RollupBuild> {
-    const alias = bundlerAliasForRunner(this.runner);
-    const entry =
-      alias != null
-        ? `./src/runners/${alias}/run.ts`
-        : "./src/framework/run.ts";
-
-    return rollup({
-      input: resolve(__dirname, entry),
-      plugins: await this.rollupPlugins,
-    });
   }
 
   async awaitPlugins(

@@ -9,6 +9,12 @@ steps:
   args: ['lint']
 - name: node:11
   entrypoint: yarn
+  args: ['build:framework']
+- name: node:11
+  entrypoint: yarn
+  args: ['build:runner:remote']
+- name: node:11
+  entrypoint: yarn
   args: ['build']
 - name: node:11
   entrypoint: yarn
