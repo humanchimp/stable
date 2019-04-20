@@ -1,10 +1,10 @@
-export function codeForTestBundle(onready, cardinality = 0) {
+export function codeForTestBundle(onready, cardinality = 0, specialRunner) {
   const indexes = [...range(cardinality)];
 
   return `import { dethunk } from "./stable";${
     onready == null
       ? `
-import { run } from "./run";
+import { run } from "${specialRunner == null ? "./stable" : "./run"}";
 `
       : ""
   }
