@@ -1,5 +1,4 @@
 import { StablercPlugin } from "../../interfaces";
-import { join } from "path";
 import { async as glob } from "fast-glob";
 import { createFilter } from "rollup-pluginutils";
 import { loadModule } from "../loadModule";
@@ -9,7 +8,7 @@ export async function instantiatePlugin(
   baseConfig,
 ): Promise<StablercPlugin> {
   const { [pluginName]: thunk } = await loadModule(
-    join(__dirname, "plugins", pluginName, "index.js"),
+    require.resolve(`@topl/stable-plugin-${pluginName}`),
   );
   const files =
     baseConfig && baseConfig.include != null

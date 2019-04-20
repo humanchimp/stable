@@ -9,7 +9,7 @@ export default {
   input: "src/cli/entry.ts",
   output: {
     format: "cjs",
-    file: "cli.js",
+    file: "cli-impl.js",
     sourcemap: "inline",
   },
   external: id =>
