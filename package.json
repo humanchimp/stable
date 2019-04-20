@@ -1,11 +1,12 @@
 {
   "name": "@topl/stable",
-  "version": "0.5.13",
+  "version": "0.5.15",
   "description": "yet another test framework",
   "main": "cli.js",
   "author": "Lil Thorny <hi@lilthorny.party>",
   "license": "MIT",
   "private": false,
+  "repository": "git+https://github.com/humanchimp/stable.git",
   "scripts": {
     "build": "rollup -c ./rollup.config.js",
     "build:framework": "rollup -c ./rollup.framework.config.js",
