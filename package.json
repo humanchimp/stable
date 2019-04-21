@@ -25,7 +25,6 @@
     "@babel/traverse": "^7.2.3",
     "@babel/types": "^7.2.2",
     "@topl/stable-plugin-fixture": "^0.5.0",
-    "@topl/stable-plugin-rescue": "^0.5.0",
     "@topl/stable-plugin-timing": "^0.5.0",
     "@types/chai": "^4.1.7",
     "@types/sinon": "^7.0.2",
