@@ -399,7 +399,7 @@ export class Suite implements SuiteInterface {
         yield* await this.runHook({ name: "beforeEach", effect }, spec);
       }
     }
-    yield await this.reportForSpec(spec);
+    yield this.reportForSpec(spec);
     if (!spec.skipped) {
       for (const effect of this.computedHooks.afterEach) {
         yield* await this.runHook({ name: "afterEach", effect }, spec);

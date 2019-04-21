@@ -1,5 +1,5 @@
 import { StablercMatch } from "../../interfaces";
-import { load } from "./StablercChain";
+import { load, StablercChain } from "./StablercChain";
 import { nearestStablerc } from "./nearestStablerc";
 import { dirname } from "path";
 
@@ -9,7 +9,7 @@ export async function stablercsForSpecs(
   const byStablerc = new Map<string, StablercMatch>();
   const byDir = new Map<string, string>();
 
-  for (const specfile of specfiles) {
+  specs: for (const specfile of specfiles) {
     const dir = dirname(specfile);
     const filename = await (async () => {
       if (byDir.has(dir)) {
@@ -17,7 +17,9 @@ export async function stablercsForSpecs(
       }
       const filename = await nearestStablerc(dir);
 
-      byDir.set(dirname(filename), filename);
+      if (filename !== undefined) {
+        byDir.set(dirname(filename), filename);
+      }
       return filename;
     })();
 
@@ -26,7 +28,8 @@ export async function stablercsForSpecs(
 
       entry.files.push(specfile);
     } else {
-      const chain = await load(filename);
+      const chain =
+        filename === undefined ? StablercChain.empty() : await load(filename);
       const config = chain.flat();
 
       byStablerc.set(filename, {
