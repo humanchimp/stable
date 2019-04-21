@@ -15,12 +15,12 @@ export class StablercChain implements StablercChainInterface {
     return new StablercChain({
       inheritance: [
         {
-          filename: join(cwd, '(implicit).stablerc.yml'),
+          filename: join(cwd, "(implicit).stablerc.yml"),
           file: new SimpleStablercFile({
             document: {
               include: ["./**/*.spec.{ts,js}"],
               exclude: ["./node_modules/**"],
-              runners: ['eval'],
+              runners: ["eval"],
             },
           }),
         },

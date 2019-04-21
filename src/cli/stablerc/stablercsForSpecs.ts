@@ -9,7 +9,7 @@ export async function stablercsForSpecs(
   const byStablerc = new Map<string, StablercMatch>();
   const byDir = new Map<string, string>();
 
-  specs: for (const specfile of specfiles) {
+  for (const specfile of specfiles) {
     const dir = dirname(specfile);
     const filename = await (async () => {
       if (byDir.has(dir)) {
