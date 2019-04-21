@@ -142,6 +142,10 @@ These files contain YAML (or JSON) dictionaries and are capable of configuring p
 
 ![](https://media.giphy.com/media/CwZGPdbie0z2o/giphy.gif)
 
+## code of conduct
+
+See [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+
 ## license
 
 See [LICENSE](LICENSE)
