@@ -42,7 +42,7 @@
     "fast-glob": "^2.2.4",
     "fs-extra": "^7.0.1",
     "js-yaml": "^3.12.1",
-    "jsdom": "^14.1.0",
+    "jsdom": "^15.0.0",
     "most": "^1.7.3",
     "most-async-iterable": "^1.0.1",
     "nyc": "^13.1.0",
