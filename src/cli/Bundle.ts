@@ -1,5 +1,5 @@
 import { join } from "path";
-import { RollupBuild, rollup } from "rollup";
+import { RollupBuild, rollup, RollupSingleFileBuild } from "rollup";
 import { writeFile, copy } from "fs-extra";
 import { dir } from "tmp-promise";
 import deepEqual from "fast-deep-equal";
@@ -162,7 +162,7 @@ export class Bundle implements BundleInterface {
     };
   }
 
-  async rollup(): Promise<RollupBuild> {
+  async rollup(): Promise<RollupSingleFileBuild> {
     const { shouldInstrument, verbose, onready, runner } = this;
     const rollupPlugins = await this.rollupPlugins;
     const matchValues = [...this.matches.values()];
