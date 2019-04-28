@@ -1,6 +1,5 @@
 import { isAbsolute } from "path";
 import ts from "@wessberg/rollup-plugin-ts";
-import resolve from "rollup-plugin-node-resolve";
 import typescript from "typescript";
 
 export default {
@@ -8,7 +7,7 @@ export default {
   output: {
     format: "cjs",
     file: "cli-impl.js",
-    sourcemap: "inline",
+    sourcemap: true,
   },
   external: id =>
     (id[0] !== "." && !isAbsolute(id)) || id.slice(-5, id.length) === ".json",
@@ -16,10 +15,6 @@ export default {
     ts({
       typescript,
       transpiler: 'babel'
-    }),
-    resolve({
-      extensions: [".js", ".ts"],
-      only: [],
     }),
   ],
 };

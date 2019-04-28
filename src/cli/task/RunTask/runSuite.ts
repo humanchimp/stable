@@ -1,9 +1,9 @@
-import { Suite, Sorter } from "../../../interfaces";
+import { ISuite, Sorter } from "../../../interfaces";
 import { Message } from "../../../types";
 import { Selection } from "../../../framework/lib";
 
 export async function* runSuite(
-  suite: Suite,
+  suite: ISuite,
   selection: Selection,
   sorter: Sorter,
   failFast: boolean,

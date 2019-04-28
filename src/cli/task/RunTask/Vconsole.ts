@@ -1,4 +1,4 @@
-import { Suite } from "../../../interfaces";
+import { ISuite } from "../../../interfaces";
 
 export const virtualMethods = [
   "assert",
@@ -50,7 +50,7 @@ export function wrapConsole(baseConsole: Console, send: Sender) {
   }
 }
 
-export function setupVconsole(suite: Suite, send: Sender): Suite {
+export function setupVconsole(suite: ISuite, send: Sender): ISuite {
   let originalConsole;
 
   /* eslint-disable no-global-assign */

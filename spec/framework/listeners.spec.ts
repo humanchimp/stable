@@ -1,4 +1,4 @@
-import { Suite } from "../../src/interfaces";
+import { ISuite } from "../../src/interfaces";
 import { expect } from "chai";
 import { spy } from "sinon";
 import { run } from "../../src/framework/run";
@@ -133,7 +133,7 @@ describe("complete listener", () => {
 });
 
 async function runWithListeners(listeners, spy = specSpy) {
-  const suite: Suite = await dsl({
+  const suite: ISuite = await dsl({
     ...{
       code,
       listeners,
@@ -141,7 +141,7 @@ async function runWithListeners(listeners, spy = specSpy) {
     },
   });
 
-  await run(suite, { generate: reports, perform: logSpy });
+  await run(suite as any, { generate: reports, perform: logSpy });
 }
 
 function contrivedFailure() {

@@ -1,5 +1,5 @@
 import { Sock } from "./Sock";
-import { Suite } from "../../interfaces";
+import { ISuite } from "../../interfaces";
 import { Selection } from "../../framework/Selection";
 import { serializeReason } from "../../serializeReason";
 import { parseSelectionParams } from "./parseSelectionParams";
@@ -11,7 +11,7 @@ import { castValue } from "../../cli/castValue";
 
 declare var __coverage__: any;
 
-export async function run(suite: Suite): Promise<void> {
+export async function run(suite: ISuite): Promise<void> {
   const sock = new Sock("ws://0.0.0.0:10001/ws");
 
   await sock.opened;

@@ -1,17 +1,22 @@
 import config from "./rollup.config";
 import commonjs from "rollup-plugin-commonjs";
+import resolve from "rollup-plugin-node-resolve"
 
 export default {
   ...config,
-  input: 'src/framework/lib.ts',
+  input: 'src/cli/entry.ts',
   output: {
-    file: 'dist/framework.js',
+    file: 'cli-impl.js',
     format: 'esm',
     sourcemap: 'inline',
   },
   external: [],
   plugins: [
     ...config.plugins,
+    resolve({
+      extensions: [".js", ".ts"],
+      only: [],
+    }),
     commonjs({
       include: "node_modules/**",
       namedExports: {
@@ -21,6 +26,6 @@ export default {
         "fs-extra": ["readFile"],
         "js-yaml": ["safeLoad", "safeDump"],
       },
-    })
+    }),
   ]
 };

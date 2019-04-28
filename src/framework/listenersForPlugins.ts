@@ -4,6 +4,7 @@ import { Listeners } from "./Listeners";
 interface Plugin {
   complete?: Listener;
   pending?: Listener;
+  config?: {};
 }
 
 export function listenersForPlugins(plugins: Plugin[]): Listeners {

@@ -1,9 +1,10 @@
 {
   "compilerOptions": {
-    "target": "ES2017",
-    "module": "commonjs",
+    "target": "esnext",
+    "module": "es2015",
     "lib": ["esnext"],
-    "inlineSourceMap": true,
-    "inlineSources": true
+    "allowSyntheticDefaultImports": true,
+    "declaration": true,
+    "declarationMap": true
   }
 }

@@ -2,5 +2,8 @@
 export async function exhaust(
   asyncIterator: AsyncIterableIterator<any>,
 ): Promise<void> {
-  for await (const _ of asyncIterator);
+  for await (const _ of asyncIterator) {
+    // NOTE: the following dirty hack became necessary 😞
+    await _;
+  }
 }

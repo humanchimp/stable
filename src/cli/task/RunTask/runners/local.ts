@@ -1,4 +1,4 @@
-import { Suite, RunTaskParams } from "../../../../interfaces";
+import { ISuite, RunTaskParams } from "../../../../interfaces";
 import { of, Stream, fromEvent } from "most";
 import { fromAsyncIterable } from "most-async-iterable";
 import { runSuite } from "../runSuite";
@@ -28,7 +28,7 @@ export function run(
 
   return of(thunk(vconsole))
     .await()
-    .chain((suite: Suite) => {
+    .chain((suite: ISuite) => {
       const end = new EndSignal();
       const reports = (fromAsyncIterable(
         runSuite(
