@@ -1,5 +1,4 @@
-import { join } from "path";
-import { readFile, writeFile } from "fs-extra";
+import { readFile } from "fs-extra";
 import { tmpName } from "tmp-promise";
 import { Task, RunTaskParams, Report } from "../../../interfaces";
 import { implForRunner } from "./implForRunner";
@@ -18,7 +17,6 @@ export class RunTask implements Task {
       [CliArgKey.QUIET]: quiet,
       [CliArgKey.OUTPUT_FORMAT]: format = StreamFormat.TAP,
       [CliArgKey.BUNDLE_FILE]: outFileParam,
-      [CliArgKey.COVERAGE]: coverage,
       [CliArgKey.HIDE_SKIPS]: hideSkips = "focus",
       [CliArgKey.FAIL_FAST]: failFast = true,
     }: RunTaskParams = params;
@@ -69,14 +67,6 @@ export class RunTask implements Task {
 
       if (failed && failFast) {
         break;
-      }
-
-      if (coverage != null && typeof global["__coverage__"] !== "undefined") {
-        await writeFile(
-          join(".nyc_output", "out.json"),
-          JSON.stringify(global["__coverage__"]),
-          "utf-8",
-        );
       }
     }
 

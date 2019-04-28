@@ -11,8 +11,8 @@
     "build": "rollup -c ./rollup.config.js",
     "build:framework": "rollup -c ./rollup.framework.config.js",
     "build:runner:remote": "rollup -c rollup.runner-remote.config.js",
-    "test": "node ./cli.js",
-    "cover": "nyc --reporter=lcov node ./cli.js",
+    "test": "./cli.js",
+    "cover": "nyc --reporter=lcov node ./cli.js --runner=isolate",
     "lint": "eslint src spec --ext=.ts"
   },
   "types": "",
@@ -45,7 +45,7 @@
     "jsdom": "^15.0.0",
     "most": "^1.7.3",
     "most-async-iterable": "^1.0.1",
-    "nyc": "^13.1.0",
+    "nyc": "^14.0.0",
     "prettier": "^1.16.4",
     "rollup": "^1.6.0",
     "rollup-plugin-babel": "^4.0.3",
@@ -73,6 +73,7 @@
   },
   "nyc": {
     "instrument": false,
-    "include": "src/**"
+    "include": "src/**",
+    "extension": [".ts",".js"]
   }
 }
