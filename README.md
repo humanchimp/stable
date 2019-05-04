@@ -19,6 +19,10 @@ As stated in its [LICENSE](LICENSE), use it at your own risk.
 
 ## installation
 
+    You can lead a horse to water but you can't make him drink
+
+### npm
+
 ```bash
 npm install @topl/stable --save-dev
 ```
