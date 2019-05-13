@@ -58,7 +58,7 @@
     "seedrandom": "^3.0.1",
     "sinon": "^7.2.2",
     "sorcery": "^0.10.0",
-    "tmp-promise": "^1.0.5",
+    "tmp-promise": "^2.0.0",
     "tslib": "^1.9.3",
     "typescript": "^3.2.2",
     "ws": "^7.0.0"
