@@ -51,7 +51,7 @@
     "rollup-plugin-babel": "^4.0.3",
     "rollup-plugin-commonjs": "^9.2.0",
     "rollup-plugin-multi-entry": "^2.1.0",
-    "rollup-plugin-node-resolve": "^4.0.1",
+    "rollup-plugin-node-resolve": "^5.0.0",
     "rollup-plugin-typescript": "^1.0.0",
     "rollup-plugin-virtual": "^1.0.1",
     "rollup-pluginutils": "^2.4.1",
