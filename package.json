@@ -79,6 +79,6 @@
     ]
   },
   "devDependencies": {
-    "tmp-promise": "^1.1.0"
+    "tmp-promise": "^2.0.1"
   }
 }
