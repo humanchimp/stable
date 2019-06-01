@@ -2,6 +2,7 @@ import { expect } from "chai";
 import { stablercsForSpecs } from "../../../src/cli/stablerc/stablercsForSpecs";
 import { StablercMatch } from "../../../src/interfaces";
 import { join } from "path";
+import { StablercFile } from "../../../src/cli/stablerc/StablercFile";
 
 describe("stablercsForSpecs", () => {
   const specs = ["spec/framework/Suite.ts", "spec/framework/Spec.ts"];
@@ -38,5 +39,12 @@ describe("stablercsForSpecs", () => {
       ],
       runners: ["isolate", "chrome", "jsdom"],
     });
+  });
+
+  it("should load an empty stablerc file when none exists", async () => {
+    const fictitious = await stablercsForSpecs(["/dev/null"]);
+
+    expect(fictitious).to.have.lengthOf(1);
+    expect(fictitious.get(undefined).config).to.be.instanceOf(StablercFile);
   });
 });
