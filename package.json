@@ -13,7 +13,8 @@
     "build:runner:remote": "rollup -c rollup.runner-remote.config.js",
     "test": "./cli.js",
     "cover": "nyc --reporter=lcov node ./cli.js --runner=isolate",
-    "lint": "eslint src spec --ext=.ts"
+    "lint": "eslint src spec --ext=.ts",
+    "prepublishOnly": "yarn build && yarn build:framework && yarn build:runner:remote"
   },
   "types": "",
   "dependencies": {
