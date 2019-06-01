@@ -713,11 +713,6 @@
   resolved "https://registry.yarnpkg.com/@topl/stable-plugin-fixture/-/stable-plugin-fixture-0.5.1.tgz#bab02d413ed5063fe16e9d5f5f483be966d73905"
   integrity sha512-ypxVeniZprGYzhx+IeQeeBCrHE8NMAqc7dYDMedVqtSe0LgB79RTvwqtPuoVQkobIu3tMSyhwGzPoeHhxaaJ3w==
 
-"@topl/stable-plugin-rescue@^0.5.0":
-  version "0.5.5"
-  resolved "https://registry.yarnpkg.com/@topl/stable-plugin-rescue/-/stable-plugin-rescue-0.5.5.tgz#71fd1263593548d751362beba4471be1bc1d8304"
-  integrity sha512-noaNsGsUC3CHqCSbE9C4iRG/Zju59EWYlqXRpMJvLO/ZcV4+dB8DeSde4tXfBBO2/rYLf06/IqxhioIgOoKhNw==
-
 "@topl/stable-plugin-timing@^0.5.0":
   version "0.5.5"
   resolved "https://registry.yarnpkg.com/@topl/stable-plugin-timing/-/stable-plugin-timing-0.5.5.tgz#090727b586d93e43e6171266b473f2f70741a442"

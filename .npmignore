@@ -13,3 +13,5 @@ cloudbuild.yaml
 yarn.lock
 script
 src
+CODE_OF_CONDUCT.md
+yarn-error.log

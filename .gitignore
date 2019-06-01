@@ -11,3 +11,4 @@ stable-bundle.js.map
 cli-impl.js
 script
 dist
+yarn-error.log

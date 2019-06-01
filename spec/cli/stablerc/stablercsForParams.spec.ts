@@ -27,6 +27,12 @@ describe("stablercsForParams(params: StablercTaskParams): Promise<Map<string, St
           [CliArgKey.REST]: [],
         },
       ],
+      [
+        {
+          [CliArgKey.WORKING_DIRECTORY]: "/dev/null",
+          [CliArgKey.REST]: [],
+        },
+      ],
     ],
     ([params]) => {
       beforeEach(async () => {

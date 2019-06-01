@@ -1,6 +1,6 @@
 {
   "name": "@topl/stable",
-  "version": "0.5.15",
+  "version": "0.5.21",
   "description": "yet another test framework",
   "main": "cli.js",
   "author": "Lil Thorny <hi@lilthorny.party>",
@@ -25,7 +25,6 @@
     "@babel/traverse": "^7.2.3",
     "@babel/types": "^7.2.2",
     "@topl/stable-plugin-fixture": "^0.5.0",
-    "@topl/stable-plugin-rescue": "^0.5.0",
     "@topl/stable-plugin-timing": "^0.5.0",
     "@types/chai": "^4.1.7",
     "@types/sinon": "^7.0.2",
@@ -58,6 +57,7 @@
     "seedrandom": "^3.0.1",
     "sinon": "^7.2.2",
     "sorcery": "^0.10.0",
+    "tmp-promise": "^2.0.1",
     "tslib": "^1.9.3",
     "typescript": "^3.2.2",
     "ws": "^7.0.0"
@@ -77,8 +77,5 @@
       ".ts",
       ".js"
     ]
-  },
-  "devDependencies": {
-    "tmp-promise": "^2.0.1"
   }
 }

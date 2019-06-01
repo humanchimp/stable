@@ -14,6 +14,18 @@ afterEach(() => {
   subject = undefined;
 });
 
+describe("StablercChain.empty()", () => {
+  let subject: StablercChain;
+
+  beforeEach(() => {
+    subject = StablercChain.empty();
+  });
+
+  it("should have a single inheritance enty", () => {
+    expect(subject.inheritance).to.have.lengthOf(1);
+  });
+});
+
 describeEach(
   "new StablercChain()",
   [
@@ -114,5 +126,13 @@ describe("inheritance using absolute paths", () => {
 
   it("should work", () => {
     console.log("subject", subject);
+  });
+});
+
+describe("attempting to load a stablerc chain that doesn't exist", () => {
+  it("should throw an error", async () => {
+    await load(".fakestablerc").catch(reason => {
+      expect(reason.message).to.contain("ENOENT");
+    });
   });
 });

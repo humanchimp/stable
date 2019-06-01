@@ -28,10 +28,13 @@ export async function stablercsForParams({
     }
 
     const entryfile = await getEntryfile(file);
-    const chain = await StablercChain.load(entryfile, {
-      plugins: false,
-      cwd,
-    });
+    const chain =
+      entryfile === undefined
+        ? StablercChain.empty()
+        : await StablercChain.load(entryfile, {
+            plugins: false,
+            cwd,
+          });
     const { document: entry } = chain.flat();
     const [batch, include] = await Promise.all([
       glob(entry.include, { cwd, absolute: true }),

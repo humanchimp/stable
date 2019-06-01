@@ -11,6 +11,23 @@ import { StablercFile as SimpleStablercFile } from "./StablercFile";
 import { isAbsolute, join, dirname } from "path";
 
 export class StablercChain implements StablercChainInterface {
+  static empty(cwd = process.cwd()) {
+    return new StablercChain({
+      inheritance: [
+        {
+          filename: join(cwd, "(implicit).stablerc.yml"),
+          file: new SimpleStablercFile({
+            document: {
+              include: ["./**/*.spec.{ts,js}"],
+              exclude: ["./node_modules/**"],
+              runners: ["eval"],
+            },
+          }),
+        },
+      ],
+    });
+  }
+
   static loadAll = loadAll;
 
   static load = load;
