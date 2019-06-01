@@ -367,12 +367,12 @@ export class Suite implements SuiteInterface {
 
       if (!poisoned.has(instance)) {
         try {
-          yield* await instance.runSpec(spec);
+          yield* instance.runSpec(spec);
         } catch (_) {
           poisoned.add(instance);
         }
       }
-      yield* await this.countSpec(counted, suite);
+      yield* this.countSpec(counted, suite);
     }
   }
 
@@ -393,16 +393,16 @@ export class Suite implements SuiteInterface {
   }
 
   async *runSpec(spec: SpecInterface): AsyncIterableIterator<Report> {
-    yield* await this.open();
+    yield* this.open();
     if (!spec.skipped) {
       for (const effect of this.computedHooks.beforeEach) {
-        yield* await this.runHook({ name: "beforeEach", effect }, spec);
+        yield* this.runHook({ name: "beforeEach", effect }, spec);
       }
     }
     yield this.reportForSpec(spec);
     if (!spec.skipped) {
       for (const effect of this.computedHooks.afterEach) {
-        yield* await this.runHook({ name: "afterEach", effect }, spec);
+        yield* this.runHook({ name: "afterEach", effect }, spec);
       }
     }
   }
@@ -412,10 +412,10 @@ export class Suite implements SuiteInterface {
       return;
     }
     if (this.parent) {
-      yield* await this.parent.open();
+      yield* this.parent.open();
     }
     for (const hook of this.hooks.run("beforeAll")) {
-      yield* await this.runHook(hook, this);
+      yield* this.runHook(hook, this);
     }
     this.opened = true;
     this.computeHooks();
@@ -426,7 +426,7 @@ export class Suite implements SuiteInterface {
       return;
     }
     for (const hook of this.hooks.run("afterAll")) {
-      yield* await this.runHook(hook, this);
+      yield* this.runHook(hook, this);
     }
     this.opened = false;
   }
@@ -516,7 +516,7 @@ export class Suite implements SuiteInterface {
   ) {
     for (const s of suite.andParents()) {
       if (inc(counted, s, -1) === 0) {
-        yield* await s.close();
+        yield* s.close();
       }
     }
   }
