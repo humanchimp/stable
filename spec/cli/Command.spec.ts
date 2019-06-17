@@ -25,7 +25,7 @@ describeEach(
       help: string;
       emoji: string;
       default: boolean;
-    }
+    },
   ]) => {
     let subject: Command;
 

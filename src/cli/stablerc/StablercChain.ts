@@ -100,7 +100,7 @@ export async function loadAll(
         async ([filename]) =>
           [filename, await load(filename, params, files)] as [
             string,
-            StablercChain
+            StablercChain,
           ],
       ),
     ),
