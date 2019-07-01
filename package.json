@@ -1,6 +1,6 @@
 {
   "name": "@topl/stable",
-  "version": "0.5.22",
+  "version": "0.5.23",
   "description": "yet another test framework",
   "main": "cli.js",
   "author": "Lil Thorny <hi@lilthorny.party>",
