@@ -12,13 +12,17 @@ import { castValue } from "../../cli/castValue";
 declare var __coverage__: any;
 
 export async function run(suite: Suite): Promise<void> {
-  const sock = new Sock("ws://0.0.0.0:10001/ws");
+  const { searchParams } = new URL(location.href);
+  const [hostname, port] = [
+    searchParams.get("hostname"),
+    searchParams.get("port"),
+  ];
+  const sock = new Sock(`ws://${hostname}:${port}/ws`);
 
   await sock.opened;
 
   setupVconsole(suite, sock.console.bind(sock));
 
-  const { searchParams } = new URL(location.href);
   const selection = new Selection(parseSelectionParams(searchParams));
 
   for await (const message of runSuite(

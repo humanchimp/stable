@@ -21,6 +21,7 @@ export const cli = new Menu({
         CliArgKey.SORT,
         CliArgKey.ORDERED,
         CliArgKey.OUTPUT_FORMAT,
+        CliArgKey.HOSTNAME,
         CliArgKey.PORT,
         CliArgKey.COVERAGE,
         CliArgKey.HIDE_SKIPS,
@@ -216,6 +217,12 @@ export const cli = new Menu({
       help: "the port to listen on whenever stable needs an http server.",
       type: OptionType.NUMBER,
       default: 10001,
+    }),
+    new Option({
+      name: CliArgKey.HOSTNAME,
+      help: "the hostname to listen to whenever stable needs an http server.",
+      type: OptionType.STRING,
+      default: "0.0.0.0",
     }),
     new Option({
       name: CliArgKey.HEADFUL,

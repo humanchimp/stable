@@ -17,7 +17,11 @@ export function run(
   spawnParams,
   params: RunTaskParams,
 ): Stream<Message> {
-  const { [CliArgKey.PORT]: port, [CliArgKey.VERBOSE]: verbose } = params;
+  const {
+    [CliArgKey.PORT]: port,
+    [CliArgKey.HOSTNAME]: hostname,
+    [CliArgKey.VERBOSE]: verbose,
+  } = params;
   const server = createServer();
   const app = express();
 
@@ -50,7 +54,7 @@ export function run(
   start();
 
   function start() {
-    const url = new URL(`http://0.0.0.0:${port}`);
+    const url = new URL(`http://${hostname}:${port}`);
 
     url.search = `${new URLSearchParams(Object.entries(params)
       .map(([key, value]: [CliArgKey, any]) => [
